@@ -27,3 +27,4 @@ logs/
 
 # Logs
 *.log
+metric_venv/
