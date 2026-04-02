@@ -30,3 +30,4 @@ logs/
 metric_venv/
 data/raw/
 logs/*.log
+logs/
