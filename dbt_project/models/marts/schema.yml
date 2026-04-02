@@ -1,0 +1,21 @@
+version: 2
+
+models:
+  - name: fact_daily_metrics
+    description: "Daily aggregated metrics for anomaly detection"
+    columns:
+      - name: metric_date
+        tests:
+          - not_null
+      - name: total_revenue
+        tests:
+          - not_null
+
+  - name: dim_geography
+    description: "Geographic dimension for decomposition"
+
+  - name: dim_product
+    description: "Product category dimension for decomposition"
+
+  - name: dim_payment
+    description: "Payment type dimension for decomposition"

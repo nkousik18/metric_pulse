@@ -1,0 +1,32 @@
+version: 2
+
+sources:
+  - name: raw_data
+    database: dev
+    schema: raw_data
+    tables:
+      - name: orders
+      - name: order_items
+      - name: customers
+      - name: products
+      - name: sellers
+      - name: payments
+      - name: category_translation
+
+models:
+  - name: stg_orders
+    description: "Cleaned orders with date dimensions"
+    columns:
+      - name: order_id
+        tests:
+          - unique
+          - not_null
+
+  - name: stg_order_items
+    description: "Order line items with revenue calculation"
+
+  - name: stg_customers
+    description: "Customer data with location"
+
+  - name: stg_products
+    description: "Products with English category names"
