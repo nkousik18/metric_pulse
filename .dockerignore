@@ -1,0 +1,41 @@
+# Virtual environment
+metric_venv/
+venv/
+.venv/
+
+# Git
+.git/
+.github/
+
+# Data files
+data/
+logs/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE
+.vscode/
+.idea/
+
+# Environment
+.env
+.env.local
+
+# dbt
+dbt_project/target/
+dbt_project/dbt_packages/
+dbt_project/logs/
+
+# Notebooks
+notebooks/
+*.ipynb
+
+# Tests
+tests/
+
+# Docs
+*.md
+!requirements.txt
