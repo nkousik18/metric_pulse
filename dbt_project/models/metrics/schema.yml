@@ -1,0 +1,23 @@
+version: 2
+
+models:
+  - name: metric_by_geography
+    description: "Daily metrics broken down by state and region"
+    columns:
+      - name: metric_date
+        tests:
+          - not_null
+
+  - name: metric_by_product
+    description: "Daily metrics broken down by product category"
+    columns:
+      - name: metric_date
+        tests:
+          - not_null
+
+  - name: metric_by_payment
+    description: "Daily metrics broken down by payment type"
+    columns:
+      - name: metric_date
+        tests:
+          - not_null
