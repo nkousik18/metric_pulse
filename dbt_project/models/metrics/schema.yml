@@ -2,22 +2,53 @@ version: 2
 
 models:
   - name: metric_by_geography
-    description: "Daily metrics broken down by state and region"
+    description: "Daily revenue metrics broken down by state and region for root cause analysis"
     columns:
       - name: metric_date
+        description: "Date of metrics"
+        tests:
+          - not_null
+      - name: state_code
+        description: "Brazilian state code"
+        tests:
+          - not_null
+      - name: region
+        description: "Geographic region"
+      - name: total_revenue
+        description: "Sum of revenue for this segment"
         tests:
           - not_null
 
   - name: metric_by_product
-    description: "Daily metrics broken down by product category"
+    description: "Daily revenue metrics broken down by product category for root cause analysis"
     columns:
       - name: metric_date
+        description: "Date of metrics"
+        tests:
+          - not_null
+      - name: product_category
+        description: "Product category name"
+        tests:
+          - not_null
+      - name: product_category_group
+        description: "High-level category grouping"
+      - name: total_revenue
+        description: "Sum of revenue for this segment"
         tests:
           - not_null
 
   - name: metric_by_payment
-    description: "Daily metrics broken down by payment type"
+    description: "Daily revenue metrics broken down by payment type for root cause analysis"
     columns:
       - name: metric_date
+        description: "Date of metrics"
+        tests:
+          - not_null
+      - name: payment_type
+        description: "Payment method"
+        tests:
+          - not_null
+      - name: total_revenue
+        description: "Sum of revenue for this segment"
         tests:
           - not_null

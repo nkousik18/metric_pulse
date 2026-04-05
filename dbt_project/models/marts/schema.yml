@@ -2,20 +2,61 @@ version: 2
 
 models:
   - name: fact_daily_metrics
-    description: "Daily aggregated metrics for anomaly detection"
+    description: "Daily aggregated metrics for anomaly detection and reporting"
     columns:
       - name: metric_date
+        description: "Date of metrics"
+        tests:
+          - unique
+          - not_null
+      - name: order_count
+        description: "Number of orders placed"
         tests:
           - not_null
       - name: total_revenue
+        description: "Sum of order revenue in BRL"
+        tests:
+          - not_null
+      - name: avg_order_value
+        description: "Average order value in BRL"
+      - name: customer_count
+        description: "Unique customers who ordered"
+
+  - name: dim_geography
+    description: "Geographic dimension mapping states to regions"
+    columns:
+      - name: state_code
+        description: "Brazilian state code (2 letters)"
+        tests:
+          - unique
+          - not_null
+      - name: region
+        description: "Geographic region (Southeast, South, Northeast, etc.)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['Southeast', 'South', 'Northeast', 'Central-West', 'North', 'Unknown']
+
+  - name: dim_product
+    description: "Product category dimension with groupings"
+    columns:
+      - name: product_category
+        description: "Product category name"
+        tests:
+          - unique
+          - not_null
+      - name: product_category_group
+        description: "High-level category grouping"
         tests:
           - not_null
 
-  - name: dim_geography
-    description: "Geographic dimension for decomposition"
-
-  - name: dim_product
-    description: "Product category dimension for decomposition"
-
   - name: dim_payment
-    description: "Payment type dimension for decomposition"
+    description: "Payment type dimension"
+    columns:
+      - name: payment_type
+        description: "Payment method code"
+        tests:
+          - unique
+          - not_null
+      - name: payment_type_display
+        description: "Display name for payment type"
