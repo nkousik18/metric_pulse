@@ -29,7 +29,8 @@ def run_pipeline(
     metric: str = 'total_revenue',
     threshold: float = None,
     force_alert: bool = False,
-    dry_run: bool = False
+    dry_run: bool = False,
+    publish_metrics: bool = True
 ) -> Dict:
     """
     Run the full MetricPulse pipeline.
@@ -39,6 +40,7 @@ def run_pipeline(
         threshold: Z-score threshold for anomaly detection
         force_alert: Send alert even if no anomaly detected
         dry_run: Skip actual alert sending
+        publish_metrics: Publish metrics to CloudWatch
     
     Returns:
         Pipeline results
@@ -47,8 +49,10 @@ def run_pipeline(
     logger.info("METRICPULSE PIPELINE STARTED")
     logger.info("=" * 60)
     
+    start_time = datetime.now()
+    
     results = {
-        'started_at': datetime.now().isoformat(),
+        'started_at': start_time.isoformat(),
         'metric': metric,
         'status': 'running'
     }
@@ -96,6 +100,7 @@ def run_pipeline(
         
         results['status'] = 'completed'
         results['completed_at'] = datetime.now().isoformat()
+        results['duration_seconds'] = (datetime.now() - start_time).total_seconds()
         
         logger.info("=" * 60)
         logger.info("PIPELINE COMPLETED SUCCESSFULLY")
@@ -105,7 +110,16 @@ def run_pipeline(
         logger.error(f"Pipeline failed: {e}")
         results['status'] = 'failed'
         results['error'] = str(e)
-        raise
+        results['duration_seconds'] = (datetime.now() - start_time).total_seconds()
+    
+    # Publish metrics to CloudWatch
+    if publish_metrics and not dry_run:
+        try:
+            from monitoring.cloudwatch_metrics import publish_pipeline_metrics
+            publish_pipeline_metrics(results)
+            logger.info("Published metrics to CloudWatch")
+        except Exception as e:
+            logger.warning(f"Failed to publish CloudWatch metrics: {e}")
     
     return results
 
@@ -119,6 +133,7 @@ def print_summary(results: Dict):
     print(f"\nStatus: {results['status'].upper()}")
     print(f"Metric: {results['metric']}")
     print(f"Period: {results.get('previous_date', 'N/A')} → {results.get('current_date', 'N/A')}")
+    print(f"Duration: {results.get('duration_seconds', 0):.2f}s")
     
     if 'detection' in results:
         d = results['detection']
@@ -145,6 +160,7 @@ if __name__ == "__main__":
     parser.add_argument('--threshold', type=float, default=None, help='Z-score threshold')
     parser.add_argument('--force-alert', action='store_true', help='Send alert even without anomaly')
     parser.add_argument('--dry-run', action='store_true', help='Skip sending actual alert')
+    parser.add_argument('--no-metrics', action='store_true', help='Skip CloudWatch metrics')
     
     args = parser.parse_args()
     
@@ -153,7 +169,8 @@ if __name__ == "__main__":
             metric=args.metric,
             threshold=args.threshold,
             force_alert=args.force_alert,
-            dry_run=args.dry_run
+            dry_run=args.dry_run,
+            publish_metrics=not args.no_metrics
         )
         print_summary(results)
         
