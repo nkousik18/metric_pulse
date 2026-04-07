@@ -1,7 +1,3 @@
-"""
-URL routing for dashboard API.
-"""
-
 from django.urls import path
 from .views import (
     HealthCheckView,
@@ -9,7 +5,8 @@ from .views import (
     AnomalyDetectionView,
     DecompositionView,
     NarrativeView,
-    PipelineView
+    PipelineView,
+    ContactView
 )
 
 urlpatterns = [
@@ -19,4 +16,5 @@ urlpatterns = [
     path('decomposition/', DecompositionView.as_view(), name='decomposition'),
     path('narrative/', NarrativeView.as_view(), name='narrative'),
     path('pipeline/', PipelineView.as_view(), name='pipeline'),
+    path('contact/', ContactView.as_view(), name='contact'),
 ]

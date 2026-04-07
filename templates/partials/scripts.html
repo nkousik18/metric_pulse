@@ -1,0 +1,349 @@
+<script>
+    // Tab switching
+    function showTab(tabName) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.tab-btn').forEach(el => {
+            el.classList.remove('tab-active');
+            el.classList.add('opacity-80');
+        });
+        
+        document.getElementById(`content-${tabName}`).classList.remove('hidden');
+        document.getElementById(`tab-${tabName}`).classList.add('tab-active');
+        document.getElementById(`tab-${tabName}`).classList.remove('opacity-80');
+    }
+
+    // Contact form
+    async function sendContactForm() {
+        const name = document.getElementById('contact-name').value.trim();
+        const email = document.getElementById('contact-email').value.trim();
+        const message = document.getElementById('contact-message').value.trim();
+        const statusEl = document.getElementById('contact-status');
+        
+        if (!message) {
+            statusEl.innerHTML = '<p class="text-red-600">Please enter a message.</p>';
+            return;
+        }
+        
+        statusEl.innerHTML = '<p class="text-indigo-600">Sending...</p>';
+        
+        try {
+            const response = await fetch('/api/contact/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, message })
+            });
+            
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                statusEl.innerHTML = '<p class="text-green-600">✓ ' + result.message + '</p>';
+                document.getElementById('contact-name').value = '';
+                document.getElementById('contact-email').value = '';
+                document.getElementById('contact-message').value = '';
+            } else {
+                throw new Error(result.message);
+            }
+        } catch (error) {
+            statusEl.innerHTML = '<p class="text-red-600">Failed to send: ' + error.message + '</p>';
+        }
+    }
+
+    // Dashboard functionality
+    let metricsData = [];
+    let decompositionData = null;
+    let currentChart = null;
+    let selectedMetric = 'total_revenue';
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadMetrics();
+        loadAnomalies();
+        loadDecomposition();
+        loadNarrative();
+    });
+
+    function updateThresholdLabel(value) {
+        document.getElementById('threshold-label').textContent = parseFloat(value).toFixed(1) + 'σ';
+    }
+
+    async function loadMetrics() {
+        try {
+            const response = await fetch('/api/metrics/?days=60');
+            const result = await response.json();
+            
+            if (result.status === 'success' && result.data.length > 0) {
+                metricsData = result.data;
+                populateDateDropdowns(result.data);
+                
+                const latest = result.data[0];
+                const previous = result.data[1] || latest;
+                
+                updateKPIs(latest, previous);
+                drawChart(result.data.slice().reverse(), selectedMetric);
+            }
+        } catch (error) {
+            console.error('Failed to load metrics:', error);
+        }
+    }
+
+    function populateDateDropdowns(data) {
+        const currentSelect = document.getElementById('current-date');
+        const previousSelect = document.getElementById('previous-date');
+        
+        currentSelect.innerHTML = data.map((d, i) => 
+            `<option value="${d.metric_date}" ${i === 0 ? 'selected' : ''}>${d.metric_date}</option>`
+        ).join('');
+        
+        previousSelect.innerHTML = data.map((d, i) => 
+            `<option value="${d.metric_date}" ${i === 1 ? 'selected' : ''}>${d.metric_date}</option>`
+        ).join('');
+    }
+
+    function updateKPIs(latest, previous) {
+        document.getElementById('kpi-revenue').textContent = 
+            '$' + parseFloat(latest.total_revenue).toLocaleString('en-US', {minimumFractionDigits: 2});
+        const revChange = ((latest.total_revenue - previous.total_revenue) / previous.total_revenue * 100);
+        setChangeLabel('kpi-revenue-change', revChange);
+        
+        document.getElementById('kpi-orders').textContent = 
+            parseInt(latest.order_count).toLocaleString();
+        const ordChange = ((latest.order_count - previous.order_count) / previous.order_count * 100);
+        setChangeLabel('kpi-orders-change', ordChange);
+        
+        document.getElementById('kpi-aov').textContent = 
+            '$' + parseFloat(latest.avg_order_value).toFixed(2);
+        const aovChange = ((latest.avg_order_value - previous.avg_order_value) / previous.avg_order_value * 100);
+        setChangeLabel('kpi-aov-change', aovChange);
+    }
+
+    function setChangeLabel(elementId, change) {
+        const el = document.getElementById(elementId);
+        const arrow = change >= 0 ? '↑' : '↓';
+        el.textContent = `${arrow} ${Math.abs(change).toFixed(1)}%`;
+        el.className = `text-sm font-medium ${change >= 0 ? 'text-green-500' : 'text-red-500'}`;
+    }
+
+    function drawChart(data, metric) {
+        const ctx = document.getElementById('revenueChart').getContext('2d');
+        
+        if (currentChart) currentChart.destroy();
+        
+        const labels = { 'total_revenue': 'Revenue', 'order_count': 'Orders', 'avg_order_value': 'AOV' };
+        const prefix = metric === 'order_count' ? '' : '$';
+        
+        currentChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.map(d => d.metric_date),
+                datasets: [{
+                    label: labels[metric],
+                    data: data.map(d => d[metric]),
+                    borderColor: 'rgb(79, 70, 229)',
+                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 3,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        ticks: { callback: value => prefix + value.toLocaleString() }
+                    }
+                }
+            }
+        });
+        
+        document.getElementById('chart-title').textContent = labels[metric];
+    }
+
+    function setChartMetric(metric) {
+        selectedMetric = metric;
+        document.querySelectorAll('.chart-btn').forEach(btn => {
+            btn.className = btn.dataset.metric === metric 
+                ? 'chart-btn px-4 py-1.5 text-sm rounded-lg bg-indigo-100 text-indigo-700 font-medium'
+                : 'chart-btn px-4 py-1.5 text-sm rounded-lg bg-gray-100 text-gray-600';
+        });
+        drawChart(metricsData.slice().reverse(), metric);
+    }
+
+    function selectMetric(metric) {
+        document.getElementById('metric-select').value = metric;
+        setChartMetric(metric);
+    }
+
+    async function loadAnomalies() {
+        try {
+            const threshold = document.getElementById('threshold-slider').value;
+            const response = await fetch(`/api/anomalies/?threshold=${threshold}`);
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                document.getElementById('kpi-anomalies').textContent = result.data.anomaly_count;
+            }
+        } catch (error) {
+            console.error('Failed to load anomalies:', error);
+        }
+    }
+
+    async function loadDecomposition() {
+        try {
+            const currentDate = document.getElementById('current-date').value;
+            const previousDate = document.getElementById('previous-date').value;
+            
+            let url = '/api/decomposition/';
+            if (currentDate && previousDate) {
+                url += `?current_date=${currentDate}&previous_date=${previousDate}`;
+            }
+            
+            const response = await fetch(url);
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                decompositionData = result.data;
+                const dims = result.data.dimensions;
+                
+                if (dims.geography) renderBreakdown('geo-breakdown', dims.geography.top_contributors);
+                if (dims.product) renderBreakdown('product-breakdown', dims.product.top_contributors);
+                if (dims.payment) renderBreakdown('payment-breakdown', dims.payment.top_contributors);
+            }
+        } catch (error) {
+            console.error('Failed to load decomposition:', error);
+        }
+    }
+
+    function renderBreakdown(elementId, contributors) {
+        const container = document.getElementById(elementId);
+        container.innerHTML = contributors.slice(0, 5).map(c => `
+            <div>
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-sm text-gray-700">${c.segment}</span>
+                    <span class="text-sm font-semibold ${c.contribution_pct >= 0 ? 'text-green-600' : 'text-red-600'}">
+                        ${c.contribution_pct > 0 ? '+' : ''}${c.contribution_pct.toFixed(1)}%
+                    </span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                    <div class="h-2 rounded-full ${c.contribution_pct >= 0 ? 'bg-green-500' : 'bg-red-500'}" 
+                         style="width: ${Math.min(Math.abs(c.contribution_pct), 100)}%"></div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function toggleDrilldown(dimension) {
+        const drilldown = document.getElementById(`${dimension}-drilldown`);
+        const toggle = document.getElementById(`${dimension}-toggle`);
+        
+        if (drilldown.classList.contains('hidden')) {
+            drilldown.classList.remove('hidden');
+            toggle.textContent = 'Hide ▲';
+        } else {
+            drilldown.classList.add('hidden');
+            toggle.textContent = 'Details ▼';
+        }
+    }
+
+    async function loadNarrative() {
+        try {
+            const currentDate = document.getElementById('current-date').value;
+            const previousDate = document.getElementById('previous-date').value;
+            
+            let url = '/api/narrative/';
+            if (currentDate && previousDate) {
+                url += `?current_date=${currentDate}&previous_date=${previousDate}`;
+            }
+            
+            const response = await fetch(url);
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                document.getElementById('narrative').innerHTML = 
+                    result.data.full.replace(/\*\*/g, '').replace(/\n/g, '<br>');
+            }
+        } catch (error) {
+            console.error('Failed to load narrative:', error);
+        }
+    }
+
+    function applyFilters() {
+        loadDecomposition();
+        loadNarrative();
+        loadAnomalies();
+        
+        const currentDate = document.getElementById('current-date').value;
+        const previousDate = document.getElementById('previous-date').value;
+        
+        const current = metricsData.find(d => d.metric_date === currentDate);
+        const previous = metricsData.find(d => d.metric_date === previousDate);
+        
+        if (current && previous) updateKPIs(current, previous);
+    }
+
+    function resetFilters() {
+        document.getElementById('threshold-slider').value = 2;
+        document.getElementById('threshold-label').textContent = '2.0σ';
+        document.getElementById('metric-select').value = 'total_revenue';
+        
+        if (metricsData.length >= 2) {
+            document.getElementById('current-date').value = metricsData[0].metric_date;
+            document.getElementById('previous-date').value = metricsData[1].metric_date;
+        }
+        
+        setChartMetric('total_revenue');
+        applyFilters();
+    }
+
+    function refreshData() {
+        loadMetrics();
+        loadAnomalies();
+        loadDecomposition();
+        loadNarrative();
+    }
+
+    function copyNarrative() {
+        const narrative = document.getElementById('narrative').innerText;
+        navigator.clipboard.writeText(narrative).then(() => alert('Copied to clipboard!'));
+    }
+
+    function downloadNarrative() {
+        const narrative = document.getElementById('narrative').innerText;
+        const blob = new Blob([narrative], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'metricpulse-analysis.txt';
+        a.click();
+    }
+
+    async function runPipeline(forceAlert) {
+        const statusEl = document.getElementById('pipeline-status');
+        statusEl.textContent = 'Running pipeline...';
+        statusEl.className = 'mt-4 text-indigo-600';
+        
+        try {
+            const metric = document.getElementById('metric-select').value;
+            
+            const response = await fetch('/api/pipeline/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ metric, force_alert: forceAlert, dry_run: !forceAlert })
+            });
+            
+            const result = await response.json();
+            
+            if (result.status === 'success') {
+                statusEl.textContent = `Completed in ${result.data.duration_seconds.toFixed(2)}s | Alert: ${result.data.alert_status}`;
+                statusEl.className = 'mt-4 text-green-600';
+                refreshData();
+            } else {
+                throw new Error(result.message);
+            }
+        } catch (error) {
+            statusEl.textContent = `Failed: ${error.message}`;
+            statusEl.className = 'mt-4 text-red-600';
+        }
+    }
+</script>

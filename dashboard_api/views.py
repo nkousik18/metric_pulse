@@ -164,3 +164,43 @@ class PipelineView(APIView):
                 'status': 'error',
                 'message': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class ContactView(APIView):
+    """Send contact email."""
+    
+    def post(self, request):
+        try:
+            name = request.data.get('name', 'Anonymous')
+            email = request.data.get('email', 'Not provided')
+            message = request.data.get('message', '')
+            
+            if not message:
+                return Response({
+                    'status': 'error',
+                    'message': 'Message is required'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # For now, just log it (we'll add email sending for production)
+            print(f"Contact Form Submission:")
+            print(f"From: {name} ({email})")
+            print(f"Message: {message}")
+            
+            # You can enable actual email sending by uncommenting below
+            # from django.core.mail import send_mail
+            # send_mail(
+            #     subject=f'MetricPulse Contact: {name}',
+            #     message=f'From: {name}\nEmail: {email}\n\nMessage:\n{message}',
+            #     from_email=None,
+            #     recipient_list=['nandury.k@northeastern.edu'],
+            # )
+            
+            return Response({
+                'status': 'success',
+                'message': 'Message received! I will get back to you soon.'
+            })
+        except Exception as e:
+            return Response({
+                'status': 'error',
+                'message': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

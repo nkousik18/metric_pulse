@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: metricpulse
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn metric_pulse_web.wsgi:application --bind 0.0.0.0:$PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_DEBUG
+        value: false

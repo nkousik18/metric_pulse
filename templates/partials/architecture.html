@@ -1,0 +1,188 @@
+<div id="content-architecture" class="tab-content hidden">
+    <main class="container mx-auto p-6">
+        <!-- Problem Section -->
+        <div class="bg-white rounded-xl shadow-sm p-8 mb-6 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">The Problem</h2>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <p class="text-gray-600 text-lg leading-relaxed">
+                        <strong>"Revenue dropped 15% yesterday — why?"</strong>
+                    </p>
+                    <p class="text-gray-600 mt-4">
+                        Every analyst has heard this question. The typical answer takes <span class="text-red-600 font-bold">2+ hours</span>:
+                    </p>
+                    <ul class="mt-4 space-y-2 text-gray-600">
+                        <li>• Pull data from multiple systems</li>
+                        <li>• Slice by region, product, channel</li>
+                        <li>• Build spreadsheets manually</li>
+                        <li>• Write email explaining findings</li>
+                    </ul>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-6">
+                    <h4 class="font-semibold text-gray-800 mb-3">Impact</h4>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span>Time spent on root cause analysis</span>
+                                <span class="text-red-600 font-medium">2-4 hours</span>
+                            </div>
+                            <div class="w-full bg-red-200 rounded-full h-2">
+                                <div class="bg-red-500 h-2 rounded-full" style="width: 85%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span>Manual, repetitive work</span>
+                                <span class="text-red-600 font-medium">High</span>
+                            </div>
+                            <div class="w-full bg-red-200 rounded-full h-2">
+                                <div class="bg-red-500 h-2 rounded-full" style="width: 90%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span>Leadership waiting for answers</span>
+                                <span class="text-red-600 font-medium">Always</span>
+                            </div>
+                            <div class="w-full bg-red-200 rounded-full h-2">
+                                <div class="bg-red-500 h-2 rounded-full" style="width: 95%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Solution Section -->
+        <div class="bg-white rounded-xl shadow-sm p-8 mb-6 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">The Solution</h2>
+            <p class="text-gray-600 text-lg mb-6">
+                MetricPulse automates the entire root cause analysis workflow — from detection to explanation — in <span class="text-green-600 font-bold">under 30 seconds</span>.
+            </p>
+            <div class="grid md:grid-cols-4 gap-4">
+                <div class="text-center p-4 bg-indigo-50 rounded-lg">
+                    <h4 class="font-semibold mt-2">Detect</h4>
+                    <p class="text-sm text-gray-600">Anomaly detection using Z-score analysis</p>
+                </div>
+                <div class="text-center p-4 bg-indigo-50 rounded-lg">
+                    <h4 class="font-semibold mt-2">Decompose</h4>
+                    <p class="text-sm text-gray-600">Break down by geography, product, payment</p>
+                </div>
+                <div class="text-center p-4 bg-indigo-50 rounded-lg">
+                    <h4 class="font-semibold mt-2">Explain</h4>
+                    <p class="text-sm text-gray-600">Generate plain-English narrative</p>
+                </div>
+                <div class="text-center p-4 bg-indigo-50 rounded-lg">
+                    <h4 class="font-semibold mt-2">Alert</h4>
+                    <p class="text-sm text-gray-600">Proactive email before anyone asks</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Architecture Diagram -->
+        <div class="bg-white rounded-xl shadow-sm p-8 mb-6 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">System Architecture</h2>
+            <div class="bg-gray-900 text-green-400 rounded-lg p-6 font-mono text-sm overflow-x-auto">
+<pre>
+┌─────────────────────────────────────────────────────────────────────┐
+│                         DATA INGESTION                              │
+│  Kaggle Dataset → S3 (raw/) → Redshift (raw_data schema)           │
+│  451K rows, 7 tables                                                │
+└─────────────────────────────────────────────────────────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                      dbt TRANSFORMATION                             │
+│  staging/          marts/              metrics/                     │
+│  • stg_orders      • fact_daily_metrics • metric_by_geography      │
+│  • stg_order_items • dim_geography      • metric_by_product        │
+│  • stg_customers   • dim_product        • metric_by_payment        │
+│  • stg_products    • dim_payment                                   │
+│                                                                     │
+│  11 models │ 37 automated tests │ 100% pass rate                   │
+└─────────────────────────────────────────────────────────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                     DETECTION + ANALYSIS                            │
+│  Anomaly Detector ──→ Decomposer ──→ Narrative Generator           │
+│  (Z-score)            (3 dimensions)   (Jinja2 templates)          │
+│                                                                     │
+│  Pipeline execution: < 5 seconds                                   │
+└─────────────────────────────────────────────────────────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                        DELIVERY LAYER                               │
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐            │
+│  │  SNS Email  │    │ Django API  │    │  Dashboard  │            │
+│  │   Alerts    │    │ 6 endpoints │    │ Interactive │            │
+│  └─────────────┘    └─────────────┘    └─────────────┘            │
+└─────────────────────────────────────────────────────────────────────┘
+</pre>
+            </div>
+        </div>
+
+        <!-- Tech Stack -->
+        <div class="bg-white rounded-xl shadow-sm p-8 mb-6 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">Tech Stack</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="tech-card bg-gray-50 rounded-lg p-4 text-center border border-gray-200">
+                    <h4 class="font-semibold">Python</h4>
+                    <p class="text-xs text-gray-500">Core Language</p>
+                </div>
+                <div class="tech-card bg-gray-50 rounded-lg p-4 text-center border border-gray-200">
+                    <h4 class="font-semibold">AWS</h4>
+                    <p class="text-xs text-gray-500">S3, Redshift, Lambda, SNS</p>
+                </div>
+                <div class="tech-card bg-gray-50 rounded-lg p-4 text-center border border-gray-200">
+                    <h4 class="font-semibold">dbt</h4>
+                    <p class="text-xs text-gray-500">Data Transformation</p>
+                </div>
+                <div class="tech-card bg-gray-50 rounded-lg p-4 text-center border border-gray-200">
+                    <h4 class="font-semibold">Django</h4>
+                    <p class="text-xs text-gray-500">REST API + UI</p>
+                </div>
+                <div class="tech-card bg-gray-50 rounded-lg p-4 text-center border border-gray-200">
+                    <h4 class="font-semibold">Docker</h4>
+                    <p class="text-xs text-gray-500">Containerization</p>
+                </div>
+                <div class="tech-card bg-gray-50 rounded-lg p-4 text-center border border-gray-200">
+                    <h4 class="font-semibold">GitHub Actions</h4>
+                    <p class="text-xs text-gray-500">CI/CD Pipeline</p>
+                </div>
+                <div class="tech-card bg-gray-50 rounded-lg p-4 text-center border border-gray-200">
+                    <h4 class="font-semibold">Chart.js</h4>
+                    <p class="text-xs text-gray-500">Visualization</p>
+                </div>
+                <div class="tech-card bg-gray-50 rounded-lg p-4 text-center border border-gray-200">
+                    <h4 class="font-semibold">Tailwind CSS</h4>
+                    <p class="text-xs text-gray-500">Styling</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Metrics -->
+        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl shadow-sm p-8 text-white">
+            <h2 class="text-2xl font-bold mb-6">Key Metrics</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div class="text-center">
+                    <div class="text-4xl font-bold">451K</div>
+                    <div class="text-indigo-200 text-sm">Rows Processed</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-4xl font-bold">37</div>
+                    <div class="text-indigo-200 text-sm">Automated Tests</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-4xl font-bold">&lt;5s</div>
+                    <div class="text-indigo-200 text-sm">Pipeline Speed</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-4xl font-bold">99.6%</div>
+                    <div class="text-indigo-200 text-sm">Time Saved</div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
