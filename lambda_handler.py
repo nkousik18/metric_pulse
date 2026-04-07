@@ -7,48 +7,28 @@ import json
 import logging
 from datetime import datetime
 
-# Set up logging for Lambda
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-# Import pipeline components
-from orchestration.run_pipeline import run_pipeline
-
 def handler(event, context):
-    """
-    Lambda entry point.
-    
-    Triggered by:
-    - EventBridge scheduled rule (daily)
-    - Manual invocation
-    - API Gateway (optional)
-    
-    Args:
-        event: Lambda event payload
-        context: Lambda context object
-    
-    Returns:
-        Response dict with status and results
-    """
+    """Lambda entry point."""
     logger.info(f"MetricPulse Lambda triggered at {datetime.now().isoformat()}")
     logger.info(f"Event: {json.dumps(event)}")
     
-    # Extract parameters from event
+    # Import here to avoid cold start issues
+    from orchestration.run_pipeline import run_pipeline
+    
     metric = event.get('metric', 'total_revenue')
-    threshold = event.get('threshold', None)
     force_alert = event.get('force_alert', False)
     dry_run = event.get('dry_run', False)
     
     try:
-        # Run pipeline
         results = run_pipeline(
             metric=metric,
-            threshold=threshold,
             force_alert=force_alert,
-            dry_run=dry_run
+            dry_run=dry_run,
+            publish_metrics=False
         )
-        
-        logger.info(f"Pipeline completed: {results['status']}")
         
         return {
             'statusCode': 200,
@@ -61,27 +41,9 @@ def handler(event, context):
                 'executed_at': datetime.now().isoformat()
             })
         }
-        
     except Exception as e:
         logger.error(f"Pipeline failed: {str(e)}")
-        
         return {
             'statusCode': 500,
-            'body': json.dumps({
-                'status': 'error',
-                'error': str(e),
-                'executed_at': datetime.now().isoformat()
-            })
+            'body': json.dumps({'status': 'error', 'error': str(e)})
         }
-
-
-# For local testing
-if __name__ == "__main__":
-    test_event = {
-        'metric': 'total_revenue',
-        'force_alert': False,
-        'dry_run': True
-    }
-    
-    result = handler(test_event, None)
-    print(json.dumps(json.loads(result['body']), indent=2))

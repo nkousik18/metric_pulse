@@ -31,3 +31,6 @@ metric_venv/
 data/raw/
 logs/*.log
 logs/
+lambda_package/
+lambda_deployment.zip
+output.json

@@ -1,23 +1,16 @@
-FROM python:3.12-slim
+FROM public.ecr.aws/lambda/python:3.12
 
-# Set working directory
-WORKDIR /app
-
-# Install only production dependencies
-COPY requirements-lambda.txt .
+# Copy requirements and install
+COPY requirements-lambda.txt ${LAMBDA_TASK_ROOT}/
 RUN pip install --no-cache-dir -r requirements-lambda.txt
 
-# Copy only necessary code
-COPY config/ ./config/
-COPY detection/ ./detection/
-COPY decomposition/ ./decomposition/
-COPY narrative/ ./narrative/
-COPY alerting/ ./alerting/
-COPY orchestration/ ./orchestration/
-COPY lambda_handler.py .
+# Copy application code
+COPY config/ ${LAMBDA_TASK_ROOT}/config/
+COPY detection/ ${LAMBDA_TASK_ROOT}/detection/
+COPY decomposition/ ${LAMBDA_TASK_ROOT}/decomposition/
+COPY narrative/ ${LAMBDA_TASK_ROOT}/narrative/
+COPY alerting/ ${LAMBDA_TASK_ROOT}/alerting/
+COPY orchestration/ ${LAMBDA_TASK_ROOT}/orchestration/
+COPY lambda_handler.py ${LAMBDA_TASK_ROOT}/
 
-# Lambda adapter
-COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:0.8.4 /lambda-adapter /opt/extensions/lambda-adapter
-
-ENV PORT=8080
-CMD ["python", "lambda_handler.py"]
+CMD ["lambda_handler.handler"]

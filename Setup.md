@@ -30,6 +30,9 @@ source metric_venv/bin/activate  # macOS/Linux
 
 # Install dependencies
 pip install -r requirements.txt
+
+# Install Django dependencies
+pip install django djangorestframework django-cors-headers
 ```
 
 ### requirements.txt
@@ -47,6 +50,9 @@ python-dotenv>=1.0.0
 pyyaml>=6.0.0
 pytest>=7.4.0
 dbt-redshift>=1.7.0
+django>=4.2.0
+djangorestframework>=3.14.0
+django-cors-headers>=4.3.0
 ```
 
 ---
@@ -60,23 +66,22 @@ dbt-redshift>=1.7.0
 3. Attach policies:
    - `AmazonS3FullAccess`
    - `AmazonRedshiftFullAccess`
-   - `AmazonSageMakerFullAccess`
    - `AmazonSNSFullAccess`
+   - `AWSLambda_FullAccess`
+   - `AmazonEC2ContainerRegistryFullAccess`
 4. Create access keys (CLI access)
 5. Save Access Key ID and Secret Access Key
 
 ### 3.2 Create S3 Bucket
 
 ```bash
-# After configuring .env (see Step 4)
-python ingestion/upload_to_s3.py
+aws s3 mb s3://metric-pulse-<your-name> --region us-east-1
 ```
 
-Or manually:
+Or via console:
 1. Go to **S3** → **Create bucket**
 2. Name: `metric-pulse-<your-name>`
 3. Region: `us-east-1`
-4. Keep defaults
 
 ### 3.3 Create Redshift Serverless
 
@@ -102,7 +107,14 @@ Or manually:
 ### 3.5 Create SNS Topic
 
 ```bash
-python alerting/sns_publisher.py --setup --email your@email.com
+aws sns create-topic --name metric-pulse-alerts --region us-east-1
+
+# Subscribe your email
+aws sns subscribe \
+    --topic-arn arn:aws:sns:us-east-1:<ACCOUNT_ID>:metric-pulse-alerts \
+    --protocol email \
+    --notification-endpoint your@email.com \
+    --region us-east-1
 ```
 
 Check email and confirm subscription.
@@ -123,7 +135,7 @@ AWS_SECRET_ACCESS_KEY=your_secret_key_here
 S3_BUCKET_NAME=metric-pulse-your-name
 
 # Redshift
-REDSHIFT_HOST=metric-pulse-wg.xxxx.us-east-1.redshift-serverless.amazonaws.com
+REDSHIFT_HOST=metric-pulse-wg.xxxx.us-east-2.redshift-serverless.amazonaws.com
 REDSHIFT_PORT=5439
 REDSHIFT_DATABASE=dev
 REDSHIFT_USER=admin
@@ -135,6 +147,10 @@ SNS_TOPIC_ARN=arn:aws:sns:us-east-1:xxxx:metric-pulse-alerts
 # Detection
 ANOMALY_THRESHOLD_ZSCORE=2.0
 LOOKBACK_DAYS=30
+
+# Django
+DJANGO_SECRET_KEY=your-secret-key-here
+DJANGO_DEBUG=True
 ```
 
 ---
@@ -163,16 +179,6 @@ LOOKBACK_DAYS=30
 
 ```bash
 python ingestion/upload_to_s3.py
-```
-
-Expected output:
-```
-UPLOAD SUMMARY
-==================================================
-Successful: 7
-  ✓ olist_orders_dataset.csv
-  ✓ olist_order_items_dataset.csv
-  ...
 ```
 
 ### 6.2 Create Redshift Tables
@@ -210,7 +216,7 @@ dbt_project:
   outputs:
     dev:
       type: redshift
-      host: metric-pulse-wg.xxxx.us-east-1.redshift-serverless.amazonaws.com
+      host: metric-pulse-wg.xxxx.us-east-2.redshift-serverless.amazonaws.com
       port: 5439
       user: admin
       password: "your_password_here"
@@ -235,26 +241,102 @@ Expected: `All checks passed!`
 dbt run
 ```
 
-Expected: All models succeed.
-
 ### 7.4 Run Tests
 
 ```bash
 dbt test
 ```
 
+Expected: 37 tests pass.
+
 ---
 
-## Step 8: Test Pipeline
+## Step 8: Run the Application
 
-### 8.1 Dry Run
+### Option A: Django UI (Recommended)
 
 ```bash
 cd /path/to/metric_pulse
+
+# Run migrations (first time only)
+python manage.py migrate
+
+# Start Django server
+python manage.py runserver
+```
+
+Open: **http://127.0.0.1:8000**
+
+#### Django UI Features:
+- **Date selectors** — Choose current and comparison dates
+- **Metric dropdown** — Switch between Revenue, Orders, AOV
+- **Anomaly threshold slider** — Adjust Z-score sensitivity
+- **Interactive chart** — Click to select dates, toggle metrics
+- **Drill-down panels** — Expand Geography, Product, Payment breakdowns
+- **Copy/Download narrative** — Export analysis
+- **Pipeline trigger** — Run analysis with one click
+
+#### Django API Endpoints:
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/health/` | GET | Health check |
+| `/api/metrics/` | GET | Daily metrics data |
+| `/api/anomalies/` | GET | Anomaly detection results |
+| `/api/decomposition/` | GET | Segment contribution analysis |
+| `/api/narrative/` | GET | Plain-English explanation |
+| `/api/pipeline/` | POST | Trigger full pipeline |
+
+Example API call:
+```bash
+curl http://127.0.0.1:8000/api/metrics/?days=30
+```
+
+### Option B: Streamlit Dashboard
+
+```bash
+streamlit run dashboard/app.py
+```
+
+Open: **http://localhost:8501**
+
+### Option C: Command Line Pipeline
+
+```bash
+# Dry run (no alert sent)
+python orchestration/run_pipeline.py --dry-run
+
+# Full run with alert
+python orchestration/run_pipeline.py --force-alert
+```
+
+---
+
+## Step 9: Test Pipeline
+
+### 9.1 Dry Run
+
+```bash
 python orchestration/run_pipeline.py --dry-run
 ```
 
-### 8.2 Full Run with Alert
+Expected output:
+```
+============================================================
+METRICPULSE PIPELINE SUMMARY
+============================================================
+Status: COMPLETED
+Metric: total_revenue
+Period: 2018-08-29 → 2018-09-03
+Duration: 3.04s
+Anomaly Detection:
+  Days analyzed: 30
+  Anomalies found: 0
+Summary:
+  Total Revenue decreased 90.6% on 2018-09-03. Primary driver: Credit Card (payment) contributed 106.6% of the change.
+Alert Status: skipped
+```
+
+### 9.2 Full Run with Alert
 
 ```bash
 python orchestration/run_pipeline.py --force-alert
@@ -264,21 +346,17 @@ Check your email for the alert.
 
 ---
 
-## Step 9: Launch Dashboard
-
-```bash
-streamlit run dashboard/app.py
-```
-
-Opens at: http://localhost:8501
-
----
-
 ## Quick Reference Commands
 
 ```bash
 # Activate environment
 source metric_venv/bin/activate
+
+# Run Django UI
+python manage.py runserver
+
+# Run Streamlit dashboard
+streamlit run dashboard/app.py
 
 # Run dbt models
 cd dbt_project && dbt run
@@ -292,22 +370,83 @@ python orchestration/run_pipeline.py --dry-run
 # Run pipeline (with alert)
 python orchestration/run_pipeline.py --force-alert
 
-# Launch dashboard
-streamlit run dashboard/app.py
+# Run unit tests
+pytest tests/ -v
+```
 
-# Test individual components
-python detection/anomaly_detector.py
-python decomposition/decomposer.py
-python narrative/generator.py
+---
+
+## Project Structure
+
+```
+metric_pulse/
+├── config/
+│   ├── logging_config.py
+│   └── settings.py
+├── ingestion/
+│   ├── upload_to_s3.py
+│   ├── s3_to_redshift.py
+│   └── setup_redshift_tables.py
+├── dbt_project/
+│   ├── models/staging/
+│   ├── models/marts/
+│   └── models/metrics/
+├── detection/
+│   └── anomaly_detector.py
+├── decomposition/
+│   └── decomposer.py
+├── narrative/
+│   └── generator.py
+├── alerting/
+│   └── sns_publisher.py
+├── orchestration/
+│   └── run_pipeline.py
+├── monitoring/
+│   └── cloudwatch_metrics.py
+├── dashboard_api/          # Django REST API
+│   ├── views.py
+│   └── urls.py
+├── metric_pulse_web/       # Django settings
+│   ├── settings.py
+│   └── urls.py
+├── templates/
+│   └── index.html          # Django UI
+├── dashboard/
+│   └── app.py              # Streamlit UI
+├── deploy/
+│   ├── deploy_lambda.sh
+│   └── setup_lambda.sh
+├── tests/
+├── .github/workflows/
+│   ├── ci.yml
+│   └── cd.yml
+├── Dockerfile
+├── lambda_handler.py
+├── manage.py               # Django entry point
+├── .env
+└── requirements.txt
 ```
 
 ---
 
 ## Troubleshooting
 
+### Django won't start
+```bash
+# Check if port 8000 is in use
+lsof -i :8000
+
+# Kill process if needed
+kill -9 <PID>
+
+# Or use different port
+python manage.py runserver 8080
+```
+
 ### Connection Timeout to Redshift
 - Check security group allows your IP on port 5439
 - Verify "Publicly accessible" is enabled
+- Confirm your IP hasn't changed
 
 ### dbt Connection Failed
 - Verify password in `~/.dbt/profiles.yml`
@@ -318,9 +457,9 @@ python narrative/generator.py
 - Check spam folder
 - Verify SNS_TOPIC_ARN in .env
 
-### S3 Upload Fails
-- Verify AWS credentials in .env
-- Check bucket name is unique globally
+### API returns empty data
+- Check Redshift connection in .env
+- Verify dbt models have run: `cd dbt_project && dbt run`
 
 ---
 
@@ -333,62 +472,20 @@ python narrative/generator.py
 | Redshift Serverless | ~2-4 hrs/day | $1-4/day |
 | S3 | 50MB storage | $0.02/month |
 | SNS | <100 emails | Free |
+| Lambda | <1M requests | Free tier |
 
 ### Cost Saving Tips
 
 1. **Pause Redshift** when not using (auto-pauses after idle)
 2. **Set billing alert** at $10/month
-3. **Delete resources** when project complete:
-   ```bash
-   # Delete S3 bucket
-   aws s3 rb s3://metric-pulse-your-name --force
-   
-   # Delete Redshift workgroup (via console)
-   # Delete SNS topic (via console)
-   ```
+3. **Delete resources** when project complete
 
 ---
 
-## Project Structure
+## Next Steps
 
-```
-metric_pulse/
-├── config/
-│   ├── logging_config.py    # Centralized logging
-│   └── settings.py          # Environment variables
-├── ingestion/
-│   ├── upload_to_s3.py      # S3 upload
-│   ├── s3_to_redshift.py    # Redshift loading
-│   └── setup_redshift_tables.py
-├── dbt_project/
-│   ├── models/
-│   │   ├── staging/         # Cleaned views
-│   │   ├── marts/           # Fact & dimension tables
-│   │   └── metrics/         # Decomposition tables
-│   └── tests/               # Data quality tests
-├── detection/
-│   └── anomaly_detector.py  # Z-score detection
-├── decomposition/
-│   └── decomposer.py        # Segment analysis
-├── narrative/
-│   └── generator.py         # Text generation
-├── alerting/
-│   └── sns_publisher.py     # Email alerts
-├── orchestration/
-│   └── run_pipeline.py      # Main pipeline
-├── dashboard/
-│   └── app.py               # Streamlit UI
-├── .env                     # Configuration (git-ignored)
-├── requirements.txt
-└── README.md
-```
-
----
-
-## Next Steps After Setup
-
-1. **Customize thresholds**: Adjust `ANOMALY_THRESHOLD_ZSCORE` in .env
-2. **Add metrics**: Extend to order_count, avg_order_value
-3. **Schedule runs**: Set up cron or Airflow
-4. **Add Slack**: Integrate Slack webhook for alerts
-5. **Deploy**: Consider AWS Lambda or ECS for production
+1. **Run the Django UI** and explore all features
+2. **Customize thresholds** — Adjust Z-score in `.env` or UI
+3. **Deploy to Lambda** — Complete serverless deployment
+4. **Add Slack integration** — Webhook-based alerts
+5. **Schedule runs** — Set up EventBridge for daily execution
