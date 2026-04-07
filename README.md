@@ -1,147 +1,308 @@
-# MetricPulse — Automated Root Cause Analysis Engine
+# MetricPulse
 
-## What It Does
+**Automated Root Cause Analysis Engine**
 
-When a business metric moves unexpectedly, MetricPulse automatically identifies *which segment* drove the change and delivers a plain-English explanation — before anyone asks.
+When business metrics move unexpectedly, MetricPulse automatically identifies what drove the change — before anyone asks.
 
-**Problem:** "Revenue dropped 11% yesterday — why?" → Analyst spends 2-4 hours slicing data manually.
+🔗 **Live Demo:** [metricpulse-h9lu.onrender.com](https://metricpulse-h9lu.onrender.com)
 
-**Solution:** MetricPulse detects the anomaly, decomposes it across dimensions (region, product, payment type), and delivers the answer in seconds via email alert.
+---
+
+## The Problem
+
+Every analyst has heard: *"Revenue dropped 15% yesterday — why?"*
+
+The typical answer takes **2-4 hours**:
+- Pull data from multiple systems
+- Slice by region, product, channel
+- Build spreadsheets manually
+- Write email explaining findings
+
+## The Solution
+
+MetricPulse automates the entire workflow in **under 30 seconds**:
+- **Detect** — Statistical anomaly detection using Z-score analysis
+- **Decompose** — Break down changes across geography, product, and payment dimensions
+- **Explain** — Generate plain-English narrative automatically
+- **Alert** — Proactive email via AWS SNS before anyone asks
+
+---
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                         DATA INGESTION                              │
+│  Kaggle Dataset → S3 (raw/) → Redshift (raw_data schema)           │
+│  451K rows, 7 tables                                                │
+└─────────────────────────────────────────────────────────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                      dbt TRANSFORMATION                             │
+│  staging/           marts/               metrics/                   │
+│  • stg_orders       • fact_daily_metrics • metric_by_geography     │
+│  • stg_order_items  • dim_geography      • metric_by_product       │
+│  • stg_customers    • dim_product        • metric_by_payment       │
+│  • stg_products     • dim_payment                                  │
+│                                                                     │
+│  11 models │ 37 automated tests │ 100% pass rate                   │
+└─────────────────────────────────────────────────────────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                     DETECTION & ANALYSIS                            │
+│  Anomaly Detector ──→ Decomposer ──→ Narrative Generator           │
+│  (Z-score)            (3 dimensions)   (Jinja2 templates)          │
+└─────────────────────────────────────────────────────────────────────┘
+                                │
+                                ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                        DELIVERY LAYER                               │
+│       SNS Email Alerts  │  Django REST API  │  Dashboard UI        │
+└─────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| Storage | AWS S3, Redshift Serverless |
-| Transformation | dbt |
-| Anomaly Detection | Python (scipy) |
-| Decomposition | Python + SQL |
-| Narrative | Jinja2 templates |
-| Alerting | AWS SNS |
-| Dashboard | Streamlit (coming) |
+| Layer | Technologies |
+|-------|-------------|
+| **Data Storage** | AWS S3, AWS Redshift Serverless |
+| **Transformation** | dbt (11 models, 37 tests) |
+| **Backend** | Python, Django REST Framework |
+| **Detection** | NumPy, SciPy (Z-score analysis) |
+| **Alerting** | AWS SNS |
+| **Frontend** | Tailwind CSS, Chart.js |
+| **Containerization** | Docker |
+| **CI/CD** | GitHub Actions |
+| **Hosting** | Render |
 
 ---
 
-## Project Status
+## Project Structure
 
-### ✅ Completed
-
-| Component | Description |
-|-----------|-------------|
-| Infrastructure | S3 bucket, Redshift Serverless, IAM, SNS topic |
-| Data Ingestion | Brazilian E-Commerce dataset (451K rows) in S3 → Redshift |
-| dbt Staging | 4 views: stg_orders, stg_order_items, stg_customers, stg_products |
-| dbt Marts | 3 dimension tables + fact_daily_metrics |
-| dbt Metrics | metric_by_geography, metric_by_product, metric_by_payment |
-| Anomaly Detection | Z-score based detection with configurable threshold |
-| Decomposition | Segment contribution analysis across 3 dimensions |
-| Narrative Generator | Plain-English summaries (full, Slack, email formats) |
-| SNS Alerting | Email alerts via AWS SNS |
-| Orchestration | End-to-end pipeline runner |
-
-### 🔜 Remaining
-
-| Component | Description |
-|-----------|-------------|
-| Streamlit Dashboard | Interactive drill-down interface |
-| SageMaker Integration | ML-based anomaly detection (stretch goal) |
-
----
-
-## Data Model
-raw_data (S3 → Redshift)
-├── orders (99K)
-├── order_items (112K)
-├── customers (99K)
-├── products (32K)
-├── sellers (3K)
-├── payments (103K)
-└── category_translation (71)
-staging (dbt views)
-├── stg_orders
-├── stg_order_items
-├── stg_customers
-└── stg_products
-marts (dbt tables)
-├── dim_geography
-├── dim_product
-├── dim_payment
-└── fact_daily_metrics
-metrics (dbt tables)
-├── metric_by_geography
-├── metric_by_product
-└── metric_by_payment
+```
+metric_pulse/
+├── config/                  # Configuration and settings
+│   ├── settings.py
+│   └── logging_config.py
+├── ingestion/               # Data ingestion scripts
+│   ├── upload_to_s3.py
+│   ├── s3_to_redshift.py
+│   └── setup_redshift_tables.py
+├── detection/               # Anomaly detection
+│   └── anomaly_detector.py
+├── decomposition/           # Metric decomposition
+│   └── decomposer.py
+├── narrative/               # Narrative generation
+│   ├── generator.py
+│   └── templates/
+├── alerting/                # SNS alerting
+│   └── sns_publisher.py
+├── orchestration/           # Pipeline orchestration
+│   └── run_pipeline.py
+├── monitoring/              # CloudWatch metrics
+│   └── cloudwatch_metrics.py
+├── dashboard_api/           # Django REST API
+│   ├── views.py
+│   └── urls.py
+├── metric_pulse_web/        # Django project settings
+├── templates/               # Frontend templates
+│   ├── base.html
+│   ├── index.html
+│   └── partials/
+├── dbt_project/             # dbt models and tests
+│   ├── models/
+│   └── tests/
+├── tests/                   # Unit tests
+├── .github/workflows/       # CI/CD pipelines
+├── Dockerfile
+├── requirements.txt
+└── README.md
+```
 
 ---
 
 ## Quick Start
+
+### Prerequisites
+
+- Python 3.12+
+- AWS Account (S3, Redshift, SNS)
+- dbt CLI
+
+### 1. Clone the Repository
+
 ```bash
-# Activate environment
-source metric_venv/bin/activate
+git clone https://github.com/nkousik18/metric_pulse.git
+cd metric_pulse
+```
 
-# Run full pipeline (dry run)
-python orchestration/run_pipeline.py --dry-run
+### 2. Create Virtual Environment
 
-# Run with forced alert
-python orchestration/run_pipeline.py --force-alert
+```bash
+python -m venv metric_venv
+source metric_venv/bin/activate  # On Windows: metric_venv\Scripts\activate
+pip install -r requirements.txt
+```
 
-# Run dbt models
+### 3. Configure Environment Variables
+
+Create a `.env` file in the project root:
+
+```env
+# AWS Credentials
+AWS_ACCESS_KEY_ID=your_access_key
+AWS_SECRET_ACCESS_KEY=your_secret_key
+AWS_REGION=us-east-1
+
+# S3
+S3_BUCKET_NAME=your-bucket-name
+
+# Redshift
+REDSHIFT_HOST=your-workgroup.region.redshift-serverless.amazonaws.com
+REDSHIFT_PORT=5439
+REDSHIFT_DATABASE=dev
+REDSHIFT_USER=admin
+REDSHIFT_PASSWORD=your_password
+
+# SNS
+SNS_TOPIC_ARN=arn:aws:sns:region:account:topic-name
+
+# Django
+DJANGO_SECRET_KEY=your_secret_key
+DJANGO_DEBUG=True
+
+# Pipeline
+ANOMALY_THRESHOLD_ZSCORE=2.0
+LOOKBACK_DAYS=30
+```
+
+### 4. Set Up AWS Infrastructure
+
+```bash
+# Upload raw data to S3
+python -m ingestion.upload_to_s3
+
+# Create Redshift tables and load data
+python -m ingestion.setup_redshift_tables
+python -m ingestion.s3_to_redshift
+```
+
+### 5. Run dbt Transformations
+
+```bash
 cd dbt_project
+dbt deps
 dbt run
+dbt test
+```
+
+### 6. Run the Application
+
+```bash
+# Run Django server
+python manage.py migrate
+python manage.py runserver
+
+# Access at http://127.0.0.1:8000
+```
+
+### 7. Run the Pipeline
+
+```bash
+# Dry run (no alerts)
+python -m orchestration.run_pipeline --dry-run
+
+# Full run with alerts
+python -m orchestration.run_pipeline --force-alert
 ```
 
 ---
 
-## Pipeline Components
+## API Endpoints
 
-### Anomaly Detection
-```bash
-python detection/anomaly_detector.py
-```
-Detects unusual metric movements using z-score analysis.
-
-### Decomposition
-```bash
-python decomposition/decomposer.py
-```
-Breaks down metric changes by geography, product, and payment type.
-
-### Narrative Generation
-```bash
-python narrative/generator.py
-```
-Converts analysis into plain-English summaries.
-
-### Full Pipeline
-```bash
-python orchestration/run_pipeline.py --force-alert
-```
-Runs detection → decomposition → narrative → alert end-to-end.
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/health/` | GET | Health check |
+| `/api/metrics/` | GET | Fetch daily metrics |
+| `/api/anomalies/` | GET | Detect anomalies |
+| `/api/decomposition/` | GET | Decompose metric changes |
+| `/api/narrative/` | GET | Generate root cause narrative |
+| `/api/pipeline/` | POST | Trigger pipeline run |
+| `/api/contact/` | POST | Submit contact form |
 
 ---
 
-## Configuration
+## Key Metrics
 
-Copy `.env.example` to `.env` and configure:
+| Metric | Value |
+|--------|-------|
+| Data Volume | 451K rows |
+| Automated Tests | 37 |
+| Pipeline Speed | < 5 seconds |
+| Time Saved | 99.6% (2 hrs → 30 sec) |
+| API Endpoints | 7 |
+| dbt Models | 11 |
 
 ---
 
-## Sample Output
+## Running Tests
 
-MetricPulse Alert: Total Revenue decrease
-2018-09-03 vs 2018-08-29
-Total Revenue decreased 90.6% ($1,762.70 → $166.46), a change of $1,596.24.
-Primary Driver:
-The decrease was primarily driven by Payment — specifically Credit Card,
-which accounted for 106.6% of the total change.
-Breakdown by Dimension:
+```bash
+# Run all tests
+pytest
 
-Geography: Top contributor was Southeast (68.0% of change)
-Product: Top contributor was Other (49.0% of change)
-Payment: Top contributor was Credit Card (106.6% of change)
+# Run with coverage
+pytest --cov=. --cov-report=html
+```
 
-## Repository
+---
 
-https://github.com/nkousik18/metric-pulse
+## Deployment
+
+### Deploy to Render
+
+1. Connect GitHub repository to Render
+2. Configure environment variables
+3. Deploy automatically on push to `main`
+
+### Docker
+
+```bash
+# Build image
+docker build -t metricpulse .
+
+# Run container
+docker run -p 8000:8000 --env-file .env metricpulse
+```
+
+---
+
+## Future Enhancements
+
+- [ ] AWS Lambda serverless deployment
+- [ ] Additional decomposition dimensions
+- [ ] Slack integration for alerts
+- [ ] Scheduled pipeline runs with Airflow
+- [ ] ML-based anomaly detection
+
+---
+
+## Author
+
+**Kousik Nandury**
+
+-  MS Data Analytics Engineering, Northeastern University
+-  2 years experience at Capgemini
+-  [LinkedIn](https://www.linkedin.com/in/kousik-nandury)
+-  [GitHub](https://github.com/nkousik18)
+-  nandury.k@northeastern.edu
+
+---
+
+## License
+
+This project is for portfolio and educational purposes.
