@@ -1,0 +1,212 @@
+<div id="content-hero" class="tab-content">
+    <!-- Hero Section -->
+    <div class="gradient-bg text-white">
+        <div class="container mx-auto px-6 py-20">
+            <div class="max-w-4xl mx-auto text-center fade-in">
+                <div class="inline-block px-4 py-2 bg-white/20 rounded-full text-sm font-medium mb-6">
+                    Data Engineering Portfolio Project
+                </div>
+                <h1 class="text-5xl md:text-6xl font-extrabold leading-tight mb-6">
+                    Root Cause Analysis in<br>
+                    <span class="text-yellow-300">30 Seconds</span>, Not 2 Hours
+                </h1>
+                <p class="text-xl text-indigo-100 mb-10 max-w-2xl mx-auto">
+                    When business metrics move unexpectedly, MetricPulse automatically identifies 
+                    what drove the change — before anyone asks.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button onclick="showTab('dashboard')" class="bg-white text-indigo-600 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-indigo-50 transition shadow-lg">
+                        See Live Demo
+                    </button>
+                    <button onclick="showTab('architecture')" class="bg-white/20 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:bg-white/30 transition">
+                        View Architecture
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Wave Separator -->
+        <div class="relative h-16">
+            <svg class="absolute bottom-0 w-full h-16" preserveAspectRatio="none" viewBox="0 0 1440 54">
+                <path fill="#F9FAFB" d="M0,22L60,24.7C120,27,240,33,360,30.3C480,28,600,17,720,14.7C840,12,960,17,1080,22C1200,27,1320,33,1380,35.8L1440,38.5V54H1380C1320,54,1200,54,1080,54C960,54,840,54,720,54C600,54,480,54,360,54C240,54,120,54,60,54H0V22Z"></path>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="container mx-auto px-6 -mt-8">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+            <div class="stat-card rounded-2xl p-6 text-center card-hover bg-white shadow-lg border border-indigo-100">
+                <div class="text-4xl font-bold gradient-text">451K</div>
+                <div class="text-gray-600 text-sm mt-1">Rows Processed</div>
+            </div>
+            <div class="stat-card rounded-2xl p-6 text-center card-hover bg-white shadow-lg border border-indigo-100">
+                <div class="text-4xl font-bold gradient-text">37</div>
+                <div class="text-gray-600 text-sm mt-1">Automated Tests</div>
+            </div>
+            <div class="stat-card rounded-2xl p-6 text-center card-hover bg-white shadow-lg border border-indigo-100">
+                <div class="text-4xl font-bold gradient-text">&lt;5s</div>
+                <div class="text-gray-600 text-sm mt-1">Pipeline Speed</div>
+            </div>
+            <div class="stat-card rounded-2xl p-6 text-center card-hover bg-white shadow-lg border border-indigo-100">
+                <div class="text-4xl font-bold gradient-text">99.6%</div>
+                <div class="text-gray-600 text-sm mt-1">Time Saved</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Problem / Solution Section -->
+    <div class="container mx-auto px-6 py-20">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">The Problem I Solved</h2>
+                <p class="text-xl text-gray-600 max-w-2xl mx-auto">Every company faces the same question when metrics change unexpectedly</p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <!-- Before -->
+                <div class="bg-red-50 rounded-2xl p-8 border border-red-100">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-clock text-red-500 text-xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900">Before MetricPulse</h3>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-times text-red-500 mt-1"></i>
+                            <p class="text-gray-700">Pull data from multiple systems manually</p>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-times text-red-500 mt-1"></i>
+                            <p class="text-gray-700">Slice by region, product, channel one by one</p>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-times text-red-500 mt-1"></i>
+                            <p class="text-gray-700">Build spreadsheets to find the driver</p>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-times text-red-500 mt-1"></i>
+                            <p class="text-gray-700">Write email explaining findings</p>
+                        </div>
+                    </div>
+                    <div class="mt-6 p-4 bg-red-100 rounded-xl">
+                        <div class="text-3xl font-bold text-red-600">2-4 hours</div>
+                        <div class="text-red-600 text-sm">Time to answer "why did revenue drop?"</div>
+                    </div>
+                </div>
+                
+                <!-- After -->
+                <div class="bg-green-50 rounded-2xl p-8 border border-green-100">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                            <i class="fas fa-bolt text-green-500 text-xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900">With MetricPulse</h3>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-check text-green-500 mt-1"></i>
+                            <p class="text-gray-700">Automatic anomaly detection with Z-score</p>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-check text-green-500 mt-1"></i>
+                            <p class="text-gray-700">Instant decomposition across 3 dimensions</p>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-check text-green-500 mt-1"></i>
+                            <p class="text-gray-700">Plain-English narrative generated</p>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="fas fa-check text-green-500 mt-1"></i>
+                            <p class="text-gray-700">Proactive email alert sent automatically</p>
+                        </div>
+                    </div>
+                    <div class="mt-6 p-4 bg-green-100 rounded-xl">
+                        <div class="text-3xl font-bold text-green-600">30 seconds</div>
+                        <div class="text-green-600 text-sm">Answer delivered before anyone asks</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- How It Works -->
+    <div class="bg-white py-20">
+        <div class="container mx-auto px-6">
+            <div class="max-w-6xl mx-auto">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">How It Works</h2>
+                    <p class="text-xl text-gray-600">Four steps from data to insight</p>
+                </div>
+                
+                <div class="grid md:grid-cols-4 gap-8">
+                    <div class="text-center">
+                        <div class="w-16 h-16 gradient-bg rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                            <span class="text-white text-2xl font-bold">1</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">Ingest</h3>
+                        <p class="text-gray-600">Data flows from S3 to Redshift with automated validation</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-16 h-16 gradient-bg rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                            <span class="text-white text-2xl font-bold">2</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">Transform</h3>
+                        <p class="text-gray-600">dbt models create fact tables with 37 quality tests</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-16 h-16 gradient-bg rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                            <span class="text-white text-2xl font-bold">3</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">Detect</h3>
+                        <p class="text-gray-600">Statistical analysis identifies anomalies automatically</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="w-16 h-16 gradient-bg rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                            <span class="text-white text-2xl font-bold">4</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">Explain</h3>
+                        <p class="text-gray-600">Root cause decomposition with plain-English narrative</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tech Stack Preview -->
+    <div class="container mx-auto px-6 py-20">
+        <div class="max-w-4xl mx-auto text-center">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Built With Modern Stack</h2>
+            <p class="text-xl text-gray-600 mb-12">Production-grade technologies used by top companies</p>
+            
+            <div class="flex flex-wrap justify-center gap-4">
+                <span class="px-6 py-3 bg-white rounded-xl shadow-md border border-gray-100 font-medium text-gray-700">Python</span>
+                <span class="px-6 py-3 bg-white rounded-xl shadow-md border border-gray-100 font-medium text-gray-700">AWS Redshift</span>
+                <span class="px-6 py-3 bg-white rounded-xl shadow-md border border-gray-100 font-medium text-gray-700">dbt</span>
+                <span class="px-6 py-3 bg-white rounded-xl shadow-md border border-gray-100 font-medium text-gray-700">Django</span>
+                <span class="px-6 py-3 bg-white rounded-xl shadow-md border border-gray-100 font-medium text-gray-700">AWS S3</span>
+                <span class="px-6 py-3 bg-white rounded-xl shadow-md border border-gray-100 font-medium text-gray-700">Docker</span>
+                <span class="px-6 py-3 bg-white rounded-xl shadow-md border border-gray-100 font-medium text-gray-700">GitHub Actions</span>
+                <span class="px-6 py-3 bg-white rounded-xl shadow-md border border-gray-100 font-medium text-gray-700">AWS SNS</span>
+            </div>
+            
+            <div class="mt-12">
+                <button onclick="showTab('architecture')" class="gradient-bg text-white px-8 py-4 rounded-xl font-semibold text-lg hover:opacity-90 transition shadow-lg">
+                    View Full Architecture
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA Section -->
+    <div class="gradient-bg py-16">
+        <div class="container mx-auto px-6 text-center">
+            <h2 class="text-3xl font-bold text-white mb-4">Ready to See It in Action?</h2>
+            <p class="text-indigo-100 mb-8 text-lg">Explore the live dashboard with real data</p>
+            <button onclick="showTab('dashboard')" class="bg-white text-indigo-600 px-10 py-4 rounded-xl font-semibold text-lg hover:bg-indigo-50 transition shadow-lg">
+                Launch Dashboard
+            </button>
+        </div>
+    </div>
+</div>

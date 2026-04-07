@@ -1,186 +1,272 @@
 <div id="content-architecture" class="tab-content hidden">
-    <main class="container mx-auto p-6">
-        <!-- Problem Section -->
-        <div class="bg-white rounded-xl shadow-sm p-8 mb-6 border border-gray-100">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">The Problem</h2>
-            <div class="grid md:grid-cols-2 gap-6">
-                <div>
-                    <p class="text-gray-600 text-lg leading-relaxed">
-                        <strong>"Revenue dropped 15% yesterday — why?"</strong>
-                    </p>
-                    <p class="text-gray-600 mt-4">
-                        Every analyst has heard this question. The typical answer takes <span class="text-red-600 font-bold">2+ hours</span>:
-                    </p>
-                    <ul class="mt-4 space-y-2 text-gray-600">
-                        <li>• Pull data from multiple systems</li>
-                        <li>• Slice by region, product, channel</li>
-                        <li>• Build spreadsheets manually</li>
-                        <li>• Write email explaining findings</li>
+    <main class="container mx-auto p-6 fade-in">
+        <!-- Header -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">System Architecture</h1>
+            <p class="text-xl text-gray-600 max-w-2xl mx-auto">End-to-end data pipeline built with production-grade technologies</p>
+        </div>
+
+        <!-- Visual Architecture Diagram -->
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-900 mb-8 text-center">Data Flow</h2>
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4 max-w-5xl mx-auto">
+                <!-- Data Source -->
+                <div class="flex flex-col items-center">
+                    <div class="w-20 h-20 bg-orange-100 rounded-2xl flex items-center justify-center mb-3 shadow-md">
+                        <i class="fas fa-database text-orange-500 text-2xl"></i>
+                    </div>
+                    <span class="font-semibold text-gray-800">Data Source</span>
+                    <span class="text-sm text-gray-500">451K rows</span>
+                </div>
+                
+                <i class="fas fa-arrow-right text-gray-300 text-2xl hidden md:block"></i>
+                <i class="fas fa-arrow-down text-gray-300 text-2xl md:hidden"></i>
+                
+                <!-- S3 -->
+                <div class="flex flex-col items-center">
+                    <div class="w-20 h-20 bg-green-100 rounded-2xl flex items-center justify-center mb-3 shadow-md">
+                        <i class="fab fa-aws text-green-600 text-2xl"></i>
+                    </div>
+                    <span class="font-semibold text-gray-800">AWS S3</span>
+                    <span class="text-sm text-gray-500">Raw Storage</span>
+                </div>
+                
+                <i class="fas fa-arrow-right text-gray-300 text-2xl hidden md:block"></i>
+                <i class="fas fa-arrow-down text-gray-300 text-2xl md:hidden"></i>
+                
+                <!-- Redshift -->
+                <div class="flex flex-col items-center">
+                    <div class="w-20 h-20 bg-blue-100 rounded-2xl flex items-center justify-center mb-3 shadow-md">
+                        <i class="fas fa-warehouse text-blue-600 text-2xl"></i>
+                    </div>
+                    <span class="font-semibold text-gray-800">Redshift</span>
+                    <span class="text-sm text-gray-500">Data Warehouse</span>
+                </div>
+                
+                <i class="fas fa-arrow-right text-gray-300 text-2xl hidden md:block"></i>
+                <i class="fas fa-arrow-down text-gray-300 text-2xl md:hidden"></i>
+                
+                <!-- dbt -->
+                <div class="flex flex-col items-center">
+                    <div class="w-20 h-20 bg-orange-100 rounded-2xl flex items-center justify-center mb-3 shadow-md">
+                        <span class="text-orange-600 font-bold text-lg">dbt</span>
+                    </div>
+                    <span class="font-semibold text-gray-800">dbt</span>
+                    <span class="text-sm text-gray-500">11 Models</span>
+                </div>
+                
+                <i class="fas fa-arrow-right text-gray-300 text-2xl hidden md:block"></i>
+                <i class="fas fa-arrow-down text-gray-300 text-2xl md:hidden"></i>
+                
+                <!-- Python -->
+                <div class="flex flex-col items-center">
+                    <div class="w-20 h-20 bg-yellow-100 rounded-2xl flex items-center justify-center mb-3 shadow-md">
+                        <i class="fab fa-python text-yellow-600 text-2xl"></i>
+                    </div>
+                    <span class="font-semibold text-gray-800">Python</span>
+                    <span class="text-sm text-gray-500">Detection</span>
+                </div>
+                
+                <i class="fas fa-arrow-right text-gray-300 text-2xl hidden md:block"></i>
+                <i class="fas fa-arrow-down text-gray-300 text-2xl md:hidden"></i>
+                
+                <!-- Output -->
+                <div class="flex flex-col items-center">
+                    <div class="w-20 h-20 bg-purple-100 rounded-2xl flex items-center justify-center mb-3 shadow-md">
+                        <i class="fas fa-chart-line text-purple-600 text-2xl"></i>
+                    </div>
+                    <span class="font-semibold text-gray-800">Dashboard</span>
+                    <span class="text-sm text-gray-500">+ Alerts</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Architecture Details -->
+        <div class="grid md:grid-cols-3 gap-6 mb-8">
+            <!-- Data Layer -->
+            <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 card-hover">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-layer-group text-blue-600"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900">Data Layer</h3>
+                </div>
+                <ul class="space-y-3">
+                    <li class="flex items-center gap-2 text-gray-600">
+                        <i class="fas fa-check text-green-500 text-sm"></i>
+                        <span>S3 for raw data lake</span>
+                    </li>
+                    <li class="flex items-center gap-2 text-gray-600">
+                        <i class="fas fa-check text-green-500 text-sm"></i>
+                        <span>Redshift Serverless warehouse</span>
+                    </li>
+                    <li class="flex items-center gap-2 text-gray-600">
+                        <i class="fas fa-check text-green-500 text-sm"></i>
+                        <span>7 raw tables, 451K rows</span>
+                    </li>
+                    <li class="flex items-center gap-2 text-gray-600">
+                        <i class="fas fa-check text-green-500 text-sm"></i>
+                        <span>Brazilian E-Commerce dataset</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Transformation Layer -->
+            <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 card-hover">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-cogs text-orange-600"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900">Transformation</h3>
+                </div>
+                <ul class="space-y-3">
+                    <li class="flex items-center gap-2 text-gray-600">
+                        <i class="fas fa-check text-green-500 text-sm"></i>
+                        <span>dbt for ELT pipelines</span>
+                    </li>
+                    <li class="flex items-center gap-2 text-gray-600">
+                        <i class="fas fa-check text-green-500 text-sm"></i>
+                        <span>11 models (staging + marts)</span>
+                    </li>
+                    <li class="flex items-center gap-2 text-gray-600">
+                        <i class="fas fa-check text-green-500 text-sm"></i>
+                        <span>37 automated tests</span>
+                    </li>
+                    <li class="flex items-center gap-2 text-gray-600">
+                        <i class="fas fa-check text-green-500 text-sm"></i>
+                        <span>Star schema design</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Application Layer -->
+            <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 card-hover">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-rocket text-purple-600"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900">Application</h3>
+                </div>
+                <ul class="space-y-3">
+                    <li class="flex items-center gap-2 text-gray-600">
+                        <i class="fas fa-check text-green-500 text-sm"></i>
+                        <span>Django REST API</span>
+                    </li>
+                    <li class="flex items-center gap-2 text-gray-600">
+                        <i class="fas fa-check text-green-500 text-sm"></i>
+                        <span>Z-score anomaly detection</span>
+                    </li>
+                    <li class="flex items-center gap-2 text-gray-600">
+                        <i class="fas fa-check text-green-500 text-sm"></i>
+                        <span>3-dimension decomposition</span>
+                    </li>
+                    <li class="flex items-center gap-2 text-gray-600">
+                        <i class="fas fa-check text-green-500 text-sm"></i>
+                        <span>SNS email alerting</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- dbt Models -->
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">dbt Model Architecture</h2>
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="bg-blue-50 rounded-xl p-5 border border-blue-100">
+                    <h3 class="font-bold text-blue-800 mb-3">Staging Layer</h3>
+                    <ul class="space-y-2 text-blue-700 text-sm">
+                        <li class="flex items-center gap-2"><i class="fas fa-file-code"></i> stg_orders</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-file-code"></i> stg_order_items</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-file-code"></i> stg_customers</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-file-code"></i> stg_products</li>
                     </ul>
                 </div>
-                <div class="bg-gray-50 rounded-lg p-6">
-                    <h4 class="font-semibold text-gray-800 mb-3">Impact</h4>
-                    <div class="space-y-4">
-                        <div>
-                            <div class="flex justify-between text-sm mb-1">
-                                <span>Time spent on root cause analysis</span>
-                                <span class="text-red-600 font-medium">2-4 hours</span>
-                            </div>
-                            <div class="w-full bg-red-200 rounded-full h-2">
-                                <div class="bg-red-500 h-2 rounded-full" style="width: 85%"></div>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="flex justify-between text-sm mb-1">
-                                <span>Manual, repetitive work</span>
-                                <span class="text-red-600 font-medium">High</span>
-                            </div>
-                            <div class="w-full bg-red-200 rounded-full h-2">
-                                <div class="bg-red-500 h-2 rounded-full" style="width: 90%"></div>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="flex justify-between text-sm mb-1">
-                                <span>Leadership waiting for answers</span>
-                                <span class="text-red-600 font-medium">Always</span>
-                            </div>
-                            <div class="w-full bg-red-200 rounded-full h-2">
-                                <div class="bg-red-500 h-2 rounded-full" style="width: 95%"></div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="bg-green-50 rounded-xl p-5 border border-green-100">
+                    <h3 class="font-bold text-green-800 mb-3">Marts Layer</h3>
+                    <ul class="space-y-2 text-green-700 text-sm">
+                        <li class="flex items-center gap-2"><i class="fas fa-table"></i> fact_daily_metrics</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-table"></i> dim_geography</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-table"></i> dim_product</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-table"></i> dim_payment</li>
+                    </ul>
+                </div>
+                <div class="bg-purple-50 rounded-xl p-5 border border-purple-100">
+                    <h3 class="font-bold text-purple-800 mb-3">Metrics Layer</h3>
+                    <ul class="space-y-2 text-purple-700 text-sm">
+                        <li class="flex items-center gap-2"><i class="fas fa-chart-bar"></i> metric_by_geography</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-chart-bar"></i> metric_by_product</li>
+                        <li class="flex items-center gap-2"><i class="fas fa-chart-bar"></i> metric_by_payment</li>
+                    </ul>
                 </div>
             </div>
         </div>
 
-        <!-- Solution Section -->
-        <div class="bg-white rounded-xl shadow-sm p-8 mb-6 border border-gray-100">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">The Solution</h2>
-            <p class="text-gray-600 text-lg mb-6">
-                MetricPulse automates the entire root cause analysis workflow — from detection to explanation — in <span class="text-green-600 font-bold">under 30 seconds</span>.
-            </p>
-            <div class="grid md:grid-cols-4 gap-4">
-                <div class="text-center p-4 bg-indigo-50 rounded-lg">
-                    <h4 class="font-semibold mt-2">Detect</h4>
-                    <p class="text-sm text-gray-600">Anomaly detection using Z-score analysis</p>
-                </div>
-                <div class="text-center p-4 bg-indigo-50 rounded-lg">
-                    <h4 class="font-semibold mt-2">Decompose</h4>
-                    <p class="text-sm text-gray-600">Break down by geography, product, payment</p>
-                </div>
-                <div class="text-center p-4 bg-indigo-50 rounded-lg">
-                    <h4 class="font-semibold mt-2">Explain</h4>
-                    <p class="text-sm text-gray-600">Generate plain-English narrative</p>
-                </div>
-                <div class="text-center p-4 bg-indigo-50 rounded-lg">
-                    <h4 class="font-semibold mt-2">Alert</h4>
-                    <p class="text-sm text-gray-600">Proactive email before anyone asks</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Architecture Diagram -->
-        <div class="bg-white rounded-xl shadow-sm p-8 mb-6 border border-gray-100">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6">System Architecture</h2>
-            <div class="bg-gray-900 text-green-400 rounded-lg p-6 font-mono text-sm overflow-x-auto">
-<pre>
-┌─────────────────────────────────────────────────────────────────────┐
-│                         DATA INGESTION                              │
-│  Kaggle Dataset → S3 (raw/) → Redshift (raw_data schema)           │
-│  451K rows, 7 tables                                                │
-└─────────────────────────────────────────────────────────────────────┘
-                                │
-                                ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                      dbt TRANSFORMATION                             │
-│  staging/          marts/              metrics/                     │
-│  • stg_orders      • fact_daily_metrics • metric_by_geography      │
-│  • stg_order_items • dim_geography      • metric_by_product        │
-│  • stg_customers   • dim_product        • metric_by_payment        │
-│  • stg_products    • dim_payment                                   │
-│                                                                     │
-│  11 models │ 37 automated tests │ 100% pass rate                   │
-└─────────────────────────────────────────────────────────────────────┘
-                                │
-                                ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                     DETECTION + ANALYSIS                            │
-│  Anomaly Detector ──→ Decomposer ──→ Narrative Generator           │
-│  (Z-score)            (3 dimensions)   (Jinja2 templates)          │
-│                                                                     │
-│  Pipeline execution: < 5 seconds                                   │
-└─────────────────────────────────────────────────────────────────────┘
-                                │
-                                ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                        DELIVERY LAYER                               │
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐            │
-│  │  SNS Email  │    │ Django API  │    │  Dashboard  │            │
-│  │   Alerts    │    │ 6 endpoints │    │ Interactive │            │
-│  └─────────────┘    └─────────────┘    └─────────────┘            │
-└─────────────────────────────────────────────────────────────────────┘
-</pre>
-            </div>
-        </div>
-
-        <!-- Tech Stack -->
-        <div class="bg-white rounded-xl shadow-sm p-8 mb-6 border border-gray-100">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6">Tech Stack</h2>
+        <!-- Tech Stack Grid -->
+        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 border border-gray-100">
+            <h2 class="text-2xl font-bold text-gray-900 mb-6">Tech Stack</h2>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="tech-card bg-gray-50 rounded-lg p-4 text-center border border-gray-200">
-                    <h4 class="font-semibold">Python</h4>
-                    <p class="text-xs text-gray-500">Core Language</p>
+                <div class="bg-gray-50 rounded-xl p-5 text-center card-hover border border-gray-100">
+                    <i class="fab fa-python text-3xl text-yellow-500 mb-2"></i>
+                    <h4 class="font-semibold text-gray-800">Python</h4>
+                    <p class="text-xs text-gray-500 mt-1">Core Language</p>
                 </div>
-                <div class="tech-card bg-gray-50 rounded-lg p-4 text-center border border-gray-200">
-                    <h4 class="font-semibold">AWS</h4>
-                    <p class="text-xs text-gray-500">S3, Redshift, Lambda, SNS</p>
+                <div class="bg-gray-50 rounded-xl p-5 text-center card-hover border border-gray-100">
+                    <i class="fab fa-aws text-3xl text-orange-500 mb-2"></i>
+                    <h4 class="font-semibold text-gray-800">AWS</h4>
+                    <p class="text-xs text-gray-500 mt-1">S3, Redshift, SNS</p>
                 </div>
-                <div class="tech-card bg-gray-50 rounded-lg p-4 text-center border border-gray-200">
-                    <h4 class="font-semibold">dbt</h4>
-                    <p class="text-xs text-gray-500">Data Transformation</p>
+                <div class="bg-gray-50 rounded-xl p-5 text-center card-hover border border-gray-100">
+                    <span class="text-2xl font-bold text-orange-500">dbt</span>
+                    <h4 class="font-semibold text-gray-800 mt-1">dbt</h4>
+                    <p class="text-xs text-gray-500 mt-1">Transformation</p>
                 </div>
-                <div class="tech-card bg-gray-50 rounded-lg p-4 text-center border border-gray-200">
-                    <h4 class="font-semibold">Django</h4>
-                    <p class="text-xs text-gray-500">REST API + UI</p>
+                <div class="bg-gray-50 rounded-xl p-5 text-center card-hover border border-gray-100">
+                    <i class="fab fa-python text-3xl text-green-600 mb-2"></i>
+                    <h4 class="font-semibold text-gray-800">Django</h4>
+                    <p class="text-xs text-gray-500 mt-1">REST API</p>
                 </div>
-                <div class="tech-card bg-gray-50 rounded-lg p-4 text-center border border-gray-200">
-                    <h4 class="font-semibold">Docker</h4>
-                    <p class="text-xs text-gray-500">Containerization</p>
+                <div class="bg-gray-50 rounded-xl p-5 text-center card-hover border border-gray-100">
+                    <i class="fab fa-docker text-3xl text-blue-500 mb-2"></i>
+                    <h4 class="font-semibold text-gray-800">Docker</h4>
+                    <p class="text-xs text-gray-500 mt-1">Containerization</p>
                 </div>
-                <div class="tech-card bg-gray-50 rounded-lg p-4 text-center border border-gray-200">
-                    <h4 class="font-semibold">GitHub Actions</h4>
-                    <p class="text-xs text-gray-500">CI/CD Pipeline</p>
+                <div class="bg-gray-50 rounded-xl p-5 text-center card-hover border border-gray-100">
+                    <i class="fab fa-github text-3xl text-gray-800 mb-2"></i>
+                    <h4 class="font-semibold text-gray-800">GitHub Actions</h4>
+                    <p class="text-xs text-gray-500 mt-1">CI/CD</p>
                 </div>
-                <div class="tech-card bg-gray-50 rounded-lg p-4 text-center border border-gray-200">
-                    <h4 class="font-semibold">Chart.js</h4>
-                    <p class="text-xs text-gray-500">Visualization</p>
+                <div class="bg-gray-50 rounded-xl p-5 text-center card-hover border border-gray-100">
+                    <i class="fas fa-chart-line text-3xl text-indigo-500 mb-2"></i>
+                    <h4 class="font-semibold text-gray-800">Chart.js</h4>
+                    <p class="text-xs text-gray-500 mt-1">Visualization</p>
                 </div>
-                <div class="tech-card bg-gray-50 rounded-lg p-4 text-center border border-gray-200">
-                    <h4 class="font-semibold">Tailwind CSS</h4>
-                    <p class="text-xs text-gray-500">Styling</p>
+                <div class="bg-gray-50 rounded-xl p-5 text-center card-hover border border-gray-100">
+                    <i class="fab fa-css3 text-3xl text-cyan-500 mb-2"></i>
+                    <h4 class="font-semibold text-gray-800">Tailwind</h4>
+                    <p class="text-xs text-gray-500 mt-1">Styling</p>
                 </div>
             </div>
         </div>
 
         <!-- Key Metrics -->
-        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl shadow-sm p-8 text-white">
-            <h2 class="text-2xl font-bold mb-6">Key Metrics</h2>
+        <div class="gradient-bg rounded-2xl p-8 text-white">
+            <h2 class="text-2xl font-bold mb-8 text-center">Project Metrics</h2>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
                 <div class="text-center">
-                    <div class="text-4xl font-bold">451K</div>
-                    <div class="text-indigo-200 text-sm">Rows Processed</div>
+                    <div class="text-5xl font-bold">451K</div>
+                    <div class="text-indigo-200 mt-2">Rows Processed</div>
                 </div>
                 <div class="text-center">
-                    <div class="text-4xl font-bold">37</div>
-                    <div class="text-indigo-200 text-sm">Automated Tests</div>
+                    <div class="text-5xl font-bold">37</div>
+                    <div class="text-indigo-200 mt-2">Automated Tests</div>
                 </div>
                 <div class="text-center">
-                    <div class="text-4xl font-bold">&lt;5s</div>
-                    <div class="text-indigo-200 text-sm">Pipeline Speed</div>
+                    <div class="text-5xl font-bold">&lt;5s</div>
+                    <div class="text-indigo-200 mt-2">Pipeline Speed</div>
                 </div>
                 <div class="text-center">
-                    <div class="text-4xl font-bold">99.6%</div>
-                    <div class="text-indigo-200 text-sm">Time Saved</div>
+                    <div class="text-5xl font-bold">6</div>
+                    <div class="text-indigo-200 mt-2">API Endpoints</div>
                 </div>
             </div>
         </div>

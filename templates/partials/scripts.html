@@ -8,8 +8,22 @@
         });
         
         document.getElementById(`content-${tabName}`).classList.remove('hidden');
-        document.getElementById(`tab-${tabName}`).classList.add('tab-active');
-        document.getElementById(`tab-${tabName}`).classList.remove('opacity-80');
+        const tabBtn = document.getElementById(`tab-${tabName}`);
+        if (tabBtn) {
+            tabBtn.classList.add('tab-active');
+            tabBtn.classList.remove('opacity-80');
+        }
+        
+        // Load dashboard data when switching to dashboard
+        if (tabName === 'dashboard' && metricsData.length === 0) {
+            loadMetrics();
+            loadAnomalies();
+            loadDecomposition();
+            loadNarrative();
+        }
+        
+        // Scroll to top
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     // Contact form
@@ -20,11 +34,11 @@
         const statusEl = document.getElementById('contact-status');
         
         if (!message) {
-            statusEl.innerHTML = '<p class="text-red-600">Please enter a message.</p>';
+            statusEl.innerHTML = '<p class="text-red-600 flex items-center gap-2"><i class="fas fa-exclamation-circle"></i> Please enter a message.</p>';
             return;
         }
         
-        statusEl.innerHTML = '<p class="text-indigo-600">Sending...</p>';
+        statusEl.innerHTML = '<p class="text-indigo-600 flex items-center gap-2"><i class="fas fa-spinner fa-spin"></i> Sending...</p>';
         
         try {
             const response = await fetch('/api/contact/', {
@@ -36,7 +50,7 @@
             const result = await response.json();
             
             if (result.status === 'success') {
-                statusEl.innerHTML = '<p class="text-green-600">✓ ' + result.message + '</p>';
+                statusEl.innerHTML = '<p class="text-green-600 flex items-center gap-2"><i class="fas fa-check-circle"></i> ' + result.message + '</p>';
                 document.getElementById('contact-name').value = '';
                 document.getElementById('contact-email').value = '';
                 document.getElementById('contact-message').value = '';
@@ -44,7 +58,7 @@
                 throw new Error(result.message);
             }
         } catch (error) {
-            statusEl.innerHTML = '<p class="text-red-600">Failed to send: ' + error.message + '</p>';
+            statusEl.innerHTML = '<p class="text-red-600 flex items-center gap-2"><i class="fas fa-exclamation-circle"></i> Failed: ' + error.message + '</p>';
         }
     }
 
@@ -53,13 +67,6 @@
     let decompositionData = null;
     let currentChart = null;
     let selectedMetric = 'total_revenue';
-
-    document.addEventListener('DOMContentLoaded', () => {
-        loadMetrics();
-        loadAnomalies();
-        loadDecomposition();
-        loadNarrative();
-    });
 
     function updateThresholdLabel(value) {
         document.getElementById('threshold-label').textContent = parseFloat(value).toFixed(1) + 'σ';
@@ -89,6 +96,8 @@
         const currentSelect = document.getElementById('current-date');
         const previousSelect = document.getElementById('previous-date');
         
+        if (!currentSelect || !previousSelect) return;
+        
         currentSelect.innerHTML = data.map((d, i) => 
             `<option value="${d.metric_date}" ${i === 0 ? 'selected' : ''}>${d.metric_date}</option>`
         ).join('');
@@ -99,32 +108,35 @@
     }
 
     function updateKPIs(latest, previous) {
-        document.getElementById('kpi-revenue').textContent = 
-            '$' + parseFloat(latest.total_revenue).toLocaleString('en-US', {minimumFractionDigits: 2});
+        const revenueEl = document.getElementById('kpi-revenue');
+        if (!revenueEl) return;
+        
+        revenueEl.textContent = '$' + parseFloat(latest.total_revenue).toLocaleString('en-US', {minimumFractionDigits: 2});
         const revChange = ((latest.total_revenue - previous.total_revenue) / previous.total_revenue * 100);
         setChangeLabel('kpi-revenue-change', revChange);
         
-        document.getElementById('kpi-orders').textContent = 
-            parseInt(latest.order_count).toLocaleString();
+        document.getElementById('kpi-orders').textContent = parseInt(latest.order_count).toLocaleString();
         const ordChange = ((latest.order_count - previous.order_count) / previous.order_count * 100);
         setChangeLabel('kpi-orders-change', ordChange);
         
-        document.getElementById('kpi-aov').textContent = 
-            '$' + parseFloat(latest.avg_order_value).toFixed(2);
+        document.getElementById('kpi-aov').textContent = '$' + parseFloat(latest.avg_order_value).toFixed(2);
         const aovChange = ((latest.avg_order_value - previous.avg_order_value) / previous.avg_order_value * 100);
         setChangeLabel('kpi-aov-change', aovChange);
     }
 
     function setChangeLabel(elementId, change) {
         const el = document.getElementById(elementId);
+        if (!el) return;
         const arrow = change >= 0 ? '↑' : '↓';
-        el.textContent = `${arrow} ${Math.abs(change).toFixed(1)}%`;
-        el.className = `text-sm font-medium ${change >= 0 ? 'text-green-500' : 'text-red-500'}`;
+        const colorClass = change >= 0 ? 'text-green-500 bg-green-50' : 'text-red-500 bg-red-50';
+        el.innerHTML = `<span class="px-2 py-1 rounded-lg ${colorClass}">${arrow} ${Math.abs(change).toFixed(1)}%</span>`;
     }
 
     function drawChart(data, metric) {
-        const ctx = document.getElementById('revenueChart').getContext('2d');
+        const canvas = document.getElementById('revenueChart');
+        if (!canvas) return;
         
+        const ctx = canvas.getContext('2d');
         if (currentChart) currentChart.destroy();
         
         const labels = { 'total_revenue': 'Revenue', 'order_count': 'Orders', 'avg_order_value': 'AOV' };
@@ -140,49 +152,69 @@
                     borderColor: 'rgb(79, 70, 229)',
                     backgroundColor: 'rgba(79, 70, 229, 0.1)',
                     fill: true,
-                    tension: 0.3,
-                    pointRadius: 3,
-                    pointHoverRadius: 6
+                    tension: 0.4,
+                    pointRadius: 2,
+                    pointHoverRadius: 6,
+                    borderWidth: 2
                 }]
             },
             options: {
                 responsive: true,
-                plugins: { legend: { display: false } },
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'white',
+                        titleColor: '#1f2937',
+                        bodyColor: '#4b5563',
+                        borderColor: '#e5e7eb',
+                        borderWidth: 1,
+                        padding: 12,
+                        boxPadding: 6
+                    }
+                },
                 scales: {
                     y: {
                         beginAtZero: false,
-                        ticks: { callback: value => prefix + value.toLocaleString() }
+                        ticks: { callback: value => prefix + value.toLocaleString() },
+                        grid: { color: '#f3f4f6' }
+                    },
+                    x: {
+                        grid: { display: false }
                     }
                 }
             }
         });
         
-        document.getElementById('chart-title').textContent = labels[metric];
+        const chartTitle = document.getElementById('chart-title');
+        if (chartTitle) chartTitle.textContent = labels[metric];
     }
 
     function setChartMetric(metric) {
         selectedMetric = metric;
         document.querySelectorAll('.chart-btn').forEach(btn => {
             btn.className = btn.dataset.metric === metric 
-                ? 'chart-btn px-4 py-1.5 text-sm rounded-lg bg-indigo-100 text-indigo-700 font-medium'
-                : 'chart-btn px-4 py-1.5 text-sm rounded-lg bg-gray-100 text-gray-600';
+                ? 'chart-btn px-4 py-2 text-sm rounded-lg bg-indigo-100 text-indigo-700 font-medium transition'
+                : 'chart-btn px-4 py-2 text-sm rounded-lg bg-gray-100 text-gray-600 font-medium transition';
         });
         drawChart(metricsData.slice().reverse(), metric);
     }
 
     function selectMetric(metric) {
-        document.getElementById('metric-select').value = metric;
+        const metricSelect = document.getElementById('metric-select');
+        if (metricSelect) metricSelect.value = metric;
         setChartMetric(metric);
     }
 
     async function loadAnomalies() {
         try {
-            const threshold = document.getElementById('threshold-slider').value;
+            const thresholdSlider = document.getElementById('threshold-slider');
+            const threshold = thresholdSlider ? thresholdSlider.value : 2;
             const response = await fetch(`/api/anomalies/?threshold=${threshold}`);
             const result = await response.json();
             
             if (result.status === 'success') {
-                document.getElementById('kpi-anomalies').textContent = result.data.anomaly_count;
+                const anomaliesEl = document.getElementById('kpi-anomalies');
+                if (anomaliesEl) anomaliesEl.textContent = result.data.anomaly_count;
             }
         } catch (error) {
             console.error('Failed to load anomalies:', error);
@@ -191,8 +223,11 @@
 
     async function loadDecomposition() {
         try {
-            const currentDate = document.getElementById('current-date').value;
-            const previousDate = document.getElementById('previous-date').value;
+            const currentDateEl = document.getElementById('current-date');
+            const previousDateEl = document.getElementById('previous-date');
+            
+            const currentDate = currentDateEl ? currentDateEl.value : '';
+            const previousDate = previousDateEl ? previousDateEl.value : '';
             
             let url = '/api/decomposition/';
             if (currentDate && previousDate) {
@@ -217,16 +252,18 @@
 
     function renderBreakdown(elementId, contributors) {
         const container = document.getElementById(elementId);
+        if (!container) return;
+        
         container.innerHTML = contributors.slice(0, 5).map(c => `
             <div>
-                <div class="flex justify-between items-center mb-1">
-                    <span class="text-sm text-gray-700">${c.segment}</span>
-                    <span class="text-sm font-semibold ${c.contribution_pct >= 0 ? 'text-green-600' : 'text-red-600'}">
+                <div class="flex justify-between items-center mb-1.5">
+                    <span class="text-sm text-gray-700 font-medium">${c.segment}</span>
+                    <span class="text-sm font-bold ${c.contribution_pct >= 0 ? 'text-green-600' : 'text-red-600'}">
                         ${c.contribution_pct > 0 ? '+' : ''}${c.contribution_pct.toFixed(1)}%
                     </span>
                 </div>
-                <div class="w-full bg-gray-200 rounded-full h-2">
-                    <div class="h-2 rounded-full ${c.contribution_pct >= 0 ? 'bg-green-500' : 'bg-red-500'}" 
+                <div class="w-full bg-gray-100 rounded-full h-2">
+                    <div class="h-2 rounded-full transition-all ${c.contribution_pct >= 0 ? 'bg-green-500' : 'bg-red-500'}" 
                          style="width: ${Math.min(Math.abs(c.contribution_pct), 100)}%"></div>
                 </div>
             </div>
@@ -237,19 +274,24 @@
         const drilldown = document.getElementById(`${dimension}-drilldown`);
         const toggle = document.getElementById(`${dimension}-toggle`);
         
+        if (!drilldown || !toggle) return;
+        
         if (drilldown.classList.contains('hidden')) {
             drilldown.classList.remove('hidden');
-            toggle.textContent = 'Hide ▲';
+            toggle.textContent = 'Hide';
         } else {
             drilldown.classList.add('hidden');
-            toggle.textContent = 'Details ▼';
+            toggle.textContent = 'Details';
         }
     }
 
     async function loadNarrative() {
         try {
-            const currentDate = document.getElementById('current-date').value;
-            const previousDate = document.getElementById('previous-date').value;
+            const currentDateEl = document.getElementById('current-date');
+            const previousDateEl = document.getElementById('previous-date');
+            
+            const currentDate = currentDateEl ? currentDateEl.value : '';
+            const previousDate = previousDateEl ? previousDateEl.value : '';
             
             let url = '/api/narrative/';
             if (currentDate && previousDate) {
@@ -260,8 +302,10 @@
             const result = await response.json();
             
             if (result.status === 'success') {
-                document.getElementById('narrative').innerHTML = 
-                    result.data.full.replace(/\*\*/g, '').replace(/\n/g, '<br>');
+                const narrativeEl = document.getElementById('narrative');
+                if (narrativeEl) {
+                    narrativeEl.innerHTML = result.data.full.replace(/\*\*/g, '').replace(/\n/g, '<br>');
+                }
             }
         } catch (error) {
             console.error('Failed to load narrative:', error);
@@ -273,8 +317,13 @@
         loadNarrative();
         loadAnomalies();
         
-        const currentDate = document.getElementById('current-date').value;
-        const previousDate = document.getElementById('previous-date').value;
+        const currentDateEl = document.getElementById('current-date');
+        const previousDateEl = document.getElementById('previous-date');
+        
+        if (!currentDateEl || !previousDateEl) return;
+        
+        const currentDate = currentDateEl.value;
+        const previousDate = previousDateEl.value;
         
         const current = metricsData.find(d => d.metric_date === currentDate);
         const previous = metricsData.find(d => d.metric_date === previousDate);
@@ -283,13 +332,19 @@
     }
 
     function resetFilters() {
-        document.getElementById('threshold-slider').value = 2;
-        document.getElementById('threshold-label').textContent = '2.0σ';
-        document.getElementById('metric-select').value = 'total_revenue';
+        const thresholdSlider = document.getElementById('threshold-slider');
+        const thresholdLabel = document.getElementById('threshold-label');
+        const metricSelect = document.getElementById('metric-select');
+        
+        if (thresholdSlider) thresholdSlider.value = 2;
+        if (thresholdLabel) thresholdLabel.textContent = '2.0σ';
+        if (metricSelect) metricSelect.value = 'total_revenue';
         
         if (metricsData.length >= 2) {
-            document.getElementById('current-date').value = metricsData[0].metric_date;
-            document.getElementById('previous-date').value = metricsData[1].metric_date;
+            const currentDateEl = document.getElementById('current-date');
+            const previousDateEl = document.getElementById('previous-date');
+            if (currentDateEl) currentDateEl.value = metricsData[0].metric_date;
+            if (previousDateEl) previousDateEl.value = metricsData[1].metric_date;
         }
         
         setChartMetric('total_revenue');
@@ -304,12 +359,18 @@
     }
 
     function copyNarrative() {
-        const narrative = document.getElementById('narrative').innerText;
-        navigator.clipboard.writeText(narrative).then(() => alert('Copied to clipboard!'));
+        const narrativeEl = document.getElementById('narrative');
+        if (!narrativeEl) return;
+        const narrative = narrativeEl.innerText;
+        navigator.clipboard.writeText(narrative).then(() => {
+            alert('Copied to clipboard!');
+        });
     }
 
     function downloadNarrative() {
-        const narrative = document.getElementById('narrative').innerText;
+        const narrativeEl = document.getElementById('narrative');
+        if (!narrativeEl) return;
+        const narrative = narrativeEl.innerText;
         const blob = new Blob([narrative], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -320,11 +381,13 @@
 
     async function runPipeline(forceAlert) {
         const statusEl = document.getElementById('pipeline-status');
-        statusEl.textContent = 'Running pipeline...';
-        statusEl.className = 'mt-4 text-indigo-600';
+        if (!statusEl) return;
+        
+        statusEl.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Running pipeline...';
         
         try {
-            const metric = document.getElementById('metric-select').value;
+            const metricSelect = document.getElementById('metric-select');
+            const metric = metricSelect ? metricSelect.value : 'total_revenue';
             
             const response = await fetch('/api/pipeline/', {
                 method: 'POST',
@@ -335,15 +398,13 @@
             const result = await response.json();
             
             if (result.status === 'success') {
-                statusEl.textContent = `Completed in ${result.data.duration_seconds.toFixed(2)}s | Alert: ${result.data.alert_status}`;
-                statusEl.className = 'mt-4 text-green-600';
+                statusEl.innerHTML = `<i class="fas fa-check-circle mr-2"></i> Completed in ${result.data.duration_seconds.toFixed(2)}s | Alert: ${result.data.alert_status}`;
                 refreshData();
             } else {
                 throw new Error(result.message);
             }
         } catch (error) {
-            statusEl.textContent = `Failed: ${error.message}`;
-            statusEl.className = 'mt-4 text-red-600';
+            statusEl.innerHTML = `<i class="fas fa-exclamation-circle mr-2"></i> Failed: ${error.message}`;
         }
     }
 </script>

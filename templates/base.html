@@ -4,53 +4,73 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MetricPulse | Automated Root Cause Analysis</title>
+    <meta name="description" content="When metrics move unexpectedly, instantly identify what drove the change. Root cause analysis in 30 seconds, not 2 hours.">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        .tab-active { border-bottom: 3px solid #4F46E5; color: #4F46E5; }
-        .tech-card:hover { transform: translateY(-4px); transition: all 0.2s; }
+        * { font-family: 'Inter', sans-serif; }
+        .tab-active { border-bottom: 3px solid white; opacity: 1 !important; }
         .gradient-bg { background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); }
+        .gradient-text { background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.1); }
+        .fade-in { animation: fadeIn 0.6s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .pulse { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        .stat-card { background: linear-gradient(135deg, rgba(79,70,229,0.1) 0%, rgba(124,58,237,0.1) 100%); }
+        .flow-line { stroke-dasharray: 5; animation: dash 20s linear infinite; }
+        @keyframes dash { to { stroke-dashoffset: -100; } }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
+
     <!-- Navigation -->
     <nav class="gradient-bg text-white shadow-lg sticky top-0 z-50">
         <div class="container mx-auto px-6 py-4">
             <div class="flex justify-between items-center">
-                <div class="flex items-center space-x-2">
-                    <h1 class="text-2xl font-bold">MetricPulse</h1>
-                </div>
-                <div class="flex space-x-8">
-                    <button onclick="showTab('dashboard')" id="tab-dashboard" class="tab-btn py-2 px-1 font-medium tab-active">
-                        Dashboard
-                    </button>
-                    <button onclick="showTab('architecture')" id="tab-architecture" class="tab-btn py-2 px-1 font-medium opacity-80 hover:opacity-100">
-                        Architecture
-                    </button>
-                    <button onclick="showTab('about')" id="tab-about" class="tab-btn py-2 px-1 font-medium opacity-80 hover:opacity-100">
-                        About
-                    </button>
+                <a href="#" onclick="showTab('hero')" class="text-2xl font-bold tracking-tight">MetricPulse</a>
+                <div class="flex space-x-6">
+                    <button onclick="showTab('hero')" id="tab-hero" class="tab-btn py-2 px-1 font-medium tab-active">Home</button>
+                    <button onclick="showTab('dashboard')" id="tab-dashboard" class="tab-btn py-2 px-1 font-medium opacity-80 hover:opacity-100 transition">Dashboard</button>
+                    <button onclick="showTab('architecture')" id="tab-architecture" class="tab-btn py-2 px-1 font-medium opacity-80 hover:opacity-100 transition">Architecture</button>
+                    <button onclick="showTab('about')" id="tab-about" class="tab-btn py-2 px-1 font-medium opacity-80 hover:opacity-100 transition">About</button>
                 </div>
             </div>
         </div>
     </nav>
 
+    {% include 'partials/hero.html' %}
     {% include 'partials/dashboard.html' %}
     {% include 'partials/architecture.html' %}
     {% include 'partials/about.html' %}
 
     <!-- Footer -->
-    <footer class="bg-gray-800 text-gray-400 py-6 mt-12">
-        <div class="container mx-auto px-6 text-center">
-            <p>Built with Python, AWS, dbt, and Django</p>
-            <p class="text-sm mt-2">
-                <a href="https://github.com/nkousik18/metric_pulse" target="_blank" rel="noopener noreferrer" class="hover:text-white transition">GitHub</a>
-                <span class="mx-2">•</span>
-                <a href="https://www.linkedin.com/in/kousik-nandury" target="_blank" rel="noopener noreferrer" class="hover:text-white transition">LinkedIn</a>
-                <span class="mx-2">•</span>
-                <a href="mailto:nandury.k@northeastern.edu" class="hover:text-white transition">nandury.k@northeastern.edu</a>
-            </p>
+    <footer class="bg-gray-900 text-gray-400 py-8 mt-12">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <span class="text-white font-bold text-xl">MetricPulse</span>
+                    <p class="text-sm mt-1">Automated Root Cause Analysis</p>
+                </div>
+                <div class="flex space-x-6">
+                    <a href="https://github.com/nkousik18/metric_pulse" target="_blank" class="hover:text-white transition">
+                        <i class="fab fa-github text-xl"></i>
+                    </a>
+                    <a href="https://www.linkedin.com/in/kousik-nandury" target="_blank" class="hover:text-white transition">
+                        <i class="fab fa-linkedin text-xl"></i>
+                    </a>
+                    <a href="mailto:nandury.k@northeastern.edu" class="hover:text-white transition">
+                        <i class="fas fa-envelope text-xl"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-6 pt-6 text-center text-sm">
+                Built with Python, AWS, dbt & Django | © 2026 Kousik Nandury
+            </div>
         </div>
     </footer>
 
