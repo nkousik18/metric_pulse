@@ -1,16 +1,35 @@
 {{ config(materialized='table') }}
 
-WITH order_details AS (
+WITH order_revenue AS (
+    -- Aggregate to order level first to avoid row multiplication
+    -- when joining items (N rows) × payments (M rows) below
+    SELECT
+        order_id,
+        SUM(total_item_value) AS order_revenue
+    FROM {{ ref('stg_order_items') }}
+    GROUP BY order_id
+),
+
+primary_payment AS (
+    -- payment_sequential = 1 is the primary (or only) payment for each order
+    SELECT
+        order_id,
+        payment_type
+    FROM {{ source('raw_data', 'payments') }}
+    WHERE payment_sequential = 1
+),
+
+order_details AS (
     SELECT
         o.order_id,
         o.order_date,
-        pay.payment_type,
+        pp.payment_type,
         dp.payment_type_display,
-        oi.total_item_value
+        r.order_revenue
     FROM {{ ref('stg_orders') }} o
-    INNER JOIN {{ ref('stg_order_items') }} oi ON o.order_id = oi.order_id
-    INNER JOIN {{ source('raw_data', 'payments') }} pay ON o.order_id = pay.order_id
-    INNER JOIN {{ ref('dim_payment') }} dp ON pay.payment_type = dp.payment_type
+    INNER JOIN order_revenue r ON o.order_id = r.order_id
+    INNER JOIN primary_payment pp ON o.order_id = pp.order_id
+    INNER JOIN {{ ref('dim_payment') }} dp ON pp.payment_type = dp.payment_type
     WHERE o.order_status NOT IN ('canceled', 'unavailable')
 )
 
@@ -19,8 +38,8 @@ SELECT
     payment_type,
     payment_type_display,
     COUNT(DISTINCT order_id) AS order_count,
-    ROUND(SUM(total_item_value), 2) AS total_revenue,
-    ROUND(AVG(total_item_value), 2) AS avg_item_value
+    ROUND(SUM(order_revenue), 2) AS total_revenue,
+    ROUND(AVG(order_revenue), 2) AS avg_order_value
 FROM order_details
 GROUP BY order_date, payment_type, payment_type_display
 ORDER BY order_date, total_revenue DESC

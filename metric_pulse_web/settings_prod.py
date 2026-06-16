@@ -1,7 +1,7 @@
 from .settings import *
 
 DEBUG = False
-ALLOWED_HOSTS = ['*', '.onrender.com']
+ALLOWED_HOSTS = ['.onrender.com']
 
 # Whitenoise for static files
 MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')

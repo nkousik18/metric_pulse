@@ -2,20 +2,16 @@
 Generate plain-English narratives from decomposition results.
 """
 
-import os
 import sys
 from pathlib import Path
 from typing import Dict, Optional
 from datetime import datetime
 
 from jinja2 import Environment
-from dotenv import load_dotenv
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from config.logging_config import setup_logger
-
-load_dotenv()
 
 logger = setup_logger(__name__)
 
@@ -71,18 +67,21 @@ EMAIL_SUBJECT_TEMPLATE = """MetricPulse: {{ metric_name }} {{ direction }} {{ ch
 def generate_narrative(
     decomposition_results: Dict,
     anomaly_info: Optional[Dict] = None,
-    format_type: str = 'full'
+    format_type: str = 'all'
 ) -> Dict[str, str]:
     """
     Generate narrative from decomposition results.
-    
+
     Args:
         decomposition_results: Output from decomposer
         anomaly_info: Optional anomaly detection info
-        format_type: 'full', 'slack', or 'email'
-    
+        format_type: 'all' (default), 'full', 'slack', 'email', or 'summary'
+                     'all' returns every format; any other value returns only that key.
+
     Returns:
-        Dictionary with formatted narratives
+        Dictionary with formatted narratives. Keys: 'full', 'slack',
+        'email_subject', 'summary'. When format_type is not 'all', only
+        the requested key is present.
     """
     logger.info(f"Generating {format_type} narrative")
     
@@ -170,8 +169,17 @@ def generate_narrative(
     )
     
     logger.info(f"Generated narrative: {outputs['summary']}")
-    
-    return outputs
+
+    if format_type == 'all':
+        return outputs
+
+    if format_type == 'email':
+        format_type = 'email_subject'
+
+    if format_type not in outputs:
+        raise ValueError(f"Unknown format_type '{format_type}'. Valid: all, full, slack, email, summary")
+
+    return {format_type: outputs[format_type]}
 
 
 if __name__ == "__main__":

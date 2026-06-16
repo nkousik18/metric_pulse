@@ -6,11 +6,11 @@ import os
 import sys
 from pathlib import Path
 
-import redshift_connector
 from dotenv import load_dotenv
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from config.db import build_copy_credentials, get_connection
 from config.logging_config import setup_logger
 
 load_dotenv()
@@ -29,23 +29,6 @@ FILE_TABLE_MAPPING = {
 }
 
 
-def get_connection():
-    """Create Redshift connection."""
-    try:
-        conn = redshift_connector.connect(
-            host=os.getenv('REDSHIFT_HOST'),
-            port=int(os.getenv('REDSHIFT_PORT', 5439)),
-            database=os.getenv('REDSHIFT_DATABASE'),
-            user=os.getenv('REDSHIFT_USER'),
-            password=os.getenv('REDSHIFT_PASSWORD')
-        )
-        logger.info("Connected to Redshift")
-        return conn
-    except Exception as e:
-        logger.error(f"Connection failed: {e}")
-        raise
-
-
 def truncate_table(cursor, table_name: str):
     """Truncate table before loading."""
     try:
@@ -58,23 +41,23 @@ def truncate_table(cursor, table_name: str):
 
 def load_table(cursor, s3_file: str, table_name: str) -> int:
     """
-    Load single file from S3 to Redshift using COPY.
-    
+    Load a single CSV from S3 into a Redshift table using COPY.
+
+    Credentials are resolved via build_copy_credentials(): IAM role if
+    REDSHIFT_IAM_ROLE is set, otherwise ACCESS_KEY_ID / SECRET_ACCESS_KEY.
+
     Returns:
         Number of rows loaded
     """
     bucket = os.getenv('S3_BUCKET_NAME')
     region = os.getenv('AWS_REGION')
-    access_key = os.getenv('AWS_ACCESS_KEY_ID')
-    secret_key = os.getenv('AWS_SECRET_ACCESS_KEY')
-    
     s3_path = f"s3://{bucket}/raw/{s3_file}"
-    
+    credentials = build_copy_credentials()
+
     copy_sql = f"""
         COPY {table_name}
         FROM '{s3_path}'
-        ACCESS_KEY_ID '{access_key}'
-        SECRET_ACCESS_KEY '{secret_key}'
+        {credentials}
         REGION '{region}'
         CSV
         IGNOREHEADER 1
@@ -84,18 +67,17 @@ def load_table(cursor, s3_file: str, table_name: str) -> int:
         BLANKSASNULL
         EMPTYASNULL;
     """
-    
+
     try:
         logger.info(f"Loading {s3_file} -> {table_name}")
         cursor.execute(copy_sql)
-        
-        # Get row count
+
         cursor.execute(f"SELECT COUNT(*) FROM {table_name};")
         row_count = cursor.fetchone()[0]
-        
+
         logger.info(f"Loaded {row_count:,} rows into {table_name}")
         return row_count
-        
+
     except Exception as e:
         logger.error(f"Failed to load {s3_file}: {e}")
         raise
@@ -104,48 +86,48 @@ def load_table(cursor, s3_file: str, table_name: str) -> int:
 def load_all_tables() -> dict:
     """
     Load all files from S3 to Redshift.
-    
+
     Returns:
-        Dictionary with table names and row counts
+        Dictionary mapping table name -> row count
     """
     results = {}
-    
+
     conn = get_connection()
+    logger.info("Connected to Redshift")
     cursor = conn.cursor()
-    
+
     try:
         for s3_file, table_name in FILE_TABLE_MAPPING.items():
             truncate_table(cursor, table_name)
             row_count = load_table(cursor, s3_file, table_name)
             conn.commit()
             results[table_name] = row_count
-            
+
     except Exception as e:
         logger.error(f"Load process failed: {e}")
         conn.rollback()
         raise
-        
+
     finally:
         cursor.close()
         conn.close()
-    
+
     return results
 
 
 def verify_loads() -> dict:
-    """Verify row counts in all tables."""
+    """Verify row counts in all tables after load."""
     conn = get_connection()
     cursor = conn.cursor()
-    
+
     counts = {}
-    
     for table_name in FILE_TABLE_MAPPING.values():
         cursor.execute(f"SELECT COUNT(*) FROM {table_name};")
         counts[table_name] = cursor.fetchone()[0]
-    
+
     cursor.close()
     conn.close()
-    
+
     return counts
 
 

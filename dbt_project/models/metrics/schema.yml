@@ -38,17 +38,21 @@ models:
           - not_null
 
   - name: metric_by_payment
-    description: "Daily revenue metrics broken down by payment type for root cause analysis"
+    description: "Daily revenue metrics broken down by primary payment type for root cause analysis. Uses payment_sequential=1 to assign each order to one payment method."
     columns:
       - name: metric_date
         description: "Date of metrics"
         tests:
           - not_null
       - name: payment_type
-        description: "Payment method"
+        description: "Payment method code (primary payment per order)"
         tests:
           - not_null
+      - name: payment_type_display
+        description: "Human-readable payment method label"
       - name: total_revenue
-        description: "Sum of revenue for this segment"
+        description: "Sum of order revenue attributed to this payment type"
         tests:
           - not_null
+      - name: avg_order_value
+        description: "Average order revenue for this payment type"

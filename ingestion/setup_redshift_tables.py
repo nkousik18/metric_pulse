@@ -2,63 +2,41 @@
 Execute Redshift schema and table setup.
 """
 
-import os
 import sys
 from pathlib import Path
 
-import redshift_connector
-from dotenv import load_dotenv
-
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from config.db import get_connection
 from config.logging_config import setup_logger
 
-load_dotenv()
-
 logger = setup_logger(__name__)
-
-
-def get_connection():
-    """Create Redshift connection."""
-    try:
-        conn = redshift_connector.connect(
-            host=os.getenv('REDSHIFT_HOST'),
-            port=int(os.getenv('REDSHIFT_PORT', 5439)),
-            database=os.getenv('REDSHIFT_DATABASE'),
-            user=os.getenv('REDSHIFT_USER'),
-            password=os.getenv('REDSHIFT_PASSWORD')
-        )
-        logger.info("Connected to Redshift")
-        return conn
-    except Exception as e:
-        logger.error(f"Connection failed: {e}")
-        raise
 
 
 def execute_sql_file(sql_file: str):
     """
     Execute SQL file against Redshift.
-    
+
     Args:
         sql_file: Path to SQL file
     """
     sql_path = Path(__file__).parent.parent / sql_file
-    
+
     if not sql_path.exists():
         logger.error(f"SQL file not found: {sql_path}")
         raise FileNotFoundError(f"SQL file not found: {sql_path}")
-    
+
     logger.info(f"Reading SQL from {sql_path}")
-    
+
     with open(sql_path, 'r') as f:
         sql_content = f.read()
-    
-    # Split by semicolon, filter empty statements
+
     statements = [s.strip() for s in sql_content.split(';') if s.strip() and not s.strip().startswith('--')]
-    
+
     logger.info(f"Found {len(statements)} SQL statements to execute")
-    
+
     conn = get_connection()
+    logger.info("Connected to Redshift")
     cursor = conn.cursor()
     
     success_count = 0
@@ -93,28 +71,27 @@ def execute_sql_file(sql_file: str):
 
 
 def verify_tables():
-    """Verify tables were created."""
+    """Verify tables were created in raw_data schema."""
     conn = get_connection()
     cursor = conn.cursor()
-    
+
     query = """
-        SELECT schemaname, tablename 
-        FROM pg_tables 
-        WHERE schemaname IN ('raw', 'staging', 'marts')
-        ORDER BY schemaname, tablename;
+        SELECT schemaname, tablename
+        FROM pg_tables
+        WHERE schemaname = 'raw_data'
+        ORDER BY tablename;
     """
-    
+
     cursor.execute(query)
     tables = cursor.fetchall()
-    
+
     cursor.close()
     conn.close()
-    
-    logger.info(f"Found {len(tables)} tables in project schemas")
-    
+
+    logger.info(f"Found {len(tables)} tables in raw_data schema")
     for schema, table in tables:
         logger.info(f"  {schema}.{table}")
-    
+
     return tables
 
 

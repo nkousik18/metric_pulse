@@ -42,7 +42,7 @@ jobs:
 
       - name: Run unit tests
         run: |
-          pytest tests/ -v --tb=short || echo "No tests found or tests failed"
+          pytest tests/ -v --tb=short
 
   dbt-check:
     runs-on: ubuntu-latest

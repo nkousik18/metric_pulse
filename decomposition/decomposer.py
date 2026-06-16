@@ -2,17 +2,17 @@
 Decompose metric changes by dimension to identify root causes.
 """
 
-import os
 import sys
+from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 import pandas as pd
-import redshift_connector
 from dotenv import load_dotenv
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from config.db import get_connection
 from config.logging_config import setup_logger
 
 load_dotenv()
@@ -39,20 +39,10 @@ DIMENSION_TABLES = {
 }
 
 
-def get_connection():
-    """Create Redshift connection."""
-    try:
-        conn = redshift_connector.connect(
-            host=os.getenv('REDSHIFT_HOST'),
-            port=int(os.getenv('REDSHIFT_PORT', 5439)),
-            database=os.getenv('REDSHIFT_DATABASE'),
-            user=os.getenv('REDSHIFT_USER'),
-            password=os.getenv('REDSHIFT_PASSWORD')
-        )
-        return conn
-    except Exception as e:
-        logger.error(f"Connection failed: {e}")
-        raise
+def _validate_date(date_str: str) -> str:
+    """Validate YYYY-MM-DD format to prevent SQL injection."""
+    datetime.strptime(date_str, '%Y-%m-%d')
+    return date_str
 
 
 def fetch_dimension_metrics(
@@ -76,7 +66,10 @@ def fetch_dimension_metrics(
     config = DIMENSION_TABLES.get(dimension)
     if not config:
         raise ValueError(f"Unknown dimension: {dimension}")
-    
+
+    current_date = _validate_date(current_date)
+    previous_date = _validate_date(previous_date)
+
     query = f"""
         WITH current_day AS (
             SELECT 
@@ -256,11 +249,12 @@ def get_comparison_dates(target_date: str = None) -> tuple:
     cursor = conn.cursor()
     
     if target_date:
+        target_date = _validate_date(target_date)
         query = f"""
-            SELECT DISTINCT metric_date 
-            FROM staging.fact_daily_metrics 
+            SELECT DISTINCT metric_date
+            FROM staging.fact_daily_metrics
             WHERE metric_date <= '{target_date}'
-            ORDER BY metric_date DESC 
+            ORDER BY metric_date DESC
             LIMIT 2
         """
     else:

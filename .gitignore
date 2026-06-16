@@ -34,3 +34,7 @@ logs/
 lambda_package/
 lambda_deployment.zip
 output.json
+
+# Django generated
+staticfiles/
+db.sqlite3

@@ -5,38 +5,20 @@ Anomaly detection for daily metrics using z-score method.
 import os
 import sys
 from pathlib import Path
-from datetime import datetime, timedelta
 from typing import Optional
 
 import pandas as pd
 import numpy as np
-from scipy import stats
-import redshift_connector
 from dotenv import load_dotenv
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from config.db import get_connection
 from config.logging_config import setup_logger
 
 load_dotenv()
 
 logger = setup_logger(__name__)
-
-
-def get_connection():
-    """Create Redshift connection."""
-    try:
-        conn = redshift_connector.connect(
-            host=os.getenv('REDSHIFT_HOST'),
-            port=int(os.getenv('REDSHIFT_PORT', 5439)),
-            database=os.getenv('REDSHIFT_DATABASE'),
-            user=os.getenv('REDSHIFT_USER'),
-            password=os.getenv('REDSHIFT_PASSWORD')
-        )
-        return conn
-    except Exception as e:
-        logger.error(f"Connection failed: {e}")
-        raise
 
 
 def fetch_daily_metrics(lookback_days: int = 30) -> pd.DataFrame:
@@ -122,32 +104,36 @@ def detect_anomalies(
     return df
 
 
-def get_latest_anomaly(df: pd.DataFrame) -> Optional[dict]:
+def get_latest_anomaly(df: pd.DataFrame, metric_col: str = 'total_revenue') -> Optional[dict]:
     """
     Get the most recent anomaly if it exists.
-    
+
+    Args:
+        df: Output of detect_anomalies()
+        metric_col: The metric column that was analyzed
+
     Returns:
         Dictionary with anomaly details or None
     """
     anomalies = df[df['is_anomaly'] == True].sort_values('metric_date', ascending=False)
-    
+
     if anomalies.empty:
         logger.info("No anomalies detected in recent data")
         return None
-    
+
     latest = anomalies.iloc[0]
-    
+
     anomaly_info = {
         'metric_date': latest['metric_date'],
-        'metric_value': latest['total_revenue'],
+        'metric_value': latest[metric_col],
         'zscore': round(latest['zscore'], 2),
         'direction': latest['anomaly_direction'],
         'change_pct': latest['change_pct'],
         'change_value': latest['change_value']
     }
-    
+
     logger.info(f"Latest anomaly: {anomaly_info['metric_date']} - {anomaly_info['direction']} ({anomaly_info['change_pct']}%)")
-    
+
     return anomaly_info
 
 
@@ -183,7 +169,7 @@ def run_detection(
     df_analyzed = detect_anomalies(df, metric, threshold)
     
     # Get latest anomaly
-    latest_anomaly = get_latest_anomaly(df_analyzed)
+    latest_anomaly = get_latest_anomaly(df_analyzed, metric)
     
     # Get all anomalies
     all_anomalies = df_analyzed[df_analyzed['is_anomaly'] == True].to_dict('records')

@@ -2,8 +2,7 @@
 
 SELECT DISTINCT
     customer_state AS state_code,
-    customer_state AS state_name,
-    CASE 
+    CASE
         WHEN customer_state IN ('SP', 'RJ', 'MG', 'ES') THEN 'Southeast'
         WHEN customer_state IN ('PR', 'SC', 'RS') THEN 'South'
         WHEN customer_state IN ('BA', 'SE', 'AL', 'PE', 'PB', 'RN', 'CE', 'PI', 'MA') THEN 'Northeast'

@@ -23,15 +23,15 @@ models:
         description: "Unique customers who ordered"
 
   - name: dim_geography
-    description: "Geographic dimension mapping states to regions"
+    description: "Geographic dimension mapping Brazilian state codes to 5 macro-regions"
     columns:
       - name: state_code
-        description: "Brazilian state code (2 letters)"
+        description: "Brazilian state code (2-letter ISO, e.g. SP, RJ)"
         tests:
           - unique
           - not_null
       - name: region
-        description: "Geographic region (Southeast, South, Northeast, etc.)"
+        description: "Macro-region (Southeast, South, Northeast, Central-West, North, Unknown)"
         tests:
           - not_null
           - accepted_values:
