@@ -241,13 +241,18 @@ python -m orchestration.run_pipeline --force-alert
 | Metric | Value |
 |--------|-------|
 | Data Volume | 451K rows |
-| Automated Tests | 37 |
+| dbt Tests | 37 |
+| Unit Tests | 15 |
 | Pipeline Speed | < 5 seconds |
 | Time Saved | 99.6% (2 hrs → 30 sec) |
 | API Endpoints | 7 |
 | dbt Models | 11 |
 
 ---
+
+## Documentation
+
+Deeper reference lives in [`docs/`](docs/README.md) — one file per pipeline layer, plus `docs/resume_project_doc.md` (full source of truth) and `docs/scoping.md` (in-progress agentic-layer design). Every top-level code folder (`ingestion/`, `dbt_project/`, `detection/`, etc.) also has its own `README.md` with file-by-file detail. `CLAUDE.md` is the entry point for AI coding assistants working in this repo.
 
 ## Running Tests
 
@@ -283,10 +288,10 @@ docker run -p 8000:8000 --env-file .env metricpulse
 
 ## Future Enhancements
 
-- [ ] AWS Lambda serverless deployment
+- [ ] Automate Lambda deployment in CD (`deploy/` scripts exist and work manually; CD doesn't invoke them yet)
 - [ ] Additional decomposition dimensions
 - [ ] Slack integration for alerts
-- [ ] Scheduled pipeline runs with Airflow
+- [ ] Automated `dbt run` in CD on data refresh (currently manual; EventBridge scheduling for the analytics pipeline itself already exists via `deploy/setup_schedule.sh`)
 - [ ] ML-based anomaly detection
 
 ---

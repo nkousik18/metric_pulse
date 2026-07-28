@@ -38,3 +38,6 @@ output.json
 # Django generated
 staticfiles/
 db.sqlite3
+
+# Personal / not for the public repo
+docs/Kousik_Market_Gap_Analysis_July2026.md

@@ -124,7 +124,7 @@ Triggers on push and pull requests to `develop` and `main`.
 | Hard errors | `--select=E9,F63,F7,F82` | Syntax errors, undefined names — **fails CI** |
 | Style warnings | `--exit-zero --max-line-length=120` | Non-blocking — reports but does not fail |
 
-**Tests:** Runs `pytest tests/ -v --tb=short` — CI fails if any test fails. 3 test files, 13 tests total.
+**Tests:** Runs `pytest tests/ -v --tb=short` — CI fails if any test fails. 3 test files, 15 tests total (5 + 4 + 6). No mocking is used — all tests exercise pure functions with in-memory data; Redshift-touching functions are not exercised by the suite.
 
 **pip caching:** Keyed on `requirements.txt` hash — cache hit on unchanged dependencies saves ~60 seconds per run.
 
@@ -266,3 +266,6 @@ deploy/setup_schedule.sh  # Create EventBridge rule for scheduled runs
 | No `collectstatic` in CI | Static files are only collected on Render build, not verified in CI |
 | Contact form email sending disabled | `ContactView` logs submissions but the `send_mail` call is commented out — requires `EMAIL_HOST_USER` / `EMAIL_HOST_PASSWORD` in env |
 | Lambda deploy not automated | `deploy/` scripts exist but CD pipeline does not invoke them — Lambda deploys are manual |
+| `alerting/sns_publisher.py` has no test coverage | Unlike detection/decomposition/narrative, there is no `tests/test_sns_publisher.py` |
+| Dashboard drill-down toggle is non-functional | `toggleDrilldown()` in `templates/partials/scripts.html` only shows/hides an empty `<div>` — nothing populates the region→state / group→category / payment-type detail lists |
+| `NarrativeView` and `DecompositionView` both independently call `decompose_metric()` | The SPA's `loadDecomposition()` and `loadNarrative()` each trigger the full 3-dimension decomposition query — result isn't shared, so it runs twice per dashboard load |
