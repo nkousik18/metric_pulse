@@ -69,7 +69,9 @@ The interactive analytics interface. Loads data lazily — API calls fire only w
 **Trend chart:** Chart.js line chart, last 60 days. Toggle between Revenue / Orders / AOV via 3 buttons. Anomaly dates are highlighted with red point markers.
 
 **Decomposition panels (3 columns):**
-Each panel shows geography / product / payment breakdown as progress bars sorted by `contribution_pct`. A "Details" toggle expands a drill-down list (region → state, group → category, payment display → payment type). Data source: `/api/decomposition/`.
+Each panel shows geography / product / payment breakdown as progress bars sorted by `contribution_pct`. Data source: `/api/decomposition/`.
+
+> **Known bug:** a "Details" toggle button is present and intended to expand a drill-down list (region → state, group → category, payment display → payment type), but `toggleDrilldown()` in `partials/scripts.html` only shows/hides an empty `<div>` — nothing ever populates it. The drill-down data (`detail_col`) is returned by the API but not rendered anywhere in the current JS.
 
 **Root Cause Analysis narrative:**
 Markdown rendered from `/api/narrative/` response. Copy and Download buttons for export.

@@ -26,7 +26,7 @@ MetricPulse is an automated root cause analysis engine built on the Brazilian Ol
 | Charts (web) | Chart.js (CDN) | Zero-dependency frontend charts; no build step |
 | CI/CD | GitHub Actions | Native GitHub integration; parallel lint + test + dbt parse jobs |
 | Deployment | Render | Zero-config PaaS; auto-deploys on push to main |
-| Testing | pytest 9.0 | 13 tests across 3 files; mocks Redshift for unit tests |
+| Testing | pytest 9.0 | 15 tests across 3 files; all test pure functions with in-memory data, no mocking |
 
 ---
 
@@ -91,30 +91,32 @@ Rename columns, cast types, filter statuses. No joins. Materialised as views so 
 
 | Model | Source table | Key transforms |
 |-------|-------------|----------------|
-| `stg_customers` | `raw_data.customers` | Rename `customer_unique_id`; standardise column names |
-| `stg_orders` | `raw_data.orders` | Cast `order_purchase_timestamp` → `DATE` as `order_date`; filter to 6 valid statuses |
+| `stg_orders` | `raw_data.orders` | Cast `order_purchase_timestamp` → `DATE` as `order_date`; filter `WHERE order_purchase_timestamp IS NOT NULL`; derives `order_year`, `order_month`, `order_day_of_week`, `delivery_days` |
 | `stg_order_items` | `raw_data.order_items` | Add `total_item_value = price + freight_value` |
-| `stg_sellers` | `raw_data.sellers` | Rename and standardise |
+| `stg_customers` | `raw_data.customers` | Pass-through, no transforms |
+| `stg_products` | `raw_data.products` LEFT JOIN `category_translation` | `COALESCE(english_name, portuguese_name, 'unknown')` for `product_category` |
 
-**Layer 2 — Marts (5 tables)**
+There is no `stg_sellers` model — `sellers` data is loaded into `raw_data` but not used by any staging/marts/metrics model.
 
-Enrichment dimensions. Materialised as tables for join performance.
+**Layer 2 — Marts (4 tables)**
+
+Fact table + enrichment dimensions. Materialised as tables for join performance.
 
 | Model | Rows | Purpose |
 |-------|------|---------|
-| `dim_customers` | 99,441 | Join key between orders and geography |
-| `dim_geography` | 27 | 27 Brazilian states → 5 regions (North, Northeast, Midwest, Southeast, South) |
-| `dim_product` | 32,951 | 73 product categories → 7 product groups |
-| `dim_payment` | 5 | Payment type codes → display labels |
-| `dim_sellers` | 3,095 | Seller location |
+| `fact_daily_metrics` | ~760 (1/day) | Daily `order_count`, `customer_count`, `total_revenue`, `avg/min/max_order_value` |
+| `dim_geography` | 27 | 27 Brazilian states → 5 regions (Southeast, South, Northeast, Central-West, North) + `Unknown` fallback |
+| `dim_product` | ~73 | 73 product categories → 7 product groups (`Electronics`, `Home & Furniture`, `Fashion & Sports`, `Health & Beauty`, `Kids & Toys`, `Auto & Tools`, `Other`) |
+| `dim_payment` | 4 | Payment type codes → display labels |
 
-**Layer 3 — Metrics (2 tables)**
+There is no `dim_customers` or `dim_sellers` model.
 
-Final analytical tables. Aggregated daily. These are the tables queried by the detection and decomposition layers.
+**Layer 3 — Metrics (3 tables)**
+
+Daily revenue pre-aggregated per decomposition dimension. These are the tables queried by the decomposition layer (`fact_daily_metrics`, above, is what the detection layer queries).
 
 | Model | Grain | Metrics |
 |-------|-------|---------|
-| `fact_daily_metrics` | 1 row per day | `order_count`, `total_revenue`, `avg_order_value` |
 | `metric_by_geography` | 1 row per day × region × state | Revenue and order count by geography |
 | `metric_by_product` | 1 row per day × product group × category | Revenue and order count by product |
 | `metric_by_payment` | 1 row per day × payment type | Revenue and order count by payment method |
@@ -306,15 +308,15 @@ Flake8 strategy: hard errors (`E9,F63,F7,F82`) fail CI; style warnings (`--exit-
 
 ---
 
-## 10. Test Coverage (13 Tests, 3 Files)
+## 10. Test Coverage (15 Tests, 3 Files)
 
 | File | Tests | What's covered |
 |------|-------|---------------|
 | `tests/test_anomaly_detector.py` | 5 | Z-score calculation, threshold logic, anomaly flagging, `get_latest_anomaly` per metric, empty DataFrame handling |
 | `tests/test_decomposer.py` | 4 | Contribution % formula, dominant driver selection, date validation rejection, multi-dimension output shape |
-| `tests/test_narrative.py` | 4 | All 4 format outputs present, `format_type` filtering, unknown format raises `ValueError`, template renders without error |
+| `tests/test_narrative.py` | 6 | All 4 format outputs present, `format_type` filtering, currency formatting (basic/large/none/negative), summary content |
 
-Redshift is mocked in all 13 tests — no live AWS connection required to run CI. `pytest tests/ -v --tb=short` is the CI command; previously a `|| echo` clause swallowed failures silently.
+No mocking is used anywhere in the suite — every test calls a pure function (`calculate_zscore`, `calculate_contribution`, `format_currency`, `generate_narrative`, etc.) directly with in-memory DataFrames/dicts. Redshift-touching functions (`fetch_daily_metrics`, `fetch_dimension_metrics`, etc.) are simply never exercised by the suite, so no live AWS connection is required to run CI. `pytest tests/ -v --tb=short` is the CI command; previously a `|| echo` clause swallowed failures silently.
 
 ---
 
