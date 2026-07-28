@@ -6,6 +6,8 @@ When business metrics move unexpectedly, MetricPulse automatically identifies wh
 
 🔗 **Live Demo:** [metricpulse-h9lu.onrender.com](https://metricpulse-h9lu.onrender.com)
 
+**Status:** core pipeline (ingestion → dbt → detection → decomposition → narrative → alerting) is live and stable. A LangGraph-based agentic layer is currently in design — see `docs/ROADMAP.md` for what's built vs. planned.
+
 ---
 
 ## The Problem
@@ -252,7 +254,7 @@ python -m orchestration.run_pipeline --force-alert
 
 ## Documentation
 
-Deeper reference lives in [`docs/`](docs/README.md) — one file per pipeline layer, plus `docs/resume_project_doc.md` (full source of truth) and `docs/scoping.md` (in-progress agentic-layer design). Every top-level code folder (`ingestion/`, `dbt_project/`, `detection/`, etc.) also has its own `README.md` with file-by-file detail. `CLAUDE.md` is the entry point for AI coding assistants working in this repo.
+Deeper reference lives in [`docs/`](docs/README.md) — one file per pipeline layer, plus `docs/resume_project_doc.md` (full source of truth), `docs/ROADMAP.md` (what's built vs. planned), and `docs/scoping.md` (in-progress agentic-layer design). Every top-level code folder (`ingestion/`, `dbt_project/`, `detection/`, etc.) also has its own `README.md` with file-by-file detail. [`concepts/`](concepts/INDEX.md) explains the ideas behind the newer, less-obvious parts of the system (state graphs, LLM grounding) in plain language. `CHANGELOG.md` tracks what's shipped; `CONTRIBUTING.md` covers the branch/PR workflow. `CLAUDE.md` is the entry point for AI coding assistants working in this repo.
 
 ## Running Tests
 
