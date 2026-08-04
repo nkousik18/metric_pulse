@@ -46,7 +46,7 @@ Known Gaps, `docs/resume_project_doc.md` §12):
 citation in it validated against actual `decomposition_results`/`drill_down_results`, not
 trusted on the model's word — and the existing 15 tests still pass unmodified.
 
-- [ ] **M0** — `investigation/` skeleton: state schema, 5 deterministic nodes + 3 routing
+- [x] **M0** — `investigation/` skeleton: state schema, 5 deterministic nodes + 3 routing
       functions, tool wrappers around unchanged `detection`/`decomposition`/`narrative` calls,
       the one new `fetch_detail_metrics()` in `decomposer.py`. `test_investigation_routing.py`,
       `test_ambiguity_rules.py` passing.
