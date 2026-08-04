@@ -21,4 +21,5 @@ Technical reference for the MetricPulse automated root cause analysis pipeline.
 |------|----------------|
 | [resume_project_doc.md](resume_project_doc.md) | Full project source of truth — all layers, all stats, decisions, known gaps |
 | [architecture.md](architecture.md) | System overview and component diagram |
+| [workflow_diagram.md](workflow_diagram.md) | End-to-end data flow — Mermaid diagrams + per-step input/output tables across all layers |
 | [setup.md](setup.md) | Local development setup and environment variables |
