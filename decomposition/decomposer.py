@@ -97,13 +97,81 @@ def fetch_dimension_metrics(
     """
     
     conn = get_connection()
-    
+
     try:
         df = pd.read_sql(query, conn)
         logger.debug(f"Fetched {len(df)} segments for {dimension}")
         return df
     except Exception as e:
         logger.error(f"Failed to fetch {dimension} metrics: {e}")
+        raise
+    finally:
+        conn.close()
+
+
+def fetch_detail_metrics(
+    dimension: str,
+    segment: str,
+    current_date: str,
+    previous_date: str,
+    metric_col: str = 'total_revenue'
+) -> pd.DataFrame:
+    """
+    Fetch detail-grain (detail_col) metrics for a single segment within a dimension,
+    comparing two dates. Same shape as fetch_dimension_metrics, but grouped by the
+    dimension's detail_col and filtered to one segment_col value.
+
+    Args:
+        dimension: Dimension name (geography, product, payment)
+        segment: The segment_col value to drill into (e.g. 'Southeast')
+        current_date: Date to analyze
+        previous_date: Comparison date
+        metric_col: Metric column to compare
+
+    Returns:
+        DataFrame with current and previous values by detail segment
+    """
+    config = DIMENSION_TABLES.get(dimension)
+    if not config:
+        raise ValueError(f"Unknown dimension: {dimension}")
+
+    current_date = _validate_date(current_date)
+    previous_date = _validate_date(previous_date)
+
+    query = f"""
+        WITH current_day AS (
+            SELECT
+                {config['detail_col']} AS segment,
+                SUM({metric_col}) AS current_value
+            FROM {config['table']}
+            WHERE metric_date = '{current_date}' AND {config['segment_col']} = '{segment}'
+            GROUP BY {config['detail_col']}
+        ),
+        previous_day AS (
+            SELECT
+                {config['detail_col']} AS segment,
+                SUM({metric_col}) AS previous_value
+            FROM {config['table']}
+            WHERE metric_date = '{previous_date}' AND {config['segment_col']} = '{segment}'
+            GROUP BY {config['detail_col']}
+        )
+        SELECT
+            COALESCE(c.segment, p.segment) AS segment,
+            COALESCE(c.current_value, 0) AS current_value,
+            COALESCE(p.previous_value, 0) AS previous_value
+        FROM current_day c
+        FULL OUTER JOIN previous_day p ON c.segment = p.segment
+        ORDER BY current_value DESC
+    """
+
+    conn = get_connection()
+
+    try:
+        df = pd.read_sql(query, conn)
+        logger.debug(f"Fetched {len(df)} detail segments for {dimension}/{segment}")
+        return df
+    except Exception as e:
+        logger.error(f"Failed to fetch detail metrics for {dimension}/{segment}: {e}")
         raise
     finally:
         conn.close()
@@ -144,6 +212,35 @@ def calculate_contribution(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def summarize_dimension(df_analyzed: pd.DataFrame) -> Dict:
+    """
+    Build the summary shape used for one dimension's entry in decompose_metric()'s
+    results — top contributors plus totals. Pure function over an already-analyzed
+    DataFrame (i.e. calculate_contribution()'s output).
+
+    Args:
+        df_analyzed: Output of calculate_contribution()
+
+    Returns:
+        Dictionary with total_current/previous/change/change_pct, top_contributors, segment_count
+    """
+    top_contributors = df_analyzed.head(5).to_dict('records')
+
+    total_current = df_analyzed['current_value'].sum()
+    total_previous = df_analyzed['previous_value'].sum()
+    total_change = total_current - total_previous
+    total_change_pct = ((total_change / total_previous) * 100) if total_previous else 0
+
+    return {
+        'total_current': round(total_current, 2),
+        'total_previous': round(total_previous, 2),
+        'total_change': round(total_change, 2),
+        'total_change_pct': round(total_change_pct, 2),
+        'top_contributors': top_contributors,
+        'segment_count': len(df_analyzed)
+    }
+
+
 def decompose_metric(
     current_date: str,
     previous_date: str,
@@ -180,26 +277,13 @@ def decompose_metric(
             
             # Calculate contributions
             df_analyzed = calculate_contribution(df)
-            
-            # Get top contributors
-            top_contributors = df_analyzed.head(5).to_dict('records')
-            
-            # Summary stats
-            total_current = df_analyzed['current_value'].sum()
-            total_previous = df_analyzed['previous_value'].sum()
-            total_change = total_current - total_previous
-            total_change_pct = ((total_change / total_previous) * 100) if total_previous else 0
-            
-            results['dimensions'][dimension] = {
-                'total_current': round(total_current, 2),
-                'total_previous': round(total_previous, 2),
-                'total_change': round(total_change, 2),
-                'total_change_pct': round(total_change_pct, 2),
-                'top_contributors': top_contributors,
-                'segment_count': len(df_analyzed)
-            }
-            
-            logger.info(f"{dimension}: {total_change_pct:+.2f}% change, top driver: {top_contributors[0]['segment'] if top_contributors else 'N/A'}")
+
+            # Summarize into this dimension's result entry
+            dim_summary = summarize_dimension(df_analyzed)
+            results['dimensions'][dimension] = dim_summary
+
+            top_contributors = dim_summary['top_contributors']
+            logger.info(f"{dimension}: {dim_summary['total_change_pct']:+.2f}% change, top driver: {top_contributors[0]['segment'] if top_contributors else 'N/A'}")
             
         except Exception as e:
             logger.error(f"Failed to decompose {dimension}: {e}")
