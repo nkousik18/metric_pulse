@@ -5,6 +5,39 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-08-04 — Added end-to-end workflow diagram
+
+**What happened:**
+User asked for a single document/visual covering the full project workflow — every step, its
+inputs, its outputs — suitable for handing to another LLM to generate an image from if a native
+image couldn't be produced directly. Re-verified the pipeline shape against
+`docs/resume_project_doc.md`, `docs/ROADMAP.md`, and the `orchestration/`, `dashboard_api/`, and
+`monitoring/` READMEs before drawing anything, rather than trusting `docs/architecture.md`'s
+existing (older, coarser) diagram as-is. Wrote `docs/workflow_diagram.md`: a system-overview
+Mermaid flowchart (Data Foundation → Analytics Pipeline → Presentation, color-coded by phase), a
+sequence diagram of one `run_pipeline()` call showing the exact data object passed at each
+boundary, a CI/CD deployment diagram, per-step input/output tables for every layer, and a
+portable natural-language image-generation prompt for another LLM/image tool. Published it as a
+Claude artifact (renders the Mermaid live) and indexed it in `docs/README.md`.
+
+**Decisions made:**
+- Diagrams show Phase 0 (the live, verifiable system) only — the Phase 1 LangGraph investigation
+  agent is named in a callout as scoped-but-not-built rather than drawn in, consistent with the
+  "check a box only when verifiably met" discipline the roadmap already follows.
+- Kept this as a new file rather than folding into `architecture.md` — that file is the
+  component-level system diagram; this one is the data-flow view (concrete inputs/outputs per
+  step, not just "layer A talks to layer B"), different enough to earn its own file.
+
+**Current state:** `docs/workflow_diagram.md` created and indexed in `docs/README.md`; both
+committed via `docs/workflow-diagram` branch → PR → CI green → squash-merge, per
+`CONTRIBUTING.md`. No code changed — documentation only, no `ROADMAP.md` gates affected.
+
+**Next steps:** None outstanding from this change.
+
+**Loose ends / reminders:** none.
+
+---
+
 ## 2026-07-28 — Adopted WORKING_CONVENTIONS.md scaffolding
 
 **What happened:**
