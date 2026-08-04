@@ -5,6 +5,64 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-08-04 — Built M0: investigation graph skeleton (Phase 1 kickoff)
+
+**What happened:**
+First implementation session on the agentic-layer initiative — `docs/ROADMAP.md` Phase 1,
+milestone M0. Re-read `docs/scoping.md` Sections 2–4 (the LangGraph design) and the real
+`decomposition/decomposer.py`, `detection/anomaly_detector.py`, `orchestration/run_pipeline.py`,
+and `narrative/generator.py` source before writing anything, then used plan mode to resolve one
+ambiguity in the scoping doc before coding: Section 2.3 lists 7 graph nodes total, but M0's
+milestone table (§10.2) says "5 deterministic nodes" — resolved as `detect`, `decompose_all`,
+`assess_ambiguity`, `drill_down`, `finalize_skip`, deferring the real `finalize` to M1 alongside
+`synthesize` (the LLM node), since `finalize`'s actual job — attaching `investigation_summary` —
+only makes sense once `synthesize` produces that field. Consistent with M0's "depends on nothing
+new," no `langgraph` package was added and no `StateGraph` was compiled — nodes/routing functions
+are plain, independently-testable Python functions for now, matching the calling convention they'll
+plug into once M1/M2 assembles a real graph.
+
+Built: `investigation/` (new package — `state.py`'s `InvestigationState`, `nodes.py`'s 5 nodes +
+`classify_ambiguity`, `routing.py`'s 3 routing functions + `MAX_ITERATIONS`, `tools.py`'s 4 tool
+wrappers, `README.md`); `decomposition/decomposer.py`'s new `fetch_detail_metrics()` (the one
+genuinely new backend capability this phase needs) plus a `summarize_dimension()` extraction so it
+and the existing `decompose_metric()` share one summary implementation instead of duplicating a
+15-line block; `tests/test_investigation_routing.py` (11 tests) and `tests/test_ambiguity_rules.py`
+(9 tests). `ambiguous_dimensions` was built directly in its Section 3.4-amended typed form
+(`list[{dimension, reason}]`), since that section is a documented amendment to Section 2 and
+building the flat form first would've just meant redoing it.
+
+**Decisions made:**
+- `classify_ambiguity` checks the `offsetting_segments` condition before `close_contributors` when
+  both could apply — a top contributor already over 100% makes "how close is #2" not meaningfully
+  defined. Verified against `docs/scoping.md` §3.8's worked example directly (Southeast/Northeast →
+  `close_contributors`, Payment → `offsetting_segments`) before trusting it.
+- `drill_down` only drills the single top contributor's segment per ambiguous dimension, not every
+  close contender — matches the §3.8 worked example (Southeast drilled, not Northeast).
+- Followed `CONTRIBUTING.md`'s branch → PR → CI green → squash-merge flow for both the code (PR #5)
+  and a small same-session docs follow-up (PR #6, fixing `tests/README.md`'s test count — stale the
+  moment M0 added two new test files — and checking M0's `ROADMAP.md` box only after the full suite
+  actually passed on `main` post-merge, per CLAUDE.md's "verifiably met" discipline).
+
+**Current state:** PRs #5 and #6 merged and squash-merged into `main`, both branches deleted. Full
+suite is 35 tests passing on `main` (15 pre-existing + 20 new), `flake8 --select=E9,F63,F7,F82`
+clean. `docs/ROADMAP.md`'s M0 checkbox and its two named test files are checked off.
+`investigation/` is not wired into anything yet — no compiled graph, nothing in `orchestration/` or
+`dashboard_api/` calls it.
+
+**Next steps:** M1 — `synthesize` (Section 3): Pydantic schemas (`EvidenceCitation`,
+`SynthesisOutput`), the structured-output LLM call, `validate_citation`, the bounded retry/fallback
+policy, and the Jinja rendering for `investigation_summary`. `docs/scoping.md` flags M1 as "the
+highest-uncertainty milestone" — first time this design meets a real LLM provider — and the
+designated calibration checkpoint for the rest of the rollout estimate (§10.3), worth an explicit
+pause after it ships to check real grounding-pass-rate against the rest of the plan.
+
+**Loose ends / reminders:**
+- `main` is still not branch-protected on GitHub (carried over from the previous session's note).
+- No `langgraph` dependency in `requirements.txt` yet — will be needed once M1/M2 actually compiles
+  a `StateGraph`.
+
+---
+
 ## 2026-08-04 — Full documentation staleness audit and fixes
 
 **What happened:**
