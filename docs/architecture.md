@@ -60,13 +60,18 @@ MetricPulse is an automated root cause analysis engine that detects metric anoma
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                         DELIVERY LAYER                                  │
 ├─────────────────────────────────────────────────────────────────────────┤
-│  sns_publisher.py          app.py (Streamlit)                           │
-│  • Publishes to SNS        • Interactive dashboard                      │
-│  • Email notifications     • Date selection                             │
-│                            • Drill-down analysis                        │
-│                            • One-click pipeline trigger                 │
+│  sns_publisher.py          Django REST API + SPA         Streamlit      │
+│  • Publishes to SNS        (dashboard_api/, templates/)  (legacy,       │
+│  • Email notifications     • 7 endpoints                  local only)  │
+│                             • Chart.js dashboard, live    • Direct      │
+│                               on Render                     Redshift    │
+│                             • "Run Analysis" trigger        connection │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
+
+The Django REST API + SPA is the primary, deployed interface. The Streamlit dashboard
+(`dashboard/app.py`) is a legacy prototype kept for local use only — not deployed, and it
+reimplements its own contribution math rather than calling `decomposition.decomposer`.
 
 ---
 
@@ -77,11 +82,12 @@ MetricPulse is an automated root cause analysis engine that detects metric anoma
 | Storage | AWS S3 | Raw data lake |
 | Warehouse | AWS Redshift Serverless | Analytics database |
 | Transformation | dbt | Data modeling & testing |
-| Detection | Python + scipy | Statistical anomaly detection |
+| Detection | Python + NumPy/pandas | Statistical anomaly detection (z-score) |
 | Decomposition | Python + SQL | Segment contribution analysis |
 | Narrative | Python + Jinja2 | Plain-English generation |
 | Alerting | AWS SNS | Email notifications |
-| Dashboard | Streamlit | Interactive visualization |
+| Web API + SPA | Django 6 + DRF, Chart.js (CDN) | Production dashboard, live on Render |
+| Dashboard (legacy) | Streamlit | Local-only interactive visualization, not deployed |
 | Orchestration | Python | Pipeline coordination |
 
 ---
@@ -143,9 +149,10 @@ MetricPulse is an automated root cause analysis engine that detects metric anoma
                      ┌──────────────┐     ┌──────────────┐
                      │  DASHBOARD   │◀────│    ALERT     │
                      │              │     │              │
-                     │ • Streamlit  │     │ • AWS SNS    │
-                     │ • Charts     │     │ • Email      │
-                     │ • Drill-down │     │              │
+                     │ • Django SPA │     │ • AWS SNS    │
+                     │   (live)     │     │ • Email      │
+                     │ • Streamlit  │     │              │
+                     │   (legacy)   │     │              │
                      └──────────────┘     └──────────────┘
 ```
 
@@ -247,8 +254,8 @@ Breakdown by Dimension:
 ## Future Enhancements
 
 1. **SageMaker Integration**: ML-based anomaly detection (Prophet, DeepAR)
-2. **Django UI**: Production-grade web interface
-3. **Slack Integration**: Direct Slack alerts via webhook
+2. **LangGraph investigation agent**: grounded root-cause synthesis layer — scoped in `docs/scoping.md`, tracked as `docs/ROADMAP.md` Phase 1, not yet built
+3. **Slack Integration**: Direct Slack alerts via webhook (a `slack` narrative format already exists; nothing calls a Slack webhook with it yet)
 4. **Scheduling**: Airflow DAG for automated daily runs
 5. **Multi-metric**: Extend to order_count, avg_order_value
 6. **Bivariate Analysis**: Region × Product decomposition

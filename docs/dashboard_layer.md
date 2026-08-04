@@ -66,7 +66,7 @@ The interactive analytics interface. Loads data lazily — API calls fire only w
 | Avg Order Value | `avg_order_value` — current value + Δ% | `/api/metrics/` |
 | Anomalies | Count of anomalies in window | `/api/anomalies/` |
 
-**Trend chart:** Chart.js line chart, last 60 days. Toggle between Revenue / Orders / AOV via 3 buttons. Anomaly dates are highlighted with red point markers.
+**Trend chart:** Chart.js line chart, last 60 days. Toggle between Revenue / Orders / AOV via 3 buttons. `drawChart()` (`partials/scripts.html`) uses one fixed `borderColor`/`pointRadius` for the whole dataset — there is no per-point coloring or anomaly-date highlighting in the chart itself.
 
 **Decomposition panels (3 columns):**
 Each panel shows geography / product / payment breakdown as progress bars sorted by `contribution_pct`. Data source: `/api/decomposition/`.
@@ -98,7 +98,10 @@ API calls triggered on dashboard tab open:
 3. `loadDecomposition()` → populates 3 breakdown panels
 4. `loadNarrative()` → populates narrative section
 
-`applyFilters()` re-calls all four when the user changes date/metric/threshold.
+`applyFilters()` (`partials/scripts.html`) only re-calls 3 of the 4 loaders —
+`loadDecomposition()`, `loadNarrative()`, `loadAnomalies()` — when the user changes
+date/metric/threshold. It does **not** call `loadMetrics()` again; KPI cards are instead
+recomputed client-side from the already-cached `metricsData`.
 
 ### Contact form (`partials/about.html`)
 

@@ -67,7 +67,7 @@ Staging models are **views** — they add no storage cost and always reflect the
 
 **What it does:**
 - Filters out rows where `order_purchase_timestamp IS NULL` (orders with no purchase event)
-- Extracts 3 date dimensions from the purchase timestamp: `order_date`, `order_year`, `order_month`, `order_day_of_week`
+- Extracts 4 date dimensions from the purchase timestamp: `order_date`, `order_year`, `order_month`, `order_day_of_week`
 - Computes `delivery_days = DATEDIFF(day, order_purchase_timestamp, order_delivered_customer_date)`
 
 **Output columns (13):**
