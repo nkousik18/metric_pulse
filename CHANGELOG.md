@@ -4,6 +4,21 @@ What's shipped, in user-facing terms — built from actual commit history, not a
 version tags exist for this project yet, so entries are dated. See `docs/ROADMAP.md` for what's
 planned but not yet shipped, and `docs/project/SESSION_LOG.md` for session-by-session detail.
 
+## 2026-08-04
+
+### Added
+- `docs/workflow_diagram.md` — end-to-end data-flow reference: system-overview and sequence
+  Mermaid diagrams, per-step input/output tables across all six pipeline layers, and a portable
+  image-generation prompt.
+
+### Fixed
+- A full documentation staleness audit across `CLAUDE.md` and every `docs/` and folder-level
+  `README.md`: corrected fabricated function signatures and a wrong dbt test breakdown in
+  `docs/resume_project_doc.md`, brought `docs/architecture.md` up to date with the Django layer
+  (it predated it entirely), rewrote `docs/WORKING_CONVENTIONS.md` (it was still describing a
+  different project, unadapted), and fixed smaller drift in `docs/dashboard_layer.md`,
+  `docs/setup.md`, `deploy/README.md`, and two other docs.
+
 ## 2026-07-28
 
 ### Added
@@ -11,6 +26,9 @@ planned but not yet shipped, and `docs/project/SESSION_LOG.md` for session-by-se
   in this codebase.
 - `docs/scoping.md` — a full design spec for a planned LangGraph-based agentic layer (design
   only; not implemented).
+- `docs/ROADMAP.md`, `docs/project/SESSION_LOG.md`, `CONTRIBUTING.md`, and `concepts/` (5 seed
+  files + index) — session/roadmap/git-workflow scaffolding adopted from another project's
+  written-up conventions and adapted for this repo.
 
 ### Fixed
 - Documentation accuracy: unit test count (15, not 13; none are mocked), dbt model/mart counts,

@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Python 3.10+
+- Python 3.12+
 - AWS Account with billing enabled
 - Git
 - ~$5-10 for AWS resources during development
@@ -28,31 +28,29 @@ python -m venv metric_venv
 source metric_venv/bin/activate  # macOS/Linux
 # metric_venv\Scripts\activate   # Windows
 
-# Install dependencies
+# Install dependencies (Django, DRF, and everything else are already in requirements.txt)
 pip install -r requirements.txt
-
-# Install Django dependencies
-pip install django djangorestframework django-cors-headers
 ```
 
-### requirements.txt
+### requirements.txt (key packages — see the real file for the full, exactly-pinned list of ~90 packages)
 ```
-boto3>=1.28.0
-redshift-connector>=2.0.0
-pandas>=2.0.0
-numpy>=1.24.0
-scipy>=1.11.0
-scikit-learn>=1.3.0
-streamlit>=1.28.0
-plotly>=5.18.0
-jinja2>=3.1.0
-python-dotenv>=1.0.0
-pyyaml>=6.0.0
-pytest>=7.4.0
-dbt-redshift>=1.7.0
-django>=4.2.0
-djangorestframework>=3.14.0
-django-cors-headers>=4.3.0
+boto3==1.42.81
+redshift_connector==2.1.13
+pandas==3.0.2
+numpy==2.4.4
+scikit-learn==1.8.0
+streamlit==1.56.0
+plotly==6.6.0
+Jinja2==3.1.6
+python-dotenv==1.2.2
+PyYAML==6.0.3
+pytest==9.0.2
+dbt-redshift==1.10.1
+Django==6.0.3
+djangorestframework==3.17.1
+django-cors-headers==4.9.0
+gunicorn==25.3.0
+whitenoise==6.12.0
 ```
 
 ---
@@ -272,7 +270,7 @@ Open: **http://127.0.0.1:8000**
 - **Metric dropdown** — Switch between Revenue, Orders, AOV
 - **Anomaly threshold slider** — Adjust Z-score sensitivity
 - **Interactive chart** — Click to select dates, toggle metrics
-- **Drill-down panels** — Expand Geography, Product, Payment breakdowns
+- **Drill-down panels** — Geography, Product, Payment contribution bars (the "Details" expand toggle is present but non-functional — see `docs/dashboard_layer.md`)
 - **Copy/Download narrative** — Export analysis
 - **Pipeline trigger** — Run analysis with one click
 
@@ -285,6 +283,7 @@ Open: **http://127.0.0.1:8000**
 | `/api/decomposition/` | GET | Segment contribution analysis |
 | `/api/narrative/` | GET | Plain-English explanation |
 | `/api/pipeline/` | POST | Trigger full pipeline |
+| `/api/contact/` | POST | Submit contact form (email send disabled, logs only) |
 
 Example API call:
 ```bash

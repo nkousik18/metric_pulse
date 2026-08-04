@@ -1,6 +1,6 @@
 # deploy/
 
-Three standalone Bash scripts for provisioning and deploying the analytics pipeline (not the Django app) as a Docker-based AWS Lambda function, triggered on a daily schedule via EventBridge. **None of these scripts are invoked by CI/CD** (`.github/workflows/cd.yml` only deploys the Django app to Render and has a placeholder comment for dbt — Lambda deployment is entirely manual). All three scripts use `set -e` (exit on first error) and assume the AWS CLI is installed and already authenticated (`aws sts get-caller-identity` must succeed).
+Three standalone Bash scripts for provisioning and deploying the analytics pipeline (not the Django app) as a Docker-based AWS Lambda function, triggered on a daily schedule via EventBridge. **None of these scripts are invoked by CI/CD.** `.github/workflows/cd.yml` doesn't deploy anything itself — its steps are checkout → Python setup → install deps → configure AWS credentials → an `echo` placeholder where `dbt run` would go → a final "Deployment completed successfully" echo. There is no Render deploy step in this workflow at all; Render deploys separately via its own git-push auto-deploy hook, entirely outside GitHub Actions. Lambda deployment (this folder's scripts) is entirely manual. All three scripts use `set -e` (exit on first error) and assume the AWS CLI is installed and already authenticated (`aws sts get-caller-identity` must succeed).
 
 ## Files
 

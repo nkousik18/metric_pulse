@@ -74,7 +74,7 @@ MetricPulse automates the entire workflow in **under 30 seconds**:
 | **Data Storage** | AWS S3, AWS Redshift Serverless |
 | **Transformation** | dbt (11 models, 37 tests) |
 | **Backend** | Python, Django REST Framework |
-| **Detection** | NumPy, SciPy (Z-score analysis) |
+| **Detection** | NumPy, pandas (Z-score analysis) |
 | **Alerting** | AWS SNS |
 | **Frontend** | Tailwind CSS, Chart.js |
 | **Containerization** | Docker |

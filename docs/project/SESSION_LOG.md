@@ -5,6 +5,80 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-08-04 — Full documentation staleness audit and fixes
+
+**What happened:**
+User asked for the same reconciliation treatment given to `docs/resume_project_doc.md` back on
+2026-07-27→28 to be applied to `CLAUDE.md` and every other doc. Rather than re-reading everything
+serially, split the ~21 files (`CLAUDE.md`, root `README.md`, `CONTRIBUTING.md`, 13 files under
+`docs/`, and 16 folder-level `README.md`s) across 6 parallel audit agents, each verifying a
+cluster's concrete claims (function signatures, counts, file paths, CI job names, described
+behavior) directly against the running code rather than trusting prior docs. Found genuine
+staleness in 10 files, ranging from cosmetic to structural:
+- `docs/resume_project_doc.md` had fabricated detail in four places — a dbt test-type breakdown
+  that was wrong on every number (and claimed 3 `relationships` FK tests that don't exist at
+  all), a detection-functions table listing three functions that were never real
+  (`fetch_metric_data`, `calculate_zscore(df, metric_col)`, `format_anomaly_summary`), wrong
+  decomposition output field names (`segments`/auto-populated `dominant_driver` vs. the real
+  `top_contributors` / separately-computed `get_top_driver()`), and a narrative-templates table
+  citing 4 `.jinja2` files that don't exist anywhere in the repo (narrative templates are inline
+  Python strings).
+- `docs/architecture.md` predated the Django app entirely — its delivery-layer diagram, tech
+  stack table, and "Future Enhancements" list all omitted/misstated the fact that Django is the
+  live production interface, not a future item. Also caught (independently, while fixing this)
+  that both this file and the root `README.md` still listed `scipy` as the detection stack, even
+  though it was removed as an unused import a while ago (already correctly noted as removed in
+  `docs/detection_layer.md` and `docs/infrastructure_and_deployment.md`'s own "fixed" tables) —
+  fixed both.
+- `docs/WORKING_CONVENTIONS.md` was the biggest find: it was still, word-for-word in places, the
+  write-up from a different project ("Interpose") adopted on 2026-07-28 and never adapted — wrong
+  project name throughout, citations to files that don't exist here
+  (`docs/INTERPOSE_SCOPING.md`, two `concepts/` files that were never written for this repo), and
+  a described CI/branch-protection setup (`lint`/`test`/`helm` jobs, enforced branch protection)
+  that doesn't match this repo's actual `lint-and-test`/`dbt-check` CI or its (verified via
+  `gh api`) actually-unprotected `main` branch. Rewrote it in place for MetricPulse: correct file
+  names throughout, honest about `main` not being branch-protected (named as a gap, not hidden),
+  and reframed the `concepts/` guidance to match how this repo actually seeded that folder (one
+  pass from already-worked-out scoping ideas, not a grow-as-you-learn log).
+- Smaller fixes: `docs/dashboard_layer.md` claimed a red anomaly-highlight feature on the trend
+  chart that isn't implemented, and misdescribed `applyFilters()` as calling 4 loaders (it calls
+  3); `docs/setup.md` said Python 3.10+ (real: 3.12+) and had a completely fabricated
+  `requirements.txt` snippet (16 loose-pinned packages vs. the real ~90 exactly-pinned ones);
+  `deploy/README.md` and `docs/resume_project_doc.md` both claimed the CD workflow deploys the
+  Django app to Render, but `cd.yml` has no Render deploy step at all (Render deploys via its own
+  git-push hook, outside GitHub Actions) — CD's only real current effect is a `dbt run` echo
+  placeholder behind an environment-approval gate; `docs/detection_layer.md` and
+  `docs/dbt_transformations.md` each had a one-line count mismatch (3 vs. 5 tests, 3 vs. 4 date
+  dimensions); `CLAUDE.md` overstated `config/db.py` as "the only" connection factory when the
+  Streamlit dashboard intentionally bypasses it.
+- Confirmed clean, no changes needed: `docs/README.md`, `CONTRIBUTING.md`, `docs/ROADMAP.md`,
+  `docs/ingestion_pipeline.md`, `docs/analytics_pipeline.md`, `docs/infrastructure_and_deployment.md`,
+  `tests/README.md`, and 11 of the 16 folder READMEs.
+
+**Decisions made:**
+- Rewrite `docs/WORKING_CONVENTIONS.md` in place rather than delete it or leave the gap
+  unaddressed (asked the user directly given it required a judgment call, not a mechanical fix)
+  — the underlying discipline is genuinely being practiced now, it just needed its concrete
+  references corrected.
+- Fixed the `scipy` claim in `README.md` even though it wasn't in the original audit scope for
+  that file, since it was directly confirmed false while fixing the same claim in
+  `architecture.md` — no reason to leave a known-wrong fact standing once found.
+
+**Current state:** All 10 files fixed and committed via `docs/staleness-audit-fixes` branch →
+PR → CI green → squash-merge, per `CONTRIBUTING.md`. `CHANGELOG.md` updated with both this fix
+and the missing entry for last session's `docs/workflow_diagram.md` PR (#3).
+
+**Next steps:** None outstanding from this pass. A natural future check: re-run this kind of
+audit after Phase 1 (investigation agent) actually ships, since that's when `docs/scoping.md`'s
+design claims start needing the same "is this actually true of the code now" scrutiny.
+
+**Loose ends / reminders:**
+- `main` is still not branch-protected on GitHub — named in `docs/WORKING_CONVENTIONS.md` now,
+  but not fixed. Worth doing if this repo is ever shown to reviewers as a workflow-discipline
+  example, not just a pipeline one.
+
+---
+
 ## 2026-08-04 — Added end-to-end workflow diagram
 
 **What happened:**

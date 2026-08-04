@@ -125,11 +125,14 @@ Daily revenue pre-aggregated per decomposition dimension. These are the tables q
 
 | Test type | Count | Applied to |
 |-----------|-------|-----------|
-| `not_null` | 18 | Primary keys and required fields across all models |
-| `unique` | 9 | All primary keys |
-| `accepted_values` | 7 | `order_status` (6 values), `payment_type` (5 values), `region` (5 values) |
-| `relationships` | 3 | FK integrity: orders → customers, items → orders, items → products |
+| `not_null` | 26 | Primary keys and required fields across all models |
+| `unique` | 7 | Primary keys |
+| `accepted_values` | 2 | `order_status` (8 values), `region` (6 values) |
+| singular (`dbt_project/tests/`) | 2 | `assert_revenue_positive.sql`, `assert_dates_continuous.sql` |
 | **Total** | **37** | |
+
+No `relationships` (FK integrity) tests are defined anywhere in the schema — this was previously
+misdocumented; there is no cross-table referential test between orders/customers/items/products.
 
 **Notable fix — `metric_by_payment` double-count bug:**
 Original query joined `stg_order_items` (N rows/order) × `raw_data.payments` (M rows/order) producing N×M rows per order. Fixed by pre-aggregating revenue per `order_id` in a CTE and using `payment_sequential = 1` to select one primary payment per order.
@@ -166,11 +169,11 @@ Where `μ` and `σ` are computed over the full 30-day lookback window using `ddo
 
 | Function | Input | Output |
 |----------|-------|--------|
-| `fetch_metric_data(metric, days)` | metric name, lookback days | DataFrame from `fact_daily_metrics` |
-| `calculate_zscore(df, metric_col)` | DataFrame + column name | DataFrame with `zscore`, `is_anomaly` columns |
-| `get_latest_anomaly(df, metric_col)` | Analysed DataFrame | Dict with latest anomalous date, value, z-score |
-| `run_detection(metric, threshold, days)` | All params | Full detection result dict |
-| `format_anomaly_summary(result)` | Detection result | Human-readable summary string |
+| `fetch_daily_metrics(lookback_days=30)` | lookback window | DataFrame from `fact_daily_metrics` |
+| `calculate_zscore(series)` | A single `pd.Series` | `pd.Series` of z-scores (`ddof=1`) |
+| `detect_anomalies(df, metric_column, threshold=None)` | DataFrame + column + threshold | DataFrame with `zscore`, `is_anomaly`, `anomaly_direction`, `change_pct` columns added |
+| `get_latest_anomaly(df, metric_col='total_revenue')` | Analysed DataFrame | Dict with latest anomalous date, value, z-score, or `None` |
+| `run_detection(metric, threshold, days)` | All params | Full detection result dict, composing the functions above |
 
 ---
 
@@ -190,24 +193,33 @@ Dimensions supported: `geography` (region/state), `product` (group/category), `p
 
 SQL injection prevention: `_validate_date(date_str)` calls `datetime.strptime(date_str, '%Y-%m-%d')` and raises `ValueError` on any non-conforming input before interpolation into SQL.
 
-| Field in output | Description |
-|----------------|-------------|
-| `dimension` | geography / product / payment |
-| `segments` | List of `{name, current_value, previous_value, change, contribution_pct}` |
-| `total_change` | Absolute change in metric |
-| `total_change_pct` | Percentage change in metric |
-| `dominant_driver` | Segment with highest `|contribution_pct|` |
+Each dimension key in `decompose_metric()`'s output dict has this shape:
+
+| Field | Description |
+|-------|-------------|
+| `total_current` / `total_previous` | Summed metric value across all segments, per date |
+| `total_change` / `total_change_pct` | Absolute / percentage change in the dimension total |
+| `top_contributors` | Top 5 segments by `|contribution_pct|`, each `{segment, current_value, previous_value, change, contribution_pct}` |
+| `segment_count` | Total number of segments in this dimension |
+
+`dominant_driver` is not part of this output — it's produced by a separate call,
+`get_top_driver(results)`, which scans `top_contributors` across all three dimensions and returns
+the single highest-magnitude segment.
 
 **Stage 2 — Narrative Generation (`narrative/generator.py`)**
 
-Renders decomposition output into natural language using Jinja2 templates.
+Renders decomposition output into natural language. Despite the "Jinja2 templates" framing below,
+there are no `.jinja2` template files anywhere in the repo — `full` and `slack` are Jinja2
+*string* templates defined inline as Python constants and rendered via
+`jinja_env.from_string(...)`; `email_subject` is a one-line inline Jinja2 string; `summary` isn't
+templated at all, it's built with an f-string.
 
-| Template | File | Use case |
-|----------|------|---------|
-| `full` | `full_report.jinja2` | Complete multi-paragraph analysis |
-| `slack` | `slack_message.jinja2` | Single-block Slack notification |
-| `email_subject` | `email_subject.jinja2` | One-line email subject line |
-| `summary` | `summary.jinja2` | 2–3 sentence executive summary |
+| Format | Defined as | Use case |
+|--------|-----------|---------|
+| `full` | `METRIC_CHANGE_TEMPLATE` (inline Jinja2 string) | Complete multi-paragraph analysis |
+| `slack` | `SLACK_TEMPLATE` (inline Jinja2 string) | Single-block Slack notification |
+| `email_subject` | `EMAIL_SUBJECT_TEMPLATE` (inline Jinja2 string) | One-line email subject line |
+| `summary` | Python f-string (no template) | 2–3 sentence executive summary |
 
 `format_type` parameter controls output: `'all'` returns all 4 formats; any single key (e.g. `'slack'`) returns only that format. Previously this parameter was ignored — all 4 formats were always returned regardless.
 
@@ -302,7 +314,11 @@ Docker image built from `public.ecr.aws/lambda/python:3.12`. Contains only pipel
 | Pipeline | Trigger | Jobs |
 |----------|---------|------|
 | CI (`ci.yml`) | Push / PR to `develop`, `main` | `lint-and-test` (flake8 + pytest) + `dbt-check` (dbt parse) — parallel |
-| CD (`cd.yml`) | Push to `main` | Requires `production` environment approval; deploys to Render |
+| CD (`cd.yml`) | Push to `main` | Requires `production` environment approval; installs deps, configures AWS credentials, echoes a `dbt run` placeholder — **does not itself deploy anything** |
+
+CD does not deploy the Django app — Render deploys independently via its own git-push auto-deploy
+hook, entirely outside this GitHub Actions workflow. `cd.yml`'s only real effect today is the
+environment-approval gate; its dbt step is a no-op echo (see §12).
 
 Flake8 strategy: hard errors (`E9,F63,F7,F82`) fail CI; style warnings (`--exit-zero`) are non-blocking. pip cache keyed on `requirements.txt` hash — saves ~60s per run on cache hit.
 

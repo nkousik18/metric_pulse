@@ -34,7 +34,7 @@ DataFrame + is_anomaly, anomaly_direction, change_pct, change_value
 ```
 
 **Source file:** `detection/anomaly_detector.py`
-**Unit tests:** `tests/test_anomaly_detector.py` (3 tests)
+**Unit tests:** `tests/test_anomaly_detector.py` (5 tests)
 **Runtime:** ~2 seconds for a 30-day window
 
 ---
