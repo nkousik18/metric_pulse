@@ -50,7 +50,7 @@ trusted on the model's word — and the existing 15 tests still pass unmodified.
       functions, tool wrappers around unchanged `detection`/`decomposition`/`narrative` calls,
       the one new `fetch_detail_metrics()` in `decomposer.py`. `test_investigation_routing.py`,
       `test_ambiguity_rules.py` passing.
-- [ ] **M1** — `synthesize`: structured-output LLM call, `validate_citation`, bounded
+- [x] **M1** — `synthesize`: structured-output LLM call, `validate_citation`, bounded
       retry/fallback, Jinja rendering. `test_citation_validation.py` passing; Golden Case #1
       (`docs/scoping.md` §3.8) run for real, not just designed on paper.
 - [ ] **M2** — Integration: `run_pipeline(run_investigation=...)`, `/api/investigate/`,
