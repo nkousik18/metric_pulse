@@ -39,6 +39,7 @@ class InvestigationState(TypedDict):
     top_driver: Optional[Dict]
     investigation_summary: Optional[str]
     narratives: Optional[Dict]
+    grounding_failed: Optional[bool]  # True if synthesize fell back to the deterministic summary
 
     # --- Control (mirrors orchestration/run_pipeline.py's status/error convention) ---
     status: str
