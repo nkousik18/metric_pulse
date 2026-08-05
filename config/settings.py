@@ -36,3 +36,7 @@ SNS_TOPIC_ARN = os.getenv("SNS_TOPIC_ARN")
 # Detection Configuration
 ANOMALY_THRESHOLD_ZSCORE = float(os.getenv("ANOMALY_THRESHOLD_ZSCORE", 2.0))
 LOOKBACK_DAYS = int(os.getenv("LOOKBACK_DAYS", 30))
+
+# Investigation Agent Configuration (Phase 1 -- investigation/synthesize node)
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
