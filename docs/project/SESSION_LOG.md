@@ -5,6 +5,80 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-08-05 — Built M1: synthesize node, first live LLM integration
+
+**What happened:**
+Second implementation session on the agentic-layer initiative — `docs/ROADMAP.md` Phase 1,
+milestone M1, the `synthesize` node. `docs/scoping.md` §4.8 explicitly left provider/model choice
+as an implementation-time decision; asked the user directly rather than guessing, which surfaced a
+real mix-up worth recording: the user's initial answer ("a grok API") led to building against
+xAI's Grok (`langchain-xai`/`ChatXAI`) first, but their actual env var was named `GROQ_API_KEY` —
+Groq (groq.com, fast inference of open models) is a different company from xAI's Grok (x.ai),
+despite the near-identical name. Confirmed directly before writing more code, uninstalled
+`langchain-xai` and its orphaned transitive deps (`aiohttp`/`langchain-openai`/`openai`/`tiktoken`
+chain — none of it needed by `langchain-groq`, verified via `pip check` after cleanup), and
+rebuilt on `langchain-groq`'s `ChatGroq` instead. Default model: `llama-3.3-70b-versatile` over the
+newer Groq-hosted `gpt-oss` models, because research surfaced a known LangChain/Groq
+incompatibility between `gpt-oss-120b` and strict-JSON-schema structured output — used
+`method='function_calling'` explicitly on `.with_structured_output()` for the same reason.
+
+Built (per `docs/scoping.md` §3): `investigation/schemas.py` (`EvidenceCitation`,
+`SynthesisOutput`), `investigation/llm.py` (`get_synthesis_llm()`), `investigation/prompts.py`
+(evidence formatting + system prompt), `investigation/validation.py` (`validate_citation`,
+`validate_synthesis_output`), `investigation/rendering.py` (template-only number injection, reusing
+`narrative.generator`'s `jinja_env`), and in `investigation/nodes.py`: `_run_synthesis` (the actual
+LLM call + one bounded retry, kept separate from the `synthesize` node so `eval.py` can grade the
+raw `SynthesisOutput` against the same production code path) plus the real `finalize` node
+(deferred from M0). Added `investigation/eval.py` with `GOLDEN_CASE_1` (§3.8's worked example,
+reconstructed as real `InvestigationState` data) and `tests/test_citation_validation.py` (8 tests).
+Added `GROQ_API_KEY`/`GROQ_MODEL` to `config/settings.py`/`.env.example`, and 21 new exactly-pinned
+packages to `requirements.txt` (the real `langchain-groq` dependency tree only — carefully excluded
+`scipy`, which showed up in a `pip freeze` diff but turned out to be an unrelated pre-existing gap,
+already a transitive dependency of `scikit-learn` and nothing to do with this change).
+
+**Decisions made:**
+- Fixed a bug in `docs/scoping.md` §3.5's illustrative `validate_citation` snippet rather than
+  reproducing it as-is: it indexes `state["decomposition_results"]` directly, but the real shape
+  (confirmed against `decomposition/decomposer.py`) nests per-dimension data one level deeper,
+  under `"dimensions"`. Documented as a correction in both the code and `investigation/README.md`,
+  not silently patched.
+- `synthesize` deliberately does not follow §2.7's literal "every node fails to `status='failed'`"
+  convention — per §3.2's Tier-1/Tier-2 split, an LLM failure fails *open* to a deterministic
+  fallback (`decomposer.get_top_driver()` via a plain f-string) instead, so a broken LLM call can't
+  discard an otherwise-successful decomposition. `finalize` still uses the literal convention.
+- Real calibration finding from live-testing (exactly what §10.3 names M1 for): the first working
+  version of `prompts.py` — drill-down data as a separate trailing section, plus a general
+  system-prompt rule to "prefer the drill-down" — reliably produced grounded, valid output, but the
+  model kept citing the higher-level ambiguous segment (`Southeast`) as `primary_explanation`
+  instead of the more specific drill-down finding (`SP`), even though `SP` correctly showed up as a
+  *supporting* citation. Fixed by restructuring evidence layout — nesting each drill-down directly
+  under its parent dimension with an explicit "cite this specific segment, not that higher-level
+  one" pointer — without touching validation or fallback logic at all. Confirmed stable across 3
+  repeated live runs after the fix.
+
+**Current state:** PR #8 merged into `main`, branch deleted. Full suite is 43 tests passing on
+`main` (23 pre-existing + 8 new citation-validation tests + verified the whole suite also passes
+with `.env` entirely removed, confirming CI needs no `GROQ_API_KEY` secret since no test invokes
+the LLM). `flake8 --select=E9,F63,F7,F82` clean. Live-verified end to end: `python -m
+investigation.eval` against Golden Case #1 is grounded on the first attempt, cites the correct
+driver, includes the required `uncertainty_note`. Fallback path also verified live (invalid
+`GROQ_MODEL` → deterministic summary, `grounding_failed=True`, no crash, no false `status=failed`).
+`docs/ROADMAP.md` M1 checkbox checked. Still no `langgraph` dependency or compiled `StateGraph` —
+that's M2. Nothing in `orchestration/` or `dashboard_api/` calls into `investigation/` yet.
+
+**Next steps:** M2 — Integration (`docs/scoping.md` §4): assemble the actual `StateGraph` now that
+all 7 nodes exist, `run_pipeline(run_investigation=...)`, `/api/investigate/`, `PipelineView`
+extension, dashboard button, Lambda passthrough. M2's gate explicitly requires the full pre-existing
+test suite to still pass unmodified — the milestone that touches the most existing call sites.
+
+**Loose ends / reminders:**
+- `main` is still not branch-protected on GitHub (carried over, still not addressed).
+- `GROQ_MODEL` default (`llama-3.3-70b-versatile`) worked reliably in this session's live testing,
+  but Groq's model catalog (like every provider's) changes — worth a quick sanity check if a future
+  session finds `synthesize` suddenly falling back more often than expected.
+
+---
+
 ## 2026-08-04 — Built M0: investigation graph skeleton (Phase 1 kickoff)
 
 **What happened:**
