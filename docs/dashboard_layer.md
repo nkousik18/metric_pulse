@@ -74,11 +74,19 @@ Each panel shows geography / product / payment breakdown as progress bars sorted
 > **Known bug:** a "Details" toggle button is present and intended to expand a drill-down list (region → state, group → category, payment display → payment type), but `toggleDrilldown()` in `partials/scripts.html` only shows/hides an empty `<div>` — nothing ever populates it. The drill-down data (`detail_col`) is returned by the API but not rendered anywhere in the current JS.
 
 **Root Cause Analysis narrative:**
-Markdown rendered from `/api/narrative/` response. Copy and Download buttons for export.
+Markdown rendered from `/api/narrative/` response. Copy and Download buttons for export. An
+"Investigate with AI Agent" button (Phase 1, `docs/scoping.md` Section 4.6) sits alongside them —
+`POST /api/investigate/` with the currently-selected date pair/metric, rendering the LangGraph
+investigation agent's grounded summary into a visually distinct block beneath the (unchanged)
+narrative, never merged into it. Manual trigger only — unlike the other 3 loaders, this is not
+part of `applyFilters()`'s auto-refresh, since it costs a real LLM call rather than cheap SQL.
 
 **Pipeline Control panel:**
 - "Run Analysis" → `POST /api/pipeline/` with `dry_run: true`
 - "Run & Send Alert" → `POST /api/pipeline/` with `force_alert: true, dry_run: false`
+- Either can additionally include `run_investigation: true` in the body to have the investigation
+  agent run as part of that pipeline call (Phase 1) — not wired to any dashboard control yet; the
+  standalone "Investigate with AI Agent" button above is the only UI-level trigger currently built.
 
 ### JS API integration pattern
 

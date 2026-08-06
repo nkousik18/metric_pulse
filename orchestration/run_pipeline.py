@@ -30,18 +30,22 @@ def run_pipeline(
     threshold: float = None,
     force_alert: bool = False,
     dry_run: bool = False,
-    publish_metrics: bool = True
+    publish_metrics: bool = True,
+    run_investigation: bool = False
 ) -> Dict:
     """
     Run the full MetricPulse pipeline.
-    
+
     Args:
         metric: Metric to analyze
         threshold: Z-score threshold for anomaly detection
         force_alert: Send alert even if no anomaly detected
         dry_run: Skip actual alert sending
         publish_metrics: Publish metrics to CloudWatch
-    
+        run_investigation: Run the Phase 1 investigation agent (docs/scoping.md
+            Section 4.2) after narrative generation, before alerting. Default
+            False -- zero behavior change for every existing caller.
+
     Returns:
         Pipeline results
     """
@@ -82,7 +86,39 @@ def run_pipeline(
         logger.info("Step 4: Generating narrative...")
         narratives = generate_narrative(decomposition_results)
         results['narratives'] = narratives
-        
+
+        # Step 4.5: Investigation agent (optional, non-blocking) -- only when
+        # there's something worth investigating, mirroring the alert gate below.
+        # Imported locally, not at module top, so every existing caller that
+        # doesn't request this never pays LangGraph/Groq import weight or needs
+        # GROQ_API_KEY set (same lazy-import convention this file already uses
+        # for monitoring.cloudwatch_metrics below).
+        if run_investigation and (anomaly_detected or force_alert):
+            logger.info("Step 4.5: Running investigation agent...")
+            try:
+                from investigation.graph import investigation_graph
+                from investigation.state import build_initial_state
+
+                initial_state = build_initial_state(
+                    metric=metric,
+                    threshold=threshold,
+                    force_investigate=force_alert,
+                    current_date=current_date,
+                    previous_date=previous_date,
+                    detection_result=detection_results,
+                    decomposition_results=decomposition_results,
+                )
+                final_state = investigation_graph.invoke(initial_state)
+                results['investigation'] = {
+                    'status': final_state['status'],
+                    'investigation_summary': final_state.get('investigation_summary'),
+                    'grounding_failed': final_state.get('grounding_failed', False),
+                }
+                logger.info(f"Investigation status: {results['investigation']['status']}")
+            except Exception as e:
+                logger.warning(f"Investigation agent failed (non-blocking): {e}")
+                results['investigation'] = {'status': 'failed', 'error': str(e)}
+
         # Step 5: Send Alert (if anomaly detected or forced)
         if anomaly_detected or force_alert:
             logger.info("Step 5: Sending alert...")
@@ -144,7 +180,18 @@ def print_summary(results: Dict):
     if 'narratives' in results:
         print(f"\nSummary:")
         print(f"  {results['narratives'].get('summary', 'N/A')}")
-    
+
+    if 'investigation' in results:
+        inv = results['investigation']
+        print(f"\nInvestigation Agent:")
+        print(f"  Status: {inv.get('status', 'N/A')}")
+        if inv.get('investigation_summary'):
+            print(f"  Summary: {inv['investigation_summary']}")
+        if inv.get('grounding_failed'):
+            print(f"  (fell back to deterministic summary -- grounding failed)")
+        if inv.get('error'):
+            print(f"  Error: {inv['error']}")
+
     if 'alert' in results:
         a = results['alert']
         print(f"\nAlert Status: {a.get('status', 'N/A')}")
@@ -161,16 +208,18 @@ if __name__ == "__main__":
     parser.add_argument('--force-alert', action='store_true', help='Send alert even without anomaly')
     parser.add_argument('--dry-run', action='store_true', help='Skip sending actual alert')
     parser.add_argument('--no-metrics', action='store_true', help='Skip CloudWatch metrics')
-    
+    parser.add_argument('--run-investigation', action='store_true', help='Run the investigation agent')
+
     args = parser.parse_args()
-    
+
     try:
         results = run_pipeline(
             metric=args.metric,
             threshold=args.threshold,
             force_alert=args.force_alert,
             dry_run=args.dry_run,
-            publish_metrics=not args.no_metrics
+            publish_metrics=not args.no_metrics,
+            run_investigation=args.run_investigation
         )
         print_summary(results)
         

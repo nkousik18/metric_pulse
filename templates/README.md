@@ -9,10 +9,10 @@ The Django templates powering the single-page app served at `/`. This is a **sta
 | `base.html` | The actual page shell — `<head>` with CDN imports, nav bar, includes all 4 partials + footer + `scripts.html`. **This file contains the real page content**, not `index.html`. |
 | `index.html` | `{% extends 'base.html' %}` and nothing else — no blocks defined in either file, so this just renders `base.html` verbatim. This is what `metric_pulse_web/urls.py`'s `TemplateView` actually points at. |
 | `partials/hero.html` | Tab 1 (`#content-hero`, visible by default) — marketing/portfolio landing content: headline, 4 hardcoded stat tiles (451K rows / 37 tests / <5s / 99.6%), before/after comparison, 4-step "How It Works", tech pill badges, CTA buttons. Static — no `id`s that JS touches, no API calls. |
-| `partials/dashboard.html` | Tab 2 (`#content-dashboard`, hidden by default) — the real interactive UI: date/metric/threshold controls, 4 KPI cards, Chart.js canvas (`#revenueChart`), 3 decomposition panels (geography/product/payment) with drill-down toggles, narrative panel, pipeline control buttons. Every dynamic element has an `id` that `scripts.html` looks up. |
+| `partials/dashboard.html` | Tab 2 (`#content-dashboard`, hidden by default) — the real interactive UI: date/metric/threshold controls, 4 KPI cards, Chart.js canvas (`#revenueChart`), 3 decomposition panels (geography/product/payment) with drill-down toggles, narrative panel (with an "Investigate with AI Agent" button and a distinct `#investigation-result` block, Phase 1), pipeline control buttons. Every dynamic element has an `id` that `scripts.html` looks up. |
 | `partials/architecture.html` | Tab 3 (`#content-architecture`, hidden) — static visual architecture diagram (icon flow: Source → S3 → Redshift → dbt → Python → Dashboard) and hardcoded dbt model/tech-stack lists. No API calls; content can drift from actual pipeline (e.g. lists 4 marts / 3 metrics tables here — cross-check against `dbt_project/README.md` for the live count). |
 | `partials/about.html` | Tab 4 (`#content-about`, hidden) — author bio, education/experience, skills, and the contact form (`#contact-name`, `#contact-email`, `#contact-message`, `#contact-status`) that posts to `/api/contact/`. |
-| `partials/scripts.html` | All JavaScript for the SPA (~410 lines), one `<script>` block, no separate `.js` files, no build step. |
+| `partials/scripts.html` | All JavaScript for the SPA (~460 lines), one `<script>` block, no separate `.js` files, no build step. |
 
 ## `partials/scripts.html` — function inventory
 
@@ -31,6 +31,7 @@ The Django templates powering the single-page app served at `/`. This is a **sta
 | `applyFilters()` / `resetFilters()` | "Apply Filters" / "Reset" buttons | Re-fire the 3 GET loaders (not `loadMetrics`) with current control values; reset restores default threshold/metric/dates |
 | `copyNarrative()` / `downloadNarrative()` | Copy/Download buttons | Clipboard API / Blob download of the narrative's `innerText` |
 | `runPipeline(forceAlert)` | "Run Analysis" / "Run & Send Alert" buttons | `POST /api/pipeline/` with `{metric, force_alert, dry_run: !forceAlert}`, then calls `refreshData()` |
+| `investigateWithAgent()` | "Investigate with AI Agent" button | `POST /api/investigate/` with `{metric, current_date, previous_date}`. **Manual trigger only** — not part of `applyFilters()`'s auto-refresh (this one costs a real LLM call). Disables the button and shows a spinner while in flight; renders `investigation_summary` into `#investigation-content` (a distinct block beneath, not replacing, the Tier-1 `#narrative` div), or a status-specific message for `skipped_no_anomaly`/`failed`/`grounding_failed`. |
 | `sendContactForm()` | Contact form submit | `POST /api/contact/` with `{name, email, message}` |
 
 ## Running / testing standalone

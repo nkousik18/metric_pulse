@@ -44,3 +44,50 @@ class InvestigationState(TypedDict):
     # --- Control (mirrors orchestration/run_pipeline.py's status/error convention) ---
     status: str
     error: Optional[str]
+
+
+def build_initial_state(
+    metric: str,
+    threshold: Optional[float] = None,
+    force_investigate: bool = False,
+    current_date: Optional[str] = None,
+    previous_date: Optional[str] = None,
+    detection_result: Optional[Dict] = None,
+    decomposition_results: Optional[Dict] = None,
+) -> InvestigationState:
+    """
+    Builds a fully-defaulted InvestigationState for a fresh graph invocation
+    (docs/scoping.md Section 4). Every node already reads its own inputs
+    defensively via .get(key, default), but a caller invoking the graph needs
+    every collection field seeded up front -- otherwise a node/routing
+    function that reads one of these before anything has written it (e.g.
+    route_after_ambiguity's drilled_dimensions) has nothing to fall back on
+    unless it's also defensive. Centralizing the defaults here means every
+    call site (orchestration's pre-seeded path, the dashboard's standalone
+    path) gets this right by construction rather than each remembering the
+    full field list by hand.
+
+    detection_result / decomposition_results are the two pre-seedable fields
+    (Section 4.3) -- passing them makes detect()/decompose_all() no-ops.
+    """
+    return {
+        'metric': metric,
+        'current_date': current_date,
+        'previous_date': previous_date,
+        'threshold': threshold,
+        'force_investigate': force_investigate,
+        'detection_result': detection_result,
+        'decomposition_results': decomposition_results,
+        'ambiguous_dimensions': [],
+        'drill_down_results': {},
+        'drilled_dimensions': [],
+        'investigation_log': [],
+        'iteration_count': 0,
+        'should_continue': False,
+        'top_driver': None,
+        'investigation_summary': None,
+        'narratives': None,
+        'grounding_failed': None,
+        'status': 'running',
+        'error': None,
+    }

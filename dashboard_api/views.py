@@ -18,6 +18,8 @@ from detection.anomaly_detector import run_detection, fetch_daily_metrics
 from decomposition.decomposer import decompose_metric, get_comparison_dates
 from narrative.generator import generate_narrative
 from orchestration.run_pipeline import run_pipeline
+from investigation.graph import investigation_graph
+from investigation.state import build_initial_state
 
 
 class HealthCheckView(APIView):
@@ -134,30 +136,76 @@ class NarrativeView(APIView):
 
 class PipelineView(APIView):
     """Run full pipeline."""
-    
+
     def post(self, request):
         try:
             metric = request.data.get('metric', 'total_revenue')
             force_alert = request.data.get('force_alert', False)
             dry_run = request.data.get('dry_run', True)
-            
+            run_investigation = request.data.get('run_investigation', False)
+
             results = run_pipeline(
                 metric=metric,
                 force_alert=force_alert,
                 dry_run=dry_run,
-                publish_metrics=False
+                publish_metrics=False,
+                run_investigation=run_investigation
             )
-            
+
+            data = {
+                'pipeline_status': results['status'],
+                'metric': results['metric'],
+                'anomaly_count': results.get('detection', {}).get('anomaly_count', 0),
+                'alert_status': results.get('alert', {}).get('status'),
+                'summary': results.get('narratives', {}).get('summary', ''),
+                'duration_seconds': results.get('duration_seconds', 0)
+            }
+            # Only present when actually requested, so a call that doesn't ask for
+            # investigation gets the exact same response shape as before this field existed.
+            if 'investigation' in results:
+                data['investigation'] = results['investigation']
+
             return Response({
                 'status': 'success',
-                'data': {
-                    'pipeline_status': results['status'],
-                    'metric': results['metric'],
-                    'anomaly_count': results.get('detection', {}).get('anomaly_count', 0),
-                    'alert_status': results.get('alert', {}).get('status'),
-                    'summary': results.get('narratives', {}).get('summary', ''),
-                    'duration_seconds': results.get('duration_seconds', 0)
-                }
+                'data': data
+            })
+        except Exception as e:
+            return Response({
+                'status': 'error',
+                'message': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class InvestigationView(APIView):
+    """Run the Phase 1 investigation agent standalone for a given date pair."""
+
+    def post(self, request):
+        try:
+            metric = request.data.get('metric', 'total_revenue')
+            current_date = request.data.get('current_date')
+            previous_date = request.data.get('previous_date')
+            threshold = request.data.get('threshold')
+            threshold = float(threshold) if threshold else None
+
+            if not current_date or not previous_date:
+                current_date, previous_date = get_comparison_dates()
+
+            # force_investigate=True: a user who explicitly clicks "Investigate" for a
+            # specific date pair wants an answer regardless of whether it crosses the
+            # z-score threshold -- unlike the automated pipeline path, where investigation
+            # is gated to anomalies to control cost.
+            initial_state = build_initial_state(
+                metric=metric,
+                threshold=threshold,
+                force_investigate=True,
+                current_date=current_date,
+                previous_date=previous_date,
+            )
+            final_state = investigation_graph.invoke(initial_state)
+
+            return Response({
+                'status': 'success',
+                'data': final_state
             })
         except Exception as e:
             return Response({
