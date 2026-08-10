@@ -1,15 +1,17 @@
 """
-Minimal eval harness for `synthesize` (docs/scoping.md Section 8.3). Reuses
-the exact production code path -- investigation.nodes._run_synthesis and its
-validators -- as the grader, rather than a separate LLM-as-judge pipeline.
+The Phase 1 eval suite (docs/scoping.md Section 8.3, formalized per Section 8.6
+and ROADMAP milestone M3). Reuses the exact production code path --
+investigation.nodes._run_synthesis and its validators -- as the grader, rather
+than a separate LLM-as-judge pipeline.
 
-This is deliberately NOT the fully-formalized `investigation.eval` CLI command
-Section 8.6/ROADMAP milestone M3 describes (metrics tracked over time, run via
-`python -m investigation.eval`). M1 only requires Golden Case #1 (Section 3.8)
-to be run manually -- this file is that: a callable function plus a
-`if __name__ == '__main__'` entry point for exactly that manual run.
+Not part of `pytest tests/` -- every run calls a real LLM API and costs real
+money (Section 8.6). Run manually before merging a prompt/model change, or
+periodically to catch drift:
+
+    python -m investigation.eval --runs 5
 """
 
+import argparse
 import sys
 from pathlib import Path
 from typing import Dict, List
@@ -113,51 +115,89 @@ GOLDEN_CASE_1: Dict = {
 GOLDEN_CASES: List[Dict] = [GOLDEN_CASE_1]
 
 
-def run_investigation_eval(golden_cases: List[Dict]) -> Dict:
-    results = []
-    for case in golden_cases:
-        output, log, outcome = _run_synthesis(case['state'])
-        grounded = output is not None
-        golden_match = (
-            grounded
-            and output.primary_explanation.dimension == case['expected_primary']['dimension']
-            and output.primary_explanation.segment == case['expected_primary']['segment']
-        )
-        uncertainty_ok = (
-            not case['requires_uncertainty_note']
-            or (grounded and output.uncertainty_note is not None)
-        )
-        results.append({
-            'case': case['name'],
-            'outcome': outcome,
-            'grounded': grounded,
-            'golden_match': golden_match,
-            'uncertainty_ok': uncertainty_ok,
-            'primary_explanation': output.primary_explanation.model_dump() if grounded else None,
-            'uncertainty_note': output.uncertainty_note if grounded else None,
-            'log': log,
-        })
+def summarize_results(results: List[Dict]) -> Dict:
+    """
+    Pure aggregation over already-graded per-trial result dicts (docs/scoping.md
+    Section 8.5's named metrics). No LLM calls here -- safe to unit-test directly.
 
+    - grounding_pass_rate: fraction where outcome == 'grounded_first_attempt'
+      ("every citation validates on the first attempt... before the retry" --
+      Section 3.6/8.5. Deliberately excludes 'grounded_after_retry': this is
+      the metric that shows whether the retry path is doing real work.)
+    - fallback_rate: fraction where outcome starts with 'fallback' (exhausted
+      the retry and fell back to the deterministic summary).
+    - golden_match_rate / uncertainty_ok_rate: unchanged from the original
+      per-trial grading -- a fallback trial (no model citation to check)
+      always counts as a non-match, which correctly folds grounding failures
+      into these end-to-end rates rather than hiding them.
+    """
     total = len(results)
+    if not total:
+        return {
+            'results': results,
+            'grounding_pass_rate': 0,
+            'fallback_rate': 0,
+            'golden_match_rate': 0,
+            'uncertainty_ok_rate': 0,
+        }
+
     return {
         'results': results,
-        'grounded_rate': sum(r['grounded'] for r in results) / total if total else 0,
-        'golden_match_rate': sum(r['golden_match'] for r in results) / total if total else 0,
-        'uncertainty_ok_rate': sum(r['uncertainty_ok'] for r in results) / total if total else 0,
+        'grounding_pass_rate': sum(r['outcome'] == 'grounded_first_attempt' for r in results) / total,
+        'fallback_rate': sum(r['outcome'].startswith('fallback') for r in results) / total,
+        'golden_match_rate': sum(r['golden_match'] for r in results) / total,
+        'uncertainty_ok_rate': sum(r['uncertainty_ok'] for r in results) / total,
     }
 
 
-if __name__ == '__main__':
-    summary = run_investigation_eval(GOLDEN_CASES)
-    for r in summary['results']:
-        print(f"\n=== {r['case']} ===")
-        print(f"outcome: {r['outcome']}")
-        print(f"grounded: {r['grounded']}  golden_match: {r['golden_match']}  uncertainty_ok: {r['uncertainty_ok']}")
-        print(f"primary_explanation: {r['primary_explanation']}")
-        print(f"uncertainty_note: {r['uncertainty_note']}")
-        for entry in r['log']:
-            print(f"  log: {entry}")
+def run_investigation_eval(golden_cases: List[Dict], runs_per_case: int = 1) -> Dict:
+    """
+    Runs each golden case through _run_synthesis (the real production LLM call
+    path) `runs_per_case` times -- one golden case run once is an n=1 coin
+    flip, not a rate; repeating it against the live API is what makes
+    Section 8.5's per-call metrics statistically real rather than estimated.
+    """
+    results = []
+    for case in golden_cases:
+        for run_index in range(runs_per_case):
+            output, log, outcome = _run_synthesis(case['state'])
+            grounded = output is not None
+            golden_match = (
+                grounded
+                and output.primary_explanation.dimension == case['expected_primary']['dimension']
+                and output.primary_explanation.segment == case['expected_primary']['segment']
+            )
+            uncertainty_ok = (
+                not case['requires_uncertainty_note']
+                or (grounded and output.uncertainty_note is not None)
+            )
+            results.append({
+                'case': case['name'],
+                'run_index': run_index,
+                'outcome': outcome,
+                'grounded': grounded,
+                'golden_match': golden_match,
+                'uncertainty_ok': uncertainty_ok,
+                'primary_explanation': output.primary_explanation.model_dump() if grounded else None,
+                'uncertainty_note': output.uncertainty_note if grounded else None,
+                'log': log,
+            })
 
-    print(f"\ngrounded_rate={summary['grounded_rate']:.2f} "
+    return summarize_results(results)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='MetricPulse Phase 1 investigation eval suite')
+    parser.add_argument('--runs', type=int, default=5, help='Real LLM trials per golden case')
+    args = parser.parse_args()
+
+    summary = run_investigation_eval(GOLDEN_CASES, runs_per_case=args.runs)
+
+    for r in summary['results']:
+        print(f"[{r['case']} #{r['run_index']}] outcome={r['outcome']} "
+              f"golden_match={r['golden_match']} uncertainty_ok={r['uncertainty_ok']}")
+
+    print(f"\ngrounding_pass_rate={summary['grounding_pass_rate']:.2f} "
+          f"fallback_rate={summary['fallback_rate']:.2f} "
           f"golden_match_rate={summary['golden_match_rate']:.2f} "
           f"uncertainty_ok_rate={summary['uncertainty_ok_rate']:.2f}")

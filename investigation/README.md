@@ -26,7 +26,7 @@ graph-shaped functions.
 | `prompts.py` | `build_synthesis_prompt()` — formats state into the evidence bundle + system prompt. |
 | `validation.py` | `validate_citation`, `validate_synthesis_output` — the grounding enforcement. |
 | `rendering.py` | `render_investigation_summary()` — template-only number injection, no model-authored numbers. |
-| `eval.py` | Minimal eval harness + `GOLDEN_CASE_1` (Section 3.8) — run manually, not yet the formalized M3 CLI. |
+| `eval.py` | The Phase 1 eval suite: `GOLDEN_CASE_1` (Section 3.8), `run_investigation_eval()`, and the pure `summarize_results()` — `python -m investigation.eval --runs N`. |
 | `__init__.py` | Empty — makes the folder an importable package. |
 
 ## State schema
@@ -273,23 +273,40 @@ dict (same `summarize_dimension()` helper both call), so `drill_down_results[dim
 
 ## Tests
 
-`tests/test_investigation_routing.py`, `tests/test_ambiguity_rules.py`, and (M1)
-`tests/test_citation_validation.py` — fixture-dict-in, exact-value-out style, no mocking, no LLM
-calls (see `tests/README.md`). `synthesize`/`_run_synthesis` are **not** unit-tested this way —
+`tests/test_investigation_routing.py`, `tests/test_ambiguity_rules.py`, `tests/test_citation_validation.py`,
+and (M3) `tests/test_eval_summarization.py` — fixture-dict-in, exact-value-out style, no mocking, no
+LLM calls (see `tests/README.md`). `synthesize`/`_run_synthesis` are **not** unit-tested this way —
 per `docs/scoping.md` Section 8.1's deterministic-vs-LLM split, LLM-touching code is graded by
-`eval.py` against golden cases instead.
+`eval.py`'s real-API `run_investigation_eval()` against golden cases instead; only its pure
+aggregation half (`summarize_results()`) gets exact-value tests.
 
-## Running the eval manually
+## Running the eval suite
 
 ```bash
-python -m investigation.eval
+python -m investigation.eval --runs 5     # --runs defaults to 5
 ```
 
 Runs `GOLDEN_CASE_1` (Section 3.8's worked example, reconstructed as real `InvestigationState`
-data) against the live Groq API and prints grounded/golden-match/uncertainty-note results. Costs a
-real API call. This is *not* yet the formalized `investigation.eval` command Section 8.6 and
-`docs/ROADMAP.md` milestone M3 describe (metrics tracked over time) — just enough to satisfy M1's
-"run Golden Case #1 manually" requirement.
+data) through `_run_synthesis()` — the real production LLM call path — `--runs` times against the
+live Groq API, then aggregates Section 8.5's named metrics via the pure `summarize_results()`
+function (unit-tested in `tests/test_eval_summarization.py`, no LLM calls there):
+
+| Metric | Definition |
+|--------|------------|
+| `grounding_pass_rate` | Fraction of trials where every citation validated on the **first** attempt, before the bounded retry (Section 3.6) — shows whether the retry path is doing real work or rarely triggers. |
+| `fallback_rate` | Fraction of trials that exhausted the retry and fell back to the deterministic-only summary. |
+| `golden_match_rate` | Fraction where `primary_explanation` matched the hand-labeled expected answer (`{dimension: 'geography', segment: 'SP'}` for `GOLDEN_CASE_1`). A fallback trial has no model citation to check, so it always counts as a non-match here — grounding failures fold into this end-to-end rate rather than being hidden from it. |
+| `uncertainty_ok_rate` | Fraction where `uncertainty_note` was present whenever the evidence included an `offsetting_segments` dimension (Section 3.4's requirement). |
+
+One golden case run once is an n=1 coin flip, not a rate — running it `--runs` times against the
+real API is what makes these numbers statistically real rather than estimated (`docs/ROADMAP.md`
+M3's gate). No new golden case was added for this milestone: Section 8.4's "two more small
+fixtures" are Phase-2/onboarding-classification fixtures, not Phase-1 investigation ones —
+`GOLDEN_CASE_1` stays the sole Phase-1 case, consistent with Section 8.4's own "a handful of
+well-chosen cases, not dozens" v1 sizing.
+
+Costs real API calls every run — not part of `pytest tests/` (Section 8.6). Run before merging a
+prompt/model change, or periodically to catch drift, not on every commit.
 
 ## Upstream / downstream
 
