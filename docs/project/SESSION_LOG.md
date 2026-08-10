@@ -5,6 +5,83 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-08-10 — Built M2: wired investigation graph into pipeline, API, dashboard
+
+**What happened:**
+Third implementation session on the agentic-layer initiative — `docs/ROADMAP.md` Phase 1,
+milestone M2 (integration). M0/M1 had built and LLM-integrated all 7 graph nodes as plain
+functions, but nothing compiled them into an actual `StateGraph` and nothing outside
+`investigation/` called into the package. Re-read `docs/scoping.md` §4 in full (integration
+points: orchestration, Django API, dashboard, Lambda) plus the actual current code
+(`orchestration/run_pipeline.py`, `dashboard_api/views.py`/`urls.py`, `lambda_handler.py`, the
+dashboard templates/JS) before planning, rather than trusting the design doc's illustrative
+snippets as literal implementation. That re-read surfaced three real gaps the fixture-based M0/M1
+tests never exercised, since none of them ran an actual end-to-end graph invocation:
+- `route_after_ambiguity` indexed `state['drilled_dimensions']` directly with no default — the
+  very first `assess_ambiguity` → `route_after_ambiguity` transition in a real run has no node
+  that's set it yet unless the caller pre-seeded it. Fixed with `.get(..., [])`.
+- `detect`/`decompose_all` weren't actually idempotent despite §4.3 explicitly designing the
+  pre-seeding mechanism around them being so — both would have silently re-run the exact
+  double-Redshift-query anti-pattern already named as a known gap between `NarrativeView`/
+  `DecompositionView`. Fixed: both now no-op if their output field is already present in state.
+- Added `investigation.state.build_initial_state()` so every call site gets a fully-defaulted
+  state by construction instead of each one needing to remember the full field list by hand.
+
+Built: `investigation/graph.py` (compiled `StateGraph`, the only file in the package that imports
+`langgraph`), `build_initial_state()`, the two idempotency fixes, `orchestration/run_pipeline.py`'s
+Step 4.5 (`run_investigation` kwarg, lazily imported per this file's existing
+`monitoring.cloudwatch_metrics` convention, new `--run-investigation` CLI flag), `dashboard_api`'s
+new `InvestigationView` (`POST /api/investigate/`) and `PipelineView`'s optional
+`run_investigation` field, `lambda_handler.py`'s event passthrough, and a dashboard "Investigate
+with AI Agent" button rendering into a visually distinct block beneath the existing narrative
+(manual trigger only, not part of `applyFilters()`'s auto-refresh, per §4.6's cost-control
+philosophy). New dependency: `langgraph` (+ `langgraph-checkpoint`/`-prebuilt`/`-sdk`, `ormsgpack`);
+`langgraph-sdk` downgraded `websockets` from M1's `17.0.1` to `15.0.1` — reconciled in
+`requirements.txt` against exact resolved versions, `pip check` clean.
+
+**Decisions made:**
+- One correction to `docs/scoping.md` §4.4's `InvestigationView` snippet: it reads Django's
+  `settings.ANOMALY_THRESHOLD_ZSCORE`, which doesn't exist (that constant lives in
+  `config/settings.py`, never imported by `dashboard_api`). Followed the already-live
+  `AnomalyDetectionView` pattern instead — optional `threshold` from the request, `None` otherwise,
+  letting `run_detection()`'s own env-var fallback apply — no new settings dependency introduced.
+- No new test files, per `docs/ROADMAP.md`'s own M2 description ("plumbing, verified by exercising
+  the existing test suite still passes") — this milestone's real proof is live verification: real
+  Redshift + real Groq, no mocking, confirmed via CLI (`--run-investigation`, checked the logs for
+  exactly one `decompose_metric()` call to prove pre-seeding actually prevented the duplicate
+  query), `curl` against both `/api/investigate/` and `/api/pipeline/` (with and without
+  `run_investigation`, confirming the default-off response shape is byte-identical to before), a
+  direct local call to `lambda_handler.handler()`, and a re-curl of every pre-existing endpoint.
+
+**Current state:** PR #10 merged into `main`, branch deleted. Full suite is still 43/43 passing,
+unmodified, `flake8` clean (verified with `.env` fully removed too). `docs/ROADMAP.md`'s M2
+checkbox is checked. The investigation agent is now genuinely reachable from three real surfaces
+(CLI, Django API, dashboard button) plus Lambda passthrough — not just a library of graph-shaped
+functions.
+
+**Next steps:** M3 — formalize `investigation.eval` as a real, separately-triggered command (not
+part of `pytest`, since it costs real API money), recording §8.5's metrics (grounding pass rate,
+fallback rate, golden-driver match rate) from a real run rather than the single manual Golden
+Case #1 run M1 already did.
+
+**Loose ends / reminders:**
+- `main` is still not branch-protected... actually it *is* protected now (confirmed while
+  debugging PR #10's CI — `required_status_checks: [lint-and-test, dbt-check]`,
+  `enforce_admins: true` — this must have been set up between the last session's note and now, but
+  was never logged here when it happened). Correcting the carried-over loose end: this is resolved,
+  not outstanding.
+- **GitHub Actions had a multi-hour platform-wide outage today** (per githubstatus.com: Major
+  Outage, 15:22 UTC through at least 23:13 UTC) that blocked PR #10's CI from triggering at all —
+  nothing wrong on our end; confirmed via GitHub's own status page, not guessed. Once GitHub's fix
+  restored webhook throughput, an empty `git commit --allow-empty` retrigger got CI running again
+  within minutes. Worth remembering this trick (push an empty commit to force a fresh
+  `synchronize` webhook) if a future PR's CI silently never fires and `gh run list` shows zero runs
+  for the branch — check githubstatus.com before assuming a config problem on our side.
+- `GROQ_MODEL` default (`llama-3.3-70b-versatile`) is still working reliably as of this session's
+  live testing.
+
+---
+
 ## 2026-08-05 — Built M1: synthesize node, first live LLM integration
 
 **What happened:**

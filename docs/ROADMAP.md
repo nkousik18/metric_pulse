@@ -53,7 +53,7 @@ trusted on the model's word — and the existing 15 tests still pass unmodified.
 - [x] **M1** — `synthesize`: structured-output LLM call, `validate_citation`, bounded
       retry/fallback, Jinja rendering. `test_citation_validation.py` passing; Golden Case #1
       (`docs/scoping.md` §3.8) run for real, not just designed on paper.
-- [ ] **M2** — Integration: `run_pipeline(run_investigation=...)`, `/api/investigate/`,
+- [x] **M2** — Integration: `run_pipeline(run_investigation=...)`, `/api/investigate/`,
       `PipelineView` extension, dashboard button, Lambda passthrough. Full existing test suite
       re-run and green — this milestone touches the most call sites.
 - [ ] **M3** — `investigation.eval` command formalized; Section 8.5's metrics (grounding pass
