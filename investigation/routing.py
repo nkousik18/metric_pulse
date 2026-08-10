@@ -20,9 +20,15 @@ def route_after_detection(state: InvestigationState) -> str:
 
 
 def route_after_ambiguity(state: InvestigationState) -> str:
+    # .get(..., []) rather than direct indexing: the very first assess_ambiguity ->
+    # route_after_ambiguity transition in a real invocation has no node that's set
+    # drilled_dimensions yet unless the caller pre-seeded it (M0's test fixtures always
+    # did, which masked this). build_initial_state() (M2) seeds it too, but this stays
+    # defensive regardless of how the graph was invoked.
+    drilled = state.get('drilled_dimensions', [])
     pending = [
         a['dimension'] for a in state['ambiguous_dimensions']
-        if a['reason'] == 'close_contributors' and a['dimension'] not in state['drilled_dimensions']
+        if a['reason'] == 'close_contributors' and a['dimension'] not in drilled
     ]
     if pending and state['iteration_count'] < MAX_ITERATIONS:
         return 'drill_down'

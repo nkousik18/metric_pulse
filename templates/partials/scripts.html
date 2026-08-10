@@ -367,6 +367,58 @@
         });
     }
 
+    async function investigateWithAgent() {
+        const btn = document.getElementById('investigate-btn');
+        const resultBlock = document.getElementById('investigation-result');
+        const contentEl = document.getElementById('investigation-content');
+        if (!btn || !resultBlock || !contentEl) return;
+
+        const currentDateEl = document.getElementById('current-date');
+        const previousDateEl = document.getElementById('previous-date');
+        const metricSelect = document.getElementById('metric-select');
+
+        const currentDate = currentDateEl ? currentDateEl.value : '';
+        const previousDate = previousDateEl ? previousDateEl.value : '';
+        const metric = metricSelect ? metricSelect.value : 'total_revenue';
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Investigating...';
+        resultBlock.classList.remove('hidden');
+        contentEl.innerHTML = 'Running agent investigation (this can take several seconds)...';
+
+        try {
+            const response = await fetch('/api/investigate/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ metric, current_date: currentDate, previous_date: previousDate })
+            });
+            const result = await response.json();
+
+            if (result.status !== 'success') {
+                throw new Error(result.message || 'Investigation failed');
+            }
+
+            const data = result.data;
+            if (data.status === 'skipped_no_anomaly') {
+                contentEl.innerHTML = 'No anomaly was detected for this date pair -- nothing to investigate.';
+            } else if (data.status === 'failed') {
+                contentEl.innerHTML = `Investigation failed: ${data.error || 'unknown error'}`;
+            } else {
+                let html = (data.investigation_summary || 'No summary available.')
+                    .replace(/\*\*/g, '').replace(/\n/g, '<br>');
+                if (data.grounding_failed) {
+                    html += '<br><br><em class="text-xs text-gray-500">(Fell back to a deterministic summary -- the AI-generated explanation could not be fully verified this run.)</em>';
+                }
+                contentEl.innerHTML = html;
+            }
+        } catch (error) {
+            contentEl.innerHTML = `Investigation failed: ${error.message}`;
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-robot"></i> Investigate with AI Agent';
+        }
+    }
+
     function downloadNarrative() {
         const narrativeEl = document.getElementById('narrative');
         if (!narrativeEl) return;

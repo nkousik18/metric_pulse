@@ -69,7 +69,17 @@ def classify_ambiguity(dim_data: Dict) -> Optional[str]:
 
 
 def detect(state: InvestigationState) -> Dict:
-    """Runs anomaly detection; resolves current/previous date if not already set."""
+    """
+    Runs anomaly detection; resolves current/previous date if not already set.
+
+    Idempotent (docs/scoping.md Section 4.3): if detection_result is already
+    present in state (pre-seeded by a caller that already ran detection, e.g.
+    orchestration/run_pipeline.py's Step 4.5), this is a no-op -- avoids a
+    second, redundant round of Redshift queries for data already fetched.
+    """
+    if state.get('detection_result') is not None:
+        return {}
+
     try:
         current_date = state.get('current_date')
         previous_date = state.get('previous_date')
@@ -91,7 +101,15 @@ def detect(state: InvestigationState) -> Dict:
 
 
 def decompose_all(state: InvestigationState) -> Dict:
-    """Decomposes all dimensions for the resolved date pair."""
+    """
+    Decomposes all dimensions for the resolved date pair.
+
+    Idempotent (docs/scoping.md Section 4.3): no-op if decomposition_results
+    is already present in state (pre-seeded), same reasoning as detect().
+    """
+    if state.get('decomposition_results') is not None:
+        return {}
+
     try:
         decomposition_results = tool_decompose_all(
             state['current_date'], state['previous_date'], state['metric']

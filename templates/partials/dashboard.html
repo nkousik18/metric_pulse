@@ -189,9 +189,21 @@
                     <button onclick="downloadNarrative()" class="flex items-center gap-1 text-sm text-gray-600 hover:text-indigo-600 px-3 py-1.5 bg-gray-100 rounded-lg transition">
                         <i class="fas fa-download"></i> Download
                     </button>
+                    <button id="investigate-btn" onclick="investigateWithAgent()" class="flex items-center gap-1 text-sm text-white px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 rounded-lg transition">
+                        <i class="fas fa-robot"></i> Investigate with AI Agent
+                    </button>
                 </div>
             </div>
             <div id="narrative" class="prose text-gray-700 bg-gradient-to-br from-gray-50 to-indigo-50/30 rounded-xl p-5 border border-gray-100">Loading analysis...</div>
+            <div id="investigation-result" class="hidden mt-4 pt-4 border-t border-gray-100">
+                <div class="flex items-center gap-2 mb-2">
+                    <div class="w-6 h-6 bg-purple-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-robot text-purple-600 text-xs"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-900 text-sm">AI Investigation</h3>
+                </div>
+                <div id="investigation-content" class="prose text-gray-700 bg-gradient-to-br from-purple-50 to-indigo-50/30 rounded-xl p-5 border border-purple-100 text-sm"></div>
+            </div>
         </div>
 
         <!-- Pipeline Control -->

@@ -6,6 +6,7 @@ from .views import (
     DecompositionView,
     NarrativeView,
     PipelineView,
+    InvestigationView,
     ContactView
 )
 
@@ -16,5 +17,6 @@ urlpatterns = [
     path('decomposition/', DecompositionView.as_view(), name='decomposition'),
     path('narrative/', NarrativeView.as_view(), name='narrative'),
     path('pipeline/', PipelineView.as_view(), name='pipeline'),
+    path('investigate/', InvestigationView.as_view(), name='investigate'),
     path('contact/', ContactView.as_view(), name='contact'),
 ]

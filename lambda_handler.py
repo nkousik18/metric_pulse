@@ -21,15 +21,17 @@ def handler(event, context):
     metric = event.get('metric', 'total_revenue')
     force_alert = event.get('force_alert', False)
     dry_run = event.get('dry_run', False)
-    
+    run_investigation = event.get('run_investigation', False)
+
     try:
         results = run_pipeline(
             metric=metric,
             force_alert=force_alert,
             dry_run=dry_run,
-            publish_metrics=False
+            publish_metrics=False,
+            run_investigation=run_investigation
         )
-        
+
         return {
             'statusCode': 200,
             'body': json.dumps({
@@ -38,6 +40,7 @@ def handler(event, context):
                 'anomaly_count': results.get('detection', {}).get('anomaly_count', 0),
                 'alert_status': results.get('alert', {}).get('status', 'unknown'),
                 'summary': results.get('narratives', {}).get('summary', ''),
+                'investigation_status': results.get('investigation', {}).get('status'),
                 'executed_at': datetime.now().isoformat()
             })
         }
