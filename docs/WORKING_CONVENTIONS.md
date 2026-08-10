@@ -170,18 +170,22 @@ What makes a roadmap entry worth writing (not just "task: done"):
   judgment call.
 
 `docs/project/retrospectives/` is named as a convention in `docs/ROADMAP.md` (an end-of-phase
-reflection, heavier-weight than a session log entry) but doesn't exist yet — correctly so, since
-no phase has actually closed through this process yet (Phase 0 was marked done retroactively as
-the already-shipped core pipeline, before this roadmap discipline existed to gate it).
+reflection, heavier-weight than a session log entry). Phase 0 was marked done retroactively as the
+already-shipped core pipeline, before this roadmap discipline existed to gate it, so it never got
+one; Phase 1 closed on 2026-08-10 and does have one —
+[`docs/project/retrospectives/phase-1-investigation-agent.md`](project/retrospectives/phase-1-investigation-agent.md) —
+the first written under this convention.
 
 ## Committing, merging, and GitHub Flow
 
 We use **GitHub Flow** (`CONTRIBUTING.md` has the quick reference; the full sequence is repeated
 below): `main` is always deployable, every change — however small — happens on a short-lived
-branch and comes back in through a pull request. **`main` is not currently protected by GitHub
-branch-protection rules** (no required-review or required-status-check enforcement is configured
-on the repo) — the discipline below is followed by agreement, not enforced by GitHub. That's a
-real gap, named rather than glossed over, consistent with the "name gaps" rule above.
+branch and comes back in through a pull request. **`main` is protected by GitHub branch-protection
+rules** — `lint-and-test` and `dbt-check` are required status checks, enforced even for admins (no
+required-review count is configured, since this is a single-contributor repo) — confirmed directly
+via `gh api repos/.../branches/main/protection`, not assumed. This was set up sometime after this
+file's original write-up (which named it as an open gap); the discipline below is now
+GitHub-enforced, not just followed by agreement.
 
 **The cadence: commit at the end of every session's unit of work, not batched across sessions.**
 Finish a piece of work, commit it, open the PR, merge it, *then* move on — never let multiple
@@ -256,4 +260,4 @@ Practices that have consistently paid off, independent of which file they end up
 - **Ending a session (or hitting a natural checkpoint):** append a dated entry to
   `SESSION_LOG.md` — what happened, decisions made, current state, next steps, loose ends.
 - **Closing a roadmap phase:** confirm the gate is actually met (not just time spent), check the
-  box, and (owed, not yet practiced) write a retrospective.
+  box, and write a retrospective (`docs/project/retrospectives/` — first practiced for Phase 1).

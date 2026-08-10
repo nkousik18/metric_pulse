@@ -56,7 +56,7 @@ trusted on the model's word — and the existing 15 tests still pass unmodified.
 - [x] **M2** — Integration: `run_pipeline(run_investigation=...)`, `/api/investigate/`,
       `PipelineView` extension, dashboard button, Lambda passthrough. Full existing test suite
       re-run and green — this milestone touches the most call sites.
-- [ ] **M3** — `investigation.eval` command formalized; Section 8.5's metrics (grounding pass
+- [x] **M3** — `investigation.eval` command formalized; Section 8.5's metrics (grounding pass
       rate, fallback rate, golden-driver match rate) recorded from a real run, not estimated.
 
 **Deferred, and why** (see `docs/scoping.md` for the reasoning behind each): parallel fan-out
@@ -102,5 +102,6 @@ a dashboard-based onboarding wizard (CLI only for v1 — §7.3).
 ## Retrospectives
 
 `docs/project/retrospectives/` is a named convention (end-of-phase reflection, heavier than a
-session log entry) — not yet created, since no phase above has closed yet. Naming this now
-rather than letting it quietly not happen once Phase 1 does close.
+session log entry). Phase 1 (M0–M3) closed on 2026-08-10 — see
+[`phase-1-investigation-agent.md`](project/retrospectives/phase-1-investigation-agent.md) for its
+retrospective, the first one actually written under this convention.
