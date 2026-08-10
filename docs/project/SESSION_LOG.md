@@ -5,6 +5,71 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-08-10 — Built M3, closed Phase 1, wrote its retrospective
+
+**What happened:**
+Fourth implementation session on the agentic-layer initiative — `docs/ROADMAP.md` Phase 1,
+milestone M3, the last one in the phase. Re-read `docs/scoping.md` §8 in full (not from memory)
+before planning, which confirmed two scope boundaries precisely: §8.4's "two more small fixtures"
+worth adding are Phase-2/onboarding-classification fixtures, not Phase-1 investigation ones, so no
+new golden case was in scope — `GOLDEN_CASE_1` (built in M1) stays the sole Phase-1 case; and §8.5's
+metrics are defined per real *call*, not per case, meaning the actual formalization work was running
+the same case through multiple real trials and aggregating, not authoring new fixtures.
+
+That re-read also surfaced a real correctness gap in M1's original eval harness: its `grounded`
+field conflated `outcome == 'grounded_first_attempt'` with `'grounded_after_retry'` into one number,
+and never computed a `fallback_rate` at all — neither matches §8.5's actual metric definitions
+("grounding pass rate" is explicitly first-attempt-only, "the metric that shows whether the retry
+path is doing real work"). Fixed by deriving both correctly from the `outcome` tag
+`_run_synthesis` already returns, and extracted the aggregation into a new pure `summarize_results()`
+function so it's unit-tested (`tests/test_eval_summarization.py`, 4 tests, no LLM calls) rather than
+trusted by inspection. Added `--runs N` (default 5) to `investigation/eval.py`'s CLI.
+
+**Real, recorded numbers** (`python -m investigation.eval --runs 5`, live Groq API, 5 real trials
+of `GOLDEN_CASE_1`): **`grounding_pass_rate=1.00`, `fallback_rate=0.00`, `golden_match_rate=1.00`,
+`uncertainty_ok_rate=1.00`** — every trial grounded on the first attempt, correctly cited the
+drill-down-level driver, and correctly included the required uncertainty note. Recorded here
+exactly as printed, not rounded up or estimated.
+
+With M3 merged (PR #12), Phase 1's own gate (`docs/ROADMAP.md`: real LangGraph agent, wired into
+both integration points, grounded summary for a real anomaly, citations validated, pre-existing
+tests unmodified) was fully, verifiably met — so this session also closed Phase 1 and wrote its
+retrospective, the first one actually practiced under the convention named (but never yet used)
+since 2026-07-28: `docs/project/retrospectives/phase-1-investigation-agent.md`. It covers the full
+M0–M3 arc: gate evidence, what worked (the deterministic/LLM split held up, grounding-by-validation
+caught a real steering bug in M1), every real gap found and fixed across all four milestones (not
+just this session's), estimate-vs-actual (§10.2's "weekend" units compressed into single AI-paired
+sessions; the real calendar-time cost was a 4-day GitHub Actions outage stalling PR #10's merge, not
+implementation), and honest gaps carried into Phase 2. Full detail lives in that file, not repeated
+here.
+
+**Decisions made:**
+- While closing out the retrospectives convention, also fixed two other stale claims caught in the
+  same pass rather than left standing: `docs/WORKING_CONVENTIONS.md` still said `main` "is not
+  currently protected by GitHub branch-protection rules" — re-verified directly via `gh api
+  .../branches/main/protection` (first checked during this same week's GitHub-outage debugging) and
+  confirmed `main` *is* protected (`lint-and-test`/`dbt-check` required, `enforce_admins: true`) —
+  this must have been configured at some point without ever being logged; corrected the doc rather
+  than leave a two-sessions-old "loose end" note pointing at a already-resolved non-gap.
+
+**Current state:** PR #12 merged into `main`, branch deleted. Full suite is 47/47 passing on `main`
+(15 pre-Phase-1 + 32 added across M0–M3). `docs/ROADMAP.md`'s M3 checkbox and Phase 1's overall
+gate are both checked/met. `docs/project/retrospectives/phase-1-investigation-agent.md` exists.
+Phase 1 is done.
+
+**Next steps:** Phase 2 (`docs/scoping.md` §§5–7) — milestone M4: `onboarding/profiling.py` (Stage
+A, deterministic column profiling) and `onboarding/classification.py` (Stage B, LLM role
+classification + validation), reusing M1's exact structured-output-plus-validation pattern per
+§10.3's own note that M4 "reuses the exact same proven pattern... lower uncertainty than M1."
+
+**Loose ends / reminders:**
+- Eval corpus is still one golden case, small-n (5 real trials). Both named as accepted, not
+  hidden, v1 sizing in the retrospective — not a defect to fix before Phase 2 starts.
+- `GROQ_MODEL` default (`llama-3.3-70b-versatile`) continues working reliably; 5/5 real M3 trials
+  all succeeded with zero fallbacks.
+
+---
+
 ## 2026-08-10 — Built M2: wired investigation graph into pipeline, API, dashboard
 
 **What happened:**
