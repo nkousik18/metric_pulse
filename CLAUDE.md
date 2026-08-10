@@ -63,6 +63,7 @@ python -m orchestration.run_pipeline --dry-run                    # full run, no
 python -m orchestration.run_pipeline --force-alert                # send alert regardless of anomaly state
 python -m orchestration.run_pipeline --metric order_count --threshold 2.5 --dry-run
 python -m orchestration.run_pipeline --dry-run --force-alert --run-investigation  # + agentic investigation (Phase 1)
+python -m investigation.eval --runs 5                               # Phase 1 eval suite (real LLM calls, real cost)
 python -m detection.anomaly_detector                               # detection layer alone
 python -m alerting.sns_publisher --setup --email you@example.com   # one-time SNS topic + subscription setup
 python -m alerting.sns_publisher --test                             # send a test alert
