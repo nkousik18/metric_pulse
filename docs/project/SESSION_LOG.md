@@ -5,6 +5,84 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-08-13 — Built M4: onboarding profiling + classification (Phase 2 kickoff)
+
+**What happened:**
+First implementation session on Phase 2 (`docs/scoping.md` §§5–7, the dataset-onboarding agent) —
+`docs/ROADMAP.md` milestone M4: Stage A deterministic column profiling
+(`onboarding/profiling.py`) and Stage B LLM classification + validation (`onboarding/schemas.py`,
+`llm.py`, `prompts.py`, `classification.py`), not codegen (§6) or the human-review CLI
+flow/schema-fingerprint cache (§7) — both explicitly scoped to M5. Re-read §5 in full before
+planning, which confirmed §5.5's control flow is deliberately *not* built as a LangGraph
+`StateGraph` ("a single linear pass with one bounded retry, not a multi-round investigation") — so
+`classify_columns_with_validation()` is a plain function, structurally identical to
+`investigation/nodes.py`'s `_run_synthesis`, exactly the reuse §10.3 names M4 for.
+
+Two real corrections found during implementation, not just following the design doc as pseudocode:
+- **A genuine pandas quirk in `profiling.py`:** `pd.to_datetime()` coerces plain numbers into
+  "successfully parsed" nanosecond-epoch timestamps at ~100% success — verified directly in a REPL
+  (`pd.to_datetime(pd.Series([100.5, 200.3]), errors='coerce')` returns 100% non-null) before
+  writing a guard that short-circuits `date_parse_rate` to `0.0` for any numeric-dtype column.
+  Without it, every metric column (`mrr_amount`, `seats`, etc.) would have looked like a perfect
+  date column.
+- **A miscalibrated constant caught before the real eval run, not after:** `classification.py`'s
+  `MAX_DIMENSION_CARDINALITY_RATIO` was first drafted at an arbitrary `0.5` (a plain midpoint
+  against `ID_CARDINALITY_THRESHOLD`'s `0.9`). Re-checking it against §5.6's own worked example
+  found this would have *accepted* `customer_id` (cardinality ratio 0.164) as a valid dimension —
+  but the design doc's own worked example explicitly rejects exactly that column as "too high to
+  be a useful grouping dimension." Recalibrated to `0.1`, chosen to sit between that real number
+  and `plan_type`/`region`'s ~0.00006 — grounded in the doc's own example, not guessed twice.
+
+`onboarding/eval.py`'s `GOLDEN_CASE_2` — a synthetic SaaS-subscription fixture (fixed-seed,
+500 rows, not literally 50,000) reproducing §5.6's worked example's qualitative profile shape — was
+built at the same minimal scope `investigation/eval.py` had at Phase 1's M1 (a fixture plus a bare
+grading run), not Phase 1's later M3-formalized scope: `docs/ROADMAP.md` never names a Phase-2
+equivalent of M3's formalization as its own milestone, so building one wasn't in scope here.
+
+**Real, recorded result** (`python -m onboarding.eval`, live Groq API): the **first** classification
+attempt proposed `customer_id` as a dimension; `validate_classification` correctly rejected it
+(matching §5.6's own judgment exactly); the retry then matched **every** expected field —
+`date_column=event_date`, `grain=other`, `metric_columns=[mrr_amount, seats]`,
+`dimension_columns=[plan_type, region]`, `rejected_columns=[subscription_id, customer_id, notes]`,
+`requires_human_review=False`, zero validation errors. A genuine, real demonstration of the
+retry-then-validate mechanism catching an actual mistake mid-run, not just a case that happened to
+pass on the first try — a stronger proof point than M1's Golden Case #1, which was grounded on the
+first attempt every time it was run.
+
+**Decisions made:**
+- `SchemaClassification`'s `requires_human_review`/`validation_errors` fields are never populated by
+  the LLM itself — `classify_columns_with_validation()` always overwrites them post-hoc
+  (`clf.model_copy(update={...})`) based on the real validation outcome, never trusting whatever the
+  model happened to put there. The system prompt doesn't even mention these two fields to the model.
+- `requires_human_review` reflects validation outcome only in M4 (`True` only if the bounded retry
+  still leaves errors) — §5.6's stronger rule ("still `True` for a first-ever run regardless of
+  validation success") depends on the schema-fingerprint cache, explicitly M5's responsibility, not
+  claimed here.
+- While touching `tests/README.md` for the two new test files, also fixed its test count and file
+  table, stale since M0 (never updated across M1's or M3's additions either) — same "don't leave a
+  known-wrong fact standing once found" precedent as prior sessions.
+
+**Current state:** PR #14 merged into `main`, branch deleted. Full suite is 61/61 passing
+(15 pre-Phase-1 + 46 across the agentic-layer initiative's M0–M4), verified with `.env` removed
+entirely too. `docs/ROADMAP.md`'s M4 checkbox is checked. No new dependencies, no new env vars —
+Stage A/B reuse `GROQ_API_KEY`/`GROQ_MODEL`/pandas/pydantic exactly as they already existed.
+
+**Next steps:** M5 — `onboarding/codegen.py` (turning a validated `SchemaClassification` into
+actual queryable DuckDB tables, §6), the two additive `dimension_config`/`connection_factory`
+parameters on `decomposer.py`/`anomaly_detector.py` (§6.2, backward-compatible defaults reproduce
+today's exact behavior), the CLI confirmation flow (§7.3), and the schema-fingerprint cache (§7.5).
+Explicitly the milestone that edits already-tested files, so a full pre-existing-suite re-run is
+part of its own gate, not optional.
+
+**Loose ends / reminders:**
+- Golden Case #2's fixture is 500 rows, not literally 50,000 — named explicitly in
+  `onboarding/README.md` as an intentional scope choice ("run for real" means real profiling + a
+  real LLM call, not matching an arbitrary row count), not a shortcut hidden from the record.
+- `GROQ_MODEL` default (`llama-3.3-70b-versatile`) continues working reliably; the one real retry
+  seen this session resolved correctly on the second attempt, exactly as designed.
+
+---
+
 ## 2026-08-10 — Built M3, closed Phase 1, wrote its retrospective
 
 **What happened:**
