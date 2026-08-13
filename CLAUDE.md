@@ -65,6 +65,7 @@ python -m orchestration.run_pipeline --metric order_count --threshold 2.5 --dry-
 python -m orchestration.run_pipeline --dry-run --force-alert --run-investigation  # + agentic investigation (Phase 1)
 python -m investigation.eval --runs 5                               # Phase 1 eval suite (real LLM calls, real cost)
 python -m onboarding.eval                                           # Phase 2 Golden Case #2 (real LLM call, real cost)
+python -m onboarding.onboard --file data/some_new_dataset.csv       # Phase 2 dataset onboarding CLI (real LLM call, interactive confirm)
 python -m detection.anomaly_detector                               # detection layer alone
 python -m alerting.sns_publisher --setup --email you@example.com   # one-time SNS topic + subscription setup
 python -m alerting.sns_publisher --test                             # send a test alert

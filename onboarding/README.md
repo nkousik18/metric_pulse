@@ -5,22 +5,25 @@ The Phase 2 agentic layer: given a brand-new, never-seen flat dataset, produces 
 hand-writes into `decomposition/decomposer.py`'s `DIMENSION_TABLES`. Design record: `docs/scoping.md`
 Sections 5–7. Roadmap status: `docs/ROADMAP.md` Phase 2.
 
-## Scope as of M4
+## Scope as of M5
 
-This folder currently contains **only Section 5** — deterministic profiling (Stage A) and LLM
-classification + validation (Stage B). Three things named in `docs/scoping.md` §§6–7 are
-intentionally **not** here yet:
+Sections 5, 6, and 7 all exist now: profiling + classification (Stage A/B), codegen (turning a
+validated contract into real DuckDB tables), the CLI confirmation flow, and the schema-fingerprint
+cache. One thing named in `docs/scoping.md` is intentionally **not** here yet:
 
-- `codegen.py` — turning a validated `SchemaClassification` into actual queryable DuckDB tables
-  (§6). M5.
-- The CLI confirmation flow and schema-fingerprint cache (§7) — human-in-the-loop review, and the
-  mechanism that skips re-review for an already-confirmed, unchanged dataset. M5.
 - A dashboard-based onboarding wizard — named but explicitly deferred as v2 (§7.7), CLI only for v1.
 
-`requires_human_review` (below) reflects **validation outcome only** in M4 — `True` only if the
-bounded retry still leaves errors. §5.6's stronger rule ("still `True` for a first-ever run
-against a brand-new dataset regardless of validation success") depends on the schema-fingerprint
-cache, which doesn't exist yet — that's M5's job, not claimed here.
+**M5 does not touch `investigation/`.** §6.2's closing paragraph says the Phase 1 agent works
+against onboarded data "unmodified beyond the two [decomposer/anomaly_detector] parameters," but
+`investigation/tools.py`'s wrappers currently call `decompose_metric()`/`fetch_detail_metrics()`
+with no config passthrough at all — *something* still needs deciding about how a dataset's
+`dimension_config`/`connection_factory` actually reaches the graph. Left as an explicit open
+question for M6 (the milestone that runs a real dataset through the full cycle), not resolved here.
+
+`requires_human_review` still reflects **validation outcome only**, not §5.6's stronger "always
+`True` for a first-ever run" rule — the schema-fingerprint cache (below) now exists, but that rule
+would require `onboard.py` to track review *history* per dataset beyond the fingerprint match/
+mismatch binary already implemented. Named as a scope boundary, not silently overclaimed.
 
 ## Files
 
@@ -31,6 +34,9 @@ cache, which doesn't exist yet — that's M5's job, not claimed here.
 | `llm.py` | `get_classification_llm()` — same provider/method as `investigation/llm.py`'s `get_synthesis_llm()`. |
 | `prompts.py` | `build_classification_prompt()` — formats profiles into the evidence bundle + system prompt. |
 | `classification.py` | `MIN_DATE_PARSE_RATE`, `MAX_DIMENSION_CARDINALITY_RATIO`, `validate_classification()`, `classify_columns_with_validation()` (the bounded-retry orchestrator). |
+| `codegen.py` | `load_and_aggregate()`, `write_fact_table()`, `write_dimension_tables()`, `generate_tables()`, `validate_generated_tables()` — turns a validated contract into real DuckDB tables. 100% deterministic, no LLM call. |
+| `fingerprint.py` | `schema_fingerprint()` — the schema-change detector behind the confirmation cache. |
+| `onboard.py` | The CLI entry point — `python -m onboarding.onboard --file <path>`. |
 | `eval.py` | `GOLDEN_CASE_2` (§5.6, the SaaS fixture) — `python -m onboarding.eval`, run manually. |
 | `__init__.py` | Empty — makes the folder an importable package. |
 
@@ -140,18 +146,106 @@ retry then got every field right — `date_column=event_date`, `grain=other`,
 demonstration of the retry-then-validate mechanism catching a real mistake, not just passing on the
 first try.
 
+## Codegen (`codegen.py`, Section 6)
+
+The LLM's job is finished by this point — everything here is deterministic, mechanical code.
+
+```
+GENERATED_DIR = onboarding/generated/
+```
+
+- `load_and_aggregate(df, clf) -> pd.DataFrame` — parses `clf.date_column` (`errors='coerce'`,
+  dropping unparseable rows with a warning rather than crashing), renames to `metric_date`. If
+  `clf.grain == 'other'`: `groupby('metric_date')[clf.metric_columns].sum()` plus a free
+  `row_count` bonus metric (`.size()` per day). If already `'daily'`: a rename-only pass-through
+  with `row_count=1` per existing row.
+- `write_fact_table(conn, df_daily)` / `write_dimension_tables(conn, df, clf) -> dict` — the
+  latter returns the generated `dimension_config`, one `metric_by_<column>` table per dimension,
+  `segment_col == detail_col == column` for every entry (§6.4 — no `dim_*` taxonomy layer for
+  onboarded data; there's no finer grain to drill into than the dimension itself). Both use
+  `CREATE OR REPLACE TABLE`, not `CREATE TABLE` — **found live**: a second onboarding run against
+  the same dataset (the schema-fingerprint cache's whole point) reopens the existing `.duckdb`
+  file, which already has these tables from the first run; `CREATE TABLE` alone crashed with a
+  `CatalogException` on that second run. Matches this project's existing safe-to-rerun convention
+  (`ingestion/setup_redshift_tables.py`'s `CREATE TABLE IF NOT EXISTS`).
+- `generate_tables(df, clf, dataset_id) -> (duckdb_path, dimension_config)` — orchestrates the
+  above, writes to `onboarding/generated/<dataset_id>/<dataset_id>.duckdb`. **Resolves a real
+  disagreement in the design doc**: §6.3 describes a flat `<dataset_id>.duckdb` path directly under
+  `generated/`; §7.5 describes a subfolder `generated/<dataset_id>/` containing both the `.duckdb`
+  file and `classification.json`. This module follows §7.5's fuller structure — it actually needs
+  a folder, since it colocates two files per dataset.
+- `validate_generated_tables(conn, dimension_config, metric_columns) -> List[str]` — the
+  reconciliation check (§6.5): every dimension's per-date totals must equal the fact table's.
+  Rounds to 2 decimals before comparing (currency-style precision, matching
+  `decomposer.py`'s existing `round(x, 2)`) rather than exact float equality — the fact table and
+  each dimension table sum the same values through a different aggregation order (one groupby vs.
+  a two-stage per-segment-then-per-date groupby), which can produce floating-point noise that
+  isn't a real reconciliation bug. **Live-verified as a real, working catch, not just a passing
+  test**: two separate live runs against Golden Case #2 had the LLM propose `notes` (a 40%-null
+  free-text column with a coincidentally small non-null vocabulary) as a dimension — `notes` has
+  low enough cardinality to pass `validate_classification`'s cardinality-only check, but pandas'
+  `groupby` silently drops null-valued dimension rows, so `metric_by_notes`'s totals don't match
+  the fact table's. Reconciliation correctly caught both times, exactly the failure mode §6.5
+  names as its reason to exist ("e.g., a `GROUP BY` that silently dropped null-valued dimension
+  rows"). This is a genuine gap in Stage B's simpler cardinality-only validator that reconciliation
+  exists precisely to backstop — a deliberate two-layer defense, not treated as a Stage-B bug to
+  fix in this milestone.
+
+## Fingerprint cache (`fingerprint.py`, `onboard.py`, Section 7.5)
+
+`schema_fingerprint(profiles) -> str` — SHA-256 of sorted `(name, dtype)` pairs, order-independent,
+changes on any rename/retype/add/remove. `onboard.py` stores it alongside the confirmed contract in
+`onboarding/generated/<dataset_id>/classification.json`; a later run against the same `dataset_id`
+compares fingerprints and skips straight to codegen on a match (§7.2's "unchanged schema" case),
+or re-runs full classification + confirmation on a mismatch (§7.2's "schema changed" case). Both
+paths **live-verified**: a repeat run against an unchanged file printed "Using previously-confirmed
+classification" and skipped the prompt entirely; adding one column to the same file correctly
+forced re-classification instead of silently reusing the stale contract.
+
+## The CLI (`onboard.py`, Section 7.3)
+
+```bash
+python -m onboarding.onboard --file data/saas_subscriptions.csv
+```
+
+`[y]` confirm and proceed / `[e]` edit a column's role / `[n]` reject and abort. The `[e]` edit path
+is bounded (§7.3's contract philosophy) — move one named column to `metric`/`dimension`/`reject`;
+can't redefine the contract's shape itself. Every edit re-runs `validate_classification()` and
+*shows* any resulting warnings, but — unlike the LLM's own output, which is blocked until it
+passes or exhausts the retry — a human's edit is never blocked on them (§7.4: "a human reviewing
+their own dataset is allowed to know things the profiler structurally can't"). **All three paths
+live-verified in the terminal**, including the edit path's advisory-not-blocking warning actually
+printing and the edit actually taking effect.
+
+A found-and-fixed bug along the way, not a hypothetical: `onboard.py` originally called plain
+`pd.read_csv(file_path)`. Pandas' default `na_values` list includes common tokens like `"NA"`,
+`"N/A"`, `"NULL"` — so a real, legitimate categorical value of `"NA"` (a region code for North
+America, in Golden Case #2's own fixture) was silently turned into a missing value on every CSV
+round-trip, corrupting that column's null rate from 0% to 33.6% and causing its dimension table to
+fail reconciliation for a reason that had nothing to do with codegen. Fixed with
+`pd.read_csv(file_path, keep_default_na=False, na_values=[''])` — only a genuinely empty cell
+counts as missing. This surfaced only once the real CLI path (CSV → `pd.read_csv`) was
+live-tested; M4's in-memory-only `eval.py` never touched a CSV file and so never hit it.
+
 ## Tests
 
-`tests/test_profiling.py` (`profile_column`/`profile_columns`, including the numeric-column date-parse
-guard) and `tests/test_classification_validation.py` (`validate_classification`'s three rules,
-independently and combined) — fixture-in, exact-value-out style, no mocking, no LLM calls (see
-`tests/README.md`). `classify_columns_with_validation` is **not** unit-tested this way — same
-deterministic-vs-LLM split as `investigation/`; it's exercised by `eval.py`'s golden case instead.
+`tests/test_profiling.py`, `tests/test_classification_validation.py` (Stage A/B, from M4),
+`tests/test_codegen.py` (`load_and_aggregate` plus `write_fact_table`/`write_dimension_tables`
+against a real **in-memory** DuckDB connection — `duckdb.connect(':memory:')`, genuinely exercising
+real DuckDB behavior with no disk I/O, no mocking), `tests/test_reconciliation.py`
+(`validate_generated_tables`, including a deliberately-corrupted fixture confirming it actually
+catches a broken case), `tests/test_schema_fingerprint.py` (`schema_fingerprint`'s order-
+independence and sensitivity to rename/retype/add/remove) — all fixture-in, exact-value-out, no
+mocking, no LLM calls (see `tests/README.md`). `classify_columns_with_validation` and the
+interactive CLI loop are **not** unit-tested this way — same deterministic-vs-LLM/interactive split
+as `investigation/`; both are exercised by real, live runs instead (`eval.py`'s golden case for the
+former, manual terminal verification for the latter).
 
 ## Upstream / downstream
 
-- **Upstream:** `config.settings.GROQ_API_KEY`/`GROQ_MODEL` (reused, no new env vars). No
-  dependency on `detection`/`decomposition`/`narrative`/`investigation` — Stage A/B operate purely
-  on a pandas `DataFrame`, independent of the rest of the pipeline.
-- **Downstream:** nothing yet. `codegen.py` (M5) is what turns a validated `SchemaClassification`
-  into tables the rest of the pipeline (and the unmodified Phase 1 investigation agent) can query.
+- **Upstream:** `config.settings.GROQ_API_KEY`/`GROQ_MODEL` (reused, no new env vars). `duckdb`
+  (new dependency, M5). No dependency on `detection`/`decomposition`/`narrative`/`investigation`.
+- **Downstream:** nothing yet. `investigation/`'s tools don't accept `dimension_config`/
+  `connection_factory` passthrough, so nothing currently connects an onboarded dataset's generated
+  tables to the Phase 1 investigation agent — that connection is M6's open question (see Scope,
+  above).
