@@ -72,7 +72,7 @@ repo before — goes from a raw CSV to a working `detect → decompose → narra
 `onboarding/`, with a human confirming the schema classification along the way, and the
 Phase 1 investigation agent runs against it *unmodified*.
 
-- [ ] **M4** — `onboarding/profiling.py` (Stage A) + `onboarding/classification.py` (Stage B +
+- [x] **M4** — `onboarding/profiling.py` (Stage A) + `onboarding/classification.py` (Stage B +
       validation). `test_profiling.py`, `test_classification_validation.py` passing; Golden
       Case #2 (`docs/scoping.md` §5.6, the SaaS fixture) run for real.
 - [ ] **M5** — `onboarding/codegen.py`, the two additive parameters on `decomposer.py`/
