@@ -75,7 +75,7 @@ Phase 1 investigation agent runs against it *unmodified*.
 - [x] **M4** — `onboarding/profiling.py` (Stage A) + `onboarding/classification.py` (Stage B +
       validation). `test_profiling.py`, `test_classification_validation.py` passing; Golden
       Case #2 (`docs/scoping.md` §5.6, the SaaS fixture) run for real.
-- [ ] **M5** — `onboarding/codegen.py`, the two additive parameters on `decomposer.py`/
+- [x] **M5** — `onboarding/codegen.py`, the two additive parameters on `decomposer.py`/
       `anomaly_detector.py`, the CLI confirmation flow, the schema-fingerprint cache.
       `test_codegen.py`, `test_reconciliation.py`, `test_schema_fingerprint.py` passing — **plus**
       a full re-run of the pre-existing suite, since this milestone edits already-tested files.
