@@ -5,7 +5,7 @@ Decompose metric changes by dimension to identify root causes.
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Callable, Dict, Optional
 
 import pandas as pd
 from dotenv import load_dotenv
@@ -49,21 +49,27 @@ def fetch_dimension_metrics(
     dimension: str,
     current_date: str,
     previous_date: str,
-    metric_col: str = 'total_revenue'
+    metric_col: str = 'total_revenue',
+    dimension_config: dict = DIMENSION_TABLES,
+    connection_factory: Callable = get_connection
 ) -> pd.DataFrame:
     """
     Fetch metrics for a dimension comparing two dates.
-    
+
     Args:
         dimension: Dimension name (geography, product, payment)
         current_date: Date to analyze
         previous_date: Comparison date
         metric_col: Metric column to compare
-    
+        dimension_config: Dimension table/column config (defaults to the Olist DIMENSION_TABLES;
+            an onboarded dataset passes its own generated config -- see onboarding/codegen.py)
+        connection_factory: Callable returning a DB connection (defaults to Redshift's
+            get_connection; an onboarded dataset passes a duckdb.connect(...) callable)
+
     Returns:
         DataFrame with current and previous values by segment
     """
-    config = DIMENSION_TABLES.get(dimension)
+    config = dimension_config.get(dimension)
     if not config:
         raise ValueError(f"Unknown dimension: {dimension}")
 
@@ -72,7 +78,7 @@ def fetch_dimension_metrics(
 
     query = f"""
         WITH current_day AS (
-            SELECT 
+            SELECT
                 {config['segment_col']} AS segment,
                 SUM({metric_col}) AS current_value
             FROM {config['table']}
@@ -80,14 +86,14 @@ def fetch_dimension_metrics(
             GROUP BY {config['segment_col']}
         ),
         previous_day AS (
-            SELECT 
+            SELECT
                 {config['segment_col']} AS segment,
                 SUM({metric_col}) AS previous_value
             FROM {config['table']}
             WHERE metric_date = '{previous_date}'
             GROUP BY {config['segment_col']}
         )
-        SELECT 
+        SELECT
             COALESCE(c.segment, p.segment) AS segment,
             COALESCE(c.current_value, 0) AS current_value,
             COALESCE(p.previous_value, 0) AS previous_value
@@ -95,8 +101,8 @@ def fetch_dimension_metrics(
         FULL OUTER JOIN previous_day p ON c.segment = p.segment
         ORDER BY current_value DESC
     """
-    
-    conn = get_connection()
+
+    conn = connection_factory()
 
     try:
         df = pd.read_sql(query, conn)
@@ -114,7 +120,9 @@ def fetch_detail_metrics(
     segment: str,
     current_date: str,
     previous_date: str,
-    metric_col: str = 'total_revenue'
+    metric_col: str = 'total_revenue',
+    dimension_config: dict = DIMENSION_TABLES,
+    connection_factory: Callable = get_connection
 ) -> pd.DataFrame:
     """
     Fetch detail-grain (detail_col) metrics for a single segment within a dimension,
@@ -127,11 +135,13 @@ def fetch_detail_metrics(
         current_date: Date to analyze
         previous_date: Comparison date
         metric_col: Metric column to compare
+        dimension_config: Dimension table/column config (see fetch_dimension_metrics)
+        connection_factory: Callable returning a DB connection (see fetch_dimension_metrics)
 
     Returns:
         DataFrame with current and previous values by detail segment
     """
-    config = DIMENSION_TABLES.get(dimension)
+    config = dimension_config.get(dimension)
     if not config:
         raise ValueError(f"Unknown dimension: {dimension}")
 
@@ -164,7 +174,7 @@ def fetch_detail_metrics(
         ORDER BY current_value DESC
     """
 
-    conn = get_connection()
+    conn = connection_factory()
 
     try:
         df = pd.read_sql(query, conn)
@@ -244,33 +254,40 @@ def summarize_dimension(df_analyzed: pd.DataFrame) -> Dict:
 def decompose_metric(
     current_date: str,
     previous_date: str,
-    metric_col: str = 'total_revenue'
+    metric_col: str = 'total_revenue',
+    dimension_config: dict = DIMENSION_TABLES,
+    connection_factory: Callable = get_connection
 ) -> Dict:
     """
     Decompose metric change across all dimensions.
-    
+
     Args:
         current_date: Date to analyze
         previous_date: Comparison date
         metric_col: Metric to decompose
-    
+        dimension_config: Dimension table/column config (see fetch_dimension_metrics)
+        connection_factory: Callable returning a DB connection (see fetch_dimension_metrics)
+
     Returns:
         Dictionary with decomposition results
     """
     logger.info(f"Decomposing {metric_col}: {previous_date} → {current_date}")
-    
+
     results = {
         'current_date': current_date,
         'previous_date': previous_date,
         'metric': metric_col,
         'dimensions': {}
     }
-    
-    for dimension in DIMENSION_TABLES.keys():
+
+    for dimension in dimension_config.keys():
         try:
             # Fetch data
-            df = fetch_dimension_metrics(dimension, current_date, previous_date, metric_col)
-            
+            df = fetch_dimension_metrics(
+                dimension, current_date, previous_date, metric_col,
+                dimension_config, connection_factory
+            )
+
             if df.empty:
                 logger.warning(f"No data for {dimension}")
                 continue
@@ -323,29 +340,39 @@ def get_top_driver(results: Dict) -> Dict:
     return top_driver
 
 
-def get_comparison_dates(target_date: str = None) -> tuple:
+def get_comparison_dates(
+    target_date: str = None,
+    table_name: str = 'staging.fact_daily_metrics',
+    connection_factory: Callable = get_connection
+) -> tuple:
     """
     Get current and previous date for comparison.
-    
+
     If no target date provided, uses the latest date in the data.
+
+    Args:
+        target_date: Optional date to anchor the comparison to
+        table_name: Fact table to query (defaults to the Olist staging table; an onboarded
+            dataset passes its own generated fact_daily_metrics table -- see onboarding/codegen.py)
+        connection_factory: Callable returning a DB connection (see fetch_dimension_metrics)
     """
-    conn = get_connection()
+    conn = connection_factory()
     cursor = conn.cursor()
-    
+
     if target_date:
         target_date = _validate_date(target_date)
         query = f"""
             SELECT DISTINCT metric_date
-            FROM staging.fact_daily_metrics
+            FROM {table_name}
             WHERE metric_date <= '{target_date}'
             ORDER BY metric_date DESC
             LIMIT 2
         """
     else:
-        query = """
-            SELECT DISTINCT metric_date 
-            FROM staging.fact_daily_metrics 
-            ORDER BY metric_date DESC 
+        query = f"""
+            SELECT DISTINCT metric_date
+            FROM {table_name}
+            ORDER BY metric_date DESC
             LIMIT 2
         """
     

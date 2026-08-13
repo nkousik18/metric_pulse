@@ -39,5 +39,8 @@ output.json
 staticfiles/
 db.sqlite3
 
+# Onboarding-generated per-dataset artifacts (docs/scoping.md Section 6/7)
+onboarding/generated/
+
 # Personal / not for the public repo
 docs/Kousik_Market_Gap_Analysis_July2026.md

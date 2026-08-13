@@ -5,7 +5,7 @@ Anomaly detection for daily metrics using z-score method.
 import os
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import Callable, List, Optional
 
 import pandas as pd
 import numpy as np
@@ -21,30 +21,40 @@ load_dotenv()
 logger = setup_logger(__name__)
 
 
-def fetch_daily_metrics(lookback_days: int = 30) -> pd.DataFrame:
+def fetch_daily_metrics(
+    lookback_days: int = 30,
+    metric_columns: Optional[List[str]] = None,
+    table_name: str = 'staging.fact_daily_metrics',
+    connection_factory: Callable = get_connection
+) -> pd.DataFrame:
     """
     Fetch daily metrics from Redshift.
-    
+
     Args:
         lookback_days: Number of days to fetch
-    
+        metric_columns: Columns to select alongside metric_date (defaults to Olist's
+            order_count/customer_count/total_revenue/avg_order_value; an onboarded dataset
+            passes its own classified metric_columns plus row_count -- see onboarding/codegen.py)
+        table_name: Fact table to query (see decomposition.decomposer.get_comparison_dates)
+        connection_factory: Callable returning a DB connection (see decomposition.decomposer)
+
     Returns:
         DataFrame with daily metrics
     """
+    if metric_columns is None:
+        metric_columns = ['order_count', 'customer_count', 'total_revenue', 'avg_order_value']
+
     query = f"""
-        SELECT 
+        SELECT
             metric_date,
-            order_count,
-            customer_count,
-            total_revenue,
-            avg_order_value
-        FROM staging.fact_daily_metrics
+            {', '.join(metric_columns)}
+        FROM {table_name}
         ORDER BY metric_date DESC
         LIMIT {lookback_days}
     """
-    
-    conn = get_connection()
-    
+
+    conn = connection_factory()
+
     try:
         df = pd.read_sql(query, conn)
         logger.info(f"Fetched {len(df)} days of metrics")
@@ -140,27 +150,34 @@ def get_latest_anomaly(df: pd.DataFrame, metric_col: str = 'total_revenue') -> O
 def run_detection(
     metric: str = 'total_revenue',
     lookback_days: int = None,
-    threshold: float = None
+    threshold: float = None,
+    metric_columns: Optional[List[str]] = None,
+    table_name: str = 'staging.fact_daily_metrics',
+    connection_factory: Callable = get_connection
 ) -> dict:
     """
     Run full anomaly detection pipeline.
-    
+
     Args:
         metric: Metric column to analyze
         lookback_days: Days to analyze
         threshold: Z-score threshold
-    
+        metric_columns: Passed through to fetch_daily_metrics (see its docstring)
+        table_name: Passed through to fetch_daily_metrics
+        connection_factory: Passed through to fetch_daily_metrics
+
     Returns:
         Dictionary with detection results
     """
     if lookback_days is None:
         lookback_days = int(os.getenv('LOOKBACK_DAYS', 30))
-    
+
     logger.info(f"Running anomaly detection: metric={metric}, lookback={lookback_days} days")
-    
+
     # Fetch data
-    df = fetch_daily_metrics(lookback_days)
-    
+    df = fetch_daily_metrics(lookback_days, metric_columns, table_name, connection_factory)
+
+
     if df.empty:
         logger.warning("No data returned from query")
         return {'status': 'no_data', 'anomalies': []}
