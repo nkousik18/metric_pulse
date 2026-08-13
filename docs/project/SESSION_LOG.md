@@ -5,6 +5,91 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-08-13 — Built M5: onboarding codegen, CLI confirmation, fingerprint cache
+
+**What happened:**
+Second Phase 2 implementation session — `docs/ROADMAP.md` milestone M5: `onboarding/codegen.py`
+(Section 6, deterministic — the LLM's job finished at M4), the additive `dimension_config`/
+`connection_factory` parameters on `decomposer.py`/`anomaly_detector.py` so the existing, tested
+Redshift SQL-building code can also target a local DuckDB file, the CLI confirmation flow
+(Section 7.3, `onboarding/onboard.py`), and the schema-fingerprint cache (Section 7.5,
+`onboarding/fingerprint.py`). Re-read §§6–7 in full before planning. Before writing any
+decomposer.py code, spiked the actual assumption §6.7 names as unproven ("DuckDB SQL-dialect
+compatibility... an assumption to confirm with a small implementation-time spike") directly in a
+REPL: `pd.read_sql()`, `conn.cursor()`, `conn.close()`, and `CREATE TABLE ... AS SELECT * FROM df`
+all confirmed working against a `duckdb.connect()` connection exactly like `redshift_connector`'s.
+
+Two real disagreements/gaps found in the design doc itself, resolved explicitly before coding:
+§6.3 (flat `<dataset_id>.duckdb`) and §7.5 (a `<dataset_id>/` subfolder containing both the
+`.duckdb` file and `classification.json`) describe two different file layouts — resolved in favor
+of §7.5's fuller structure. `get_comparison_dates()` and `fetch_daily_metrics()`'s `metric_columns`
+parameter aren't in §6.2's own additive-parameters list, but both are functionally required for
+either function to work against an onboarded dataset's differently-named tables/columns at all.
+
+**Two real bugs found and fixed via live testing** (neither caught by the 15 new unit tests — both
+only surfaced once the actual CLI was run end-to-end against a real CSV):
+- Wrote M4's `GOLDEN_CASE_2` fixture out to a real CSV and ran `onboard.py` against it — its
+  `region` column's `"NA"` value (a legitimate North-America code) came back from `pd.read_csv()`
+  silently converted to null, since `"NA"` is in pandas' default `na_values` list. Corrupted that
+  column's null rate from 0% to 33.6%, causing a reconciliation failure that had nothing to do with
+  codegen. Fixed with `keep_default_na=False, na_values=['']` — only genuinely empty cells count as
+  missing now. M4's `eval.py` never touched a CSV (in-memory only), so this never had a chance to
+  surface until the real CLI path was exercised.
+- A second run against the same file (exactly the scenario the fingerprint cache exists to make
+  fast) crashed with a DuckDB `CatalogException` — `CREATE TABLE` doesn't handle a table that
+  already exists from the prior run's `.duckdb` file. Fixed with `CREATE OR REPLACE TABLE`,
+  matching `ingestion/setup_redshift_tables.py`'s existing safe-to-rerun `CREATE TABLE IF NOT
+  EXISTS` convention.
+
+**A real, working demonstration of the two-layer defense design, not just a passing test:** across
+two separate live runs, the LLM proposed `notes` (a 40%-null free-text column with a coincidentally
+small non-null vocabulary) as a dimension. `validate_classification`'s cardinality-only check
+structurally cannot catch this (low cardinality *among non-null values* looks fine to it) — but
+`validate_generated_tables`'s reconciliation check caught it both times, because pandas' `groupby`
+silently drops null-valued dimension rows, making that dimension table's totals not match the fact
+table's. Exactly the failure mode §6.5 names as its reason to exist. Left `validate_classification`
+unchanged rather than scope-creep a null-rate check into M4's already-shipped validator — the
+system's two layers are doing their jobs as designed, one backstopping what the other misses.
+
+**Live-verified, comprehensively, in the terminal** (no ROADMAP-mandated golden-case run for M5 —
+that's M6's job): fresh classification + all three confirm paths (`[y]`/`[e]`/`[n]`, including the
+edit path's §7.4 advisory-not-blocking warning actually printing and taking effect), real DuckDB
+table generation with correct, queried-directly contents, reconciliation pass and (twice) correctly-
+caught fail, the fingerprint cache both skipping re-classification on an unchanged schema and
+correctly re-triggering on a changed one (added a column, confirmed it re-classified from scratch).
+
+**Decisions made:**
+- M5 does not touch `investigation/` — `investigation/tools.py`'s wrappers still call
+  `decompose_metric()`/`fetch_detail_metrics()` with no `dimension_config`/`connection_factory`
+  passthrough, so *something* still needs deciding about how an onboarded dataset's generated
+  config actually reaches the Phase 1 graph. `docs/ROADMAP.md`'s M5 line doesn't name this;
+  explicitly left as an open question for M6, not resolved or guessed at here.
+- `requires_human_review` still doesn't implement §5.6's stronger "always `True` for a first-ever
+  run" rule even with the fingerprint cache now built — that rule needs review *history* per
+  dataset, not just the fingerprint match/mismatch binary M5 actually implements. Named as a
+  boundary, not silently overclaimed.
+
+**Current state:** PR #16 merged into `main`, branch deleted. Full suite is 76/76 passing
+(15 pre-Phase-1 + 61 across the agentic-layer initiative's M0–M5), unmodified, verified with `.env`
+removed entirely too — this milestone's own gate (full pre-existing-suite re-run, since it edits
+already-tested `decomposer.py`/`anomaly_detector.py`) is met. `docs/ROADMAP.md`'s M5 checkbox is
+checked. New dependency: `duckdb==1.5.5`, no new transitive dependencies.
+
+**Next steps:** M6 — end-to-end run against a real, freshly-picked dataset (not the SaaS fixture) —
+the actual proof of "MetricPulse works on more than one dataset." Also where the M5-deferred
+`investigation/`-integration question gets resolved: how an onboarded dataset's
+`dimension_config`/`connection_factory` actually reaches the Phase 1 graph's tool wrappers.
+
+**Loose ends / reminders:**
+- `onboarding/generated/` is gitignored (per-user generated artifacts) — a fresh clone needs a real
+  onboarding run before any generated `.duckdb`/`classification.json` files exist locally.
+- `GROQ_MODEL` default (`llama-3.3-70b-versatile`) continues working reliably; today's real-classification
+  variance (sometimes proposing `notes` as a dimension, sometimes correctly rejecting it) is
+  natural LLM non-determinism across separate calls, not a regression — and is exactly why the
+  reconciliation backstop matters.
+
+---
+
 ## 2026-08-13 — Built M4: onboarding profiling + classification (Phase 2 kickoff)
 
 **What happened:**
