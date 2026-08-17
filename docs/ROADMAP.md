@@ -79,9 +79,17 @@ Phase 1 investigation agent runs against it *unmodified*.
       `anomaly_detector.py`, the CLI confirmation flow, the schema-fingerprint cache.
       `test_codegen.py`, `test_reconciliation.py`, `test_schema_fingerprint.py` passing — **plus**
       a full re-run of the pre-existing suite, since this milestone edits already-tested files.
-- [ ] **M6** — End-to-end run against a real, freshly-picked dataset (not the SaaS fixture).
+- [x] **M6** — End-to-end run against a real, freshly-picked dataset (not the SaaS fixture).
       This is the actual proof of "MetricPulse works on more than one dataset" — a synthetic
-      golden case can't substitute for it.
+      golden case can't substitute for it. Run for real against "Sample Superstore Sales"
+      (8,399 rows, real public retail data, never referenced in this repo before): raw CSV →
+      profiling → classification → human confirmation → codegen → a real `detect → decompose →
+      narrate` cycle → the Phase 1 investigation agent, genuinely unmodified. Found and fixed six
+      real bugs no synthetic fixture had exposed (see `docs/project/SESSION_LOG.md`'s 2026-08-17
+      entry and `investigation/README.md`/`onboarding/README.md`'s M6 sections for the details),
+      including a hardcoded Olist-only `Literal` on `EvidenceCitation.dimension` that had made
+      "the Phase 1 agent runs unmodified" not actually true until fixed. **Phase 2's overall gate
+      is met.**
 
 **Deferred, and why:** real dbt/Redshift codegen (targets a local DuckDB file for v1 instead —
 `docs/scoping.md` §6.1), a `dim_*` business-taxonomy remapping layer for onboarded data (§6.4),
