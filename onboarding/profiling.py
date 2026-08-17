@@ -58,7 +58,18 @@ def profile_column(name: str, series: pd.Series) -> ColumnProfile:
     null_rate = 1.0 - (len(non_null) / n_rows) if n_rows else 0.0
     sample_values = [str(v) for v in non_null.head(5)]
     is_numeric = bool(pd.api.types.is_numeric_dtype(series))
-    is_likely_id = cardinality_ratio > ID_CARDINALITY_THRESHOLD
+    # Float columns are exempt from the cardinality-based ID check. Found live
+    # (docs/ROADMAP.md M6, a real sales dataset): a genuine revenue column
+    # ("Sales", ratio 0.971) and a genuine profit column ("Profit", ratio
+    # 0.930) both cleared ID_CARDINALITY_THRESHOLD purely because continuous
+    # dollar amounts are almost all naturally unique across thousands of rows
+    # -- that's normal for a measurement, not an identifier signal. Integer
+    # columns stay eligible: a genuinely sequential ID (e.g. "Row ID",
+    # ratio 1.0) is still caught, and an integer *metric* (e.g. "Order
+    # Quantity") already has naturally low cardinality on its own, so it was
+    # never at risk of this false positive the way a continuous float is.
+    is_float = bool(pd.api.types.is_float_dtype(series))
+    is_likely_id = cardinality_ratio > ID_CARDINALITY_THRESHOLD and not is_float
 
     return ColumnProfile(
         name=name,

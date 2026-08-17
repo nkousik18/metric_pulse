@@ -42,5 +42,9 @@ db.sqlite3
 # Onboarding-generated per-dataset artifacts (docs/scoping.md Section 6/7)
 onboarding/generated/
 
+# Real-world sample datasets used to demo/verify onboarding (docs/ROADMAP.md M6) -- not
+# meant to become a permanent committed part of this repo, same as data/raw/
+data/samples/
+
 # Personal / not for the public repo
 docs/Kousik_Market_Gap_Analysis_July2026.md

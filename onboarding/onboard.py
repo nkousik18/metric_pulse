@@ -118,7 +118,7 @@ def _interactive_confirm(clf: SchemaClassification, profiles: dict, name: str, n
             print(f"Unrecognized choice '{choice}'.")
 
 
-def onboard(file_path: str) -> None:
+def _read_csv_robust(file_path: str) -> pd.DataFrame:
     # keep_default_na=False + na_values=[''] : pandas' default na_values list includes
     # common tokens like "NA", "N/A", "NULL", "n/a" -- which silently corrupts a real,
     # legitimate categorical value if a column happens to use one (e.g. a "region" code
@@ -127,7 +127,20 @@ def onboard(file_path: str) -> None:
     # back from pd.read_csv() with every 'NA' silently turned into NaN (33.6% null),
     # which then made that dimension's reconciliation check correctly (but
     # misleadingly) fail -- the real bug was here, not in codegen.
-    df = pd.read_csv(file_path, keep_default_na=False, na_values=[''])
+    try:
+        return pd.read_csv(file_path, keep_default_na=False, na_values=[''])
+    except UnicodeDecodeError:
+        # A second real, live-found gap (docs/ROADMAP.md M6): a genuinely new real dataset
+        # ("Sample Superstore Sales") isn't valid UTF-8 at all -- it's legacy Windows-1252
+        # encoded, which is common in older exported business CSVs. cp1252 is a superset
+        # of ASCII/Latin-1 and covers the vast majority of "not-quite-UTF-8" real-world
+        # files, so it's a reasonable single fallback rather than open-ended encoding
+        # detection -- not proven to cover every encoding, named as a bounded best-effort.
+        return pd.read_csv(file_path, keep_default_na=False, na_values=[''], encoding='cp1252')
+
+
+def onboard(file_path: str) -> None:
+    df = _read_csv_robust(file_path)
     dataset_id = Path(file_path).stem
     profiles = profile_columns(df)
     fingerprint = schema_fingerprint(profiles)
@@ -154,11 +167,11 @@ def onboard(file_path: str) -> None:
         }, indent=2))
 
     print("\nGenerating tables...")
-    duckdb_path, dimension_config = generate_tables(df, clf, dataset_id)
+    duckdb_path, dimension_config, sanitized_metric_columns = generate_tables(df, clf, dataset_id)
 
     conn = duckdb.connect(duckdb_path)
     try:
-        errors = validate_generated_tables(conn, dimension_config, clf.metric_columns)
+        errors = validate_generated_tables(conn, dimension_config, sanitized_metric_columns)
     finally:
         conn.close()
 
@@ -171,6 +184,9 @@ def onboard(file_path: str) -> None:
     print(f"Confirmed. Generated tables at {duckdb_path}")
     print("Reconciliation check passed.")
     print(f"\ndimension_config:\n{json.dumps(dimension_config, indent=2)}")
+    print(f"\nReady to investigate -- try:\n"
+          f"  python -m onboarding.investigate --dataset-id {dataset_id} --metric {sanitized_metric_columns[0]}\n"
+          f"  python -m onboarding.investigate --dataset-id {dataset_id} --metric {sanitized_metric_columns[0]} --run-investigation")
 
 
 if __name__ == '__main__':

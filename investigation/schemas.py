@@ -11,7 +11,19 @@ from pydantic import BaseModel, Field
 
 
 class EvidenceCitation(BaseModel):
-    dimension: Literal['geography', 'product', 'payment']
+    # `str`, not Literal['geography', 'product', 'payment'] -- that Olist-specific
+    # constraint was a real bug, found live (docs/ROADMAP.md M6, running the
+    # unmodified Phase 1 agent against a real onboarded dataset for the first
+    # time): it forced the model's structured-output call to squeeze every
+    # citation into one of three hardcoded dimension names, so a real citation
+    # like ('Product Container', 'Small Box') got coerced into an invalid
+    # ('product', 'Small Box') and correctly-but-uselessly failed validation.
+    # validate_citation() (investigation/validation.py) already checks a
+    # citation's (dimension, segment) pair against real state at runtime --
+    # the Literal was always redundant with that real grounding check, just an
+    # implicit assumption nothing had tested past Olist's fixed 3 dimensions
+    # until now.
+    dimension: str
     segment: str
     source: Literal['decomposition', 'drill_down']
     claim: str

@@ -29,6 +29,7 @@ from investigation.rendering import render_investigation_summary  # noqa: E402
 from investigation.schemas import SynthesisOutput  # noqa: E402
 from investigation.state import InvestigationState  # noqa: E402
 from investigation.tools import (  # noqa: E402
+    _dataset_kwargs,
     tool_decompose_all,
     tool_drill_down,
     tool_generate_narrative,
@@ -83,10 +84,15 @@ def detect(state: InvestigationState) -> Dict:
     try:
         current_date = state.get('current_date')
         previous_date = state.get('previous_date')
+        dataset_config = state.get('dataset_config')
         if not current_date or not previous_date:
-            current_date, previous_date = get_comparison_dates()
+            current_date, previous_date = get_comparison_dates(
+                **_dataset_kwargs(dataset_config, 'table_name', 'connection_factory')
+            )
 
-        detection_result = tool_run_detection(state['metric'], state['threshold'])
+        detection_result = tool_run_detection(
+            state['metric'], state['threshold'], dataset_config=dataset_config
+        )
 
         log_entry = f"detect: {detection_result['anomaly_count']} anomalies found for {state['metric']}"
         return {
@@ -112,7 +118,8 @@ def decompose_all(state: InvestigationState) -> Dict:
 
     try:
         decomposition_results = tool_decompose_all(
-            state['current_date'], state['previous_date'], state['metric']
+            state['current_date'], state['previous_date'], state['metric'],
+            dataset_config=state.get('dataset_config')
         )
         return {
             'decomposition_results': decomposition_results,
@@ -170,7 +177,8 @@ def drill_down(state: InvestigationState) -> Dict:
             dim_data = state['decomposition_results']['dimensions'][dimension]
             top_segment = dim_data['top_contributors'][0]['segment']
             drill_down_results[dimension] = tool_drill_down(
-                dimension, top_segment, state['current_date'], state['previous_date'], state['metric']
+                dimension, top_segment, state['current_date'], state['previous_date'], state['metric'],
+                dataset_config=state.get('dataset_config')
             )
             drilled_dimensions.append(dimension)
 

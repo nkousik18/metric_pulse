@@ -5,12 +5,26 @@ static pipeline's one-shot decomposition to conditionally drill into ambiguous d
 synthesize a grounded plain-English explanation. Design record: `docs/scoping.md` Sections 2–4.
 Roadmap status: `docs/ROADMAP.md` Phase 1.
 
-## Scope as of M2
+## Scope as of M6
 
 All 7 nodes from `docs/scoping.md` Section 2.3 now exist, are compiled into a real `StateGraph`
-(`graph.py`), and are wired into `orchestration/run_pipeline.py` and `/api/investigate/`
-(`docs/scoping.md` Section 4). This is a genuinely callable agent now, not just a library of
-graph-shaped functions.
+(`graph.py`), and are wired into `orchestration/run_pipeline.py`, `/api/investigate/`
+(`docs/scoping.md` Section 4), and — as of Phase 2's M6 — `onboarding/investigate.py`, proving this
+agent runs genuinely unmodified against a real, never-seen onboarded dataset.
+
+**Genuinely unmodified turned out to require one real fix, found live.**
+`EvidenceCitation.dimension` was originally `Literal['geography', 'product', 'payment']` — Olist's
+three fixed dimension names, hardcoded into the structured-output schema itself. Running this
+agent against a real onboarded dataset for the first time (M6) surfaced that this forced the
+model's own tool-calling output to squeeze every citation into one of those three names regardless
+of what the real data's dimensions were actually called (`Product Container`, `Region`, `Order
+Priority`, ...) — a real citation like `('Product Container', 'Small Box')` got coerced into an
+invalid `('product', 'Small Box')` and correctly-but-uselessly failed `validate_citation`. Fixed to
+a plain `str` — `validate_citation` (`validation.py`) already checks a citation's `(dimension,
+segment)` pair against real state at runtime, so the `Literal` was always redundant with the actual
+grounding mechanism, just an implicit assumption nothing had tested past Olist's fixed 3 dimensions
+until M6 ran the agent against something else. Re-verified against Golden Case #1 after the fix —
+still `grounding_pass_rate=1.00` across 3 real trials, no regression.
 
 ## Files
 
@@ -58,6 +72,7 @@ class InvestigationState(TypedDict):
     investigation_summary: Optional[str]
     narratives: Optional[Dict]
     grounding_failed: Optional[bool]  # True if synthesize fell back (M1, Section 3.6)
+    dataset_config: Optional[Dict]  # M6 -- see below
     # Control
     status: str
     error: Optional[str]
@@ -67,7 +82,18 @@ class InvestigationState(TypedDict):
 `detection.run_detection()`, `decomposition.decompose_metric()`, and
 `narrative.generate_narrative()` already return — nothing here invents a new contract shape.
 
-### `build_initial_state(metric, threshold=None, force_investigate=False, current_date=None, previous_date=None, detection_result=None, decomposition_results=None)`
+### `dataset_config` (M6)
+
+`Optional[Dict]`, `None` by default — zero behavior change for every pre-M6 caller.
+`onboarding/investigate.py`'s `build_dataset_config()` constructs it:
+`{dimension_config, connection_factory, table_name, metric_columns}`. `tools.py`'s wrappers forward
+only the keys actually present (`_dataset_kwargs()`, below) into
+`decomposer.py`/`anomaly_detector.py`'s own additive parameters (Phase 2, `docs/scoping.md` §6.2) —
+this is the literal, minimal-diff mechanism behind "the Phase 1 agent works against onboarded data
+unmodified beyond the two [decomposer/anomaly_detector] parameters": no new nodes, no routing
+changes, no prompt changes, only optional plumbing.
+
+### `build_initial_state(metric, threshold=None, force_investigate=False, current_date=None, previous_date=None, detection_result=None, decomposition_results=None, dataset_config=None)`
 
 Fills every field not explicitly passed with its safe empty default (`[]`/`{}`/`0`/`False`/`None`/
 `'running'`). Every node already reads its own inputs defensively via `.get(key, default)` — a good
@@ -129,13 +155,21 @@ decomposition — it fails *open* to a deterministic fallback instead:
 
 Uses **Groq** (`langchain-groq`'s `ChatGroq`), not the doc's illustrative Anthropic/OpenAI
 examples — an implementation-time choice per `docs/scoping.md` Section 4.8, which left this open.
-Default model: `llama-3.3-70b-versatile` (`GROQ_MODEL` env var, `config/settings.py`) — chosen
-over the newer `gpt-oss` models available on Groq because of a known LangChain/Groq incompatibility
-between `gpt-oss-120b` and strict-JSON-schema structured output; `.with_structured_output(...,
-method='function_calling')` is used explicitly for the same reason (classic tool-calling-based
-structured output, broadly compatible, not the newer strict mode). Live-verified against Golden
-Case #1 (see `eval.py` below) — grounded on the first attempt, correct citation, required
-`uncertainty_note` present, stable across repeated runs.
+`.with_structured_output(..., method='function_calling')` is used explicitly — classic
+tool-calling-based structured output, broadly compatible, not the newer strict-JSON-schema mode.
+
+Default model: **`openai/gpt-oss-120b`** (`GROQ_MODEL` env var, `config/settings.py`) — recalibrated
+2026-08-17 (M6) after the original M1 default, `llama-3.3-70b-versatile`, was fully retired from
+Groq's model catalog (confirmed directly via `GET /openai/v1/models`, not assumed from a stale
+error message). At M1, `gpt-oss-120b` was specifically avoided due to a known incompatibility with
+LangChain's *strict*-JSON-schema structured-output mode — but this project has always used
+`method='function_calling'` instead, precisely the mode that incompatibility doesn't affect, so
+`gpt-oss-120b` was re-tested directly (not assumed to work or avoided out of habit) once the old
+default stopped existing. Live-verified across 4 real trials against Golden Case #1: grounded
+either on the first attempt or after one retry every time, always citing the correct driver (`SP`),
+always including the required `uncertainty_note`. Two smaller Groq-hosted alternatives
+(`qwen/qwen3.6-27b`, `openai/gpt-oss-20b`) were tried first and both failed outright with
+tool-calling errors — not silently assumed broken, tested and ruled out.
 
 ### Prompt evidence layout (`prompts.py`)
 
@@ -225,14 +259,23 @@ True, ...}, None)` passes through correctly when called directly in a local REPL
 
 | Tool | Wraps | New code? |
 |------|-------|-----------|
-| `tool_run_detection(metric, threshold, lookback_days=30)` | `detection.anomaly_detector.run_detection()` | No |
-| `tool_decompose_all(current_date, previous_date, metric)` | `decomposition.decomposer.decompose_metric()` | No |
-| `tool_drill_down(dimension, segment, current_date, previous_date, metric)` | `decomposition.decomposer.fetch_detail_metrics()` + `calculate_contribution()` + `summarize_dimension()` | Yes — the one genuinely new capability this phase adds |
-| `tool_generate_narrative(decomposition_results)` | `narrative.generator.generate_narrative()` | No — used by `finalize` as of M1 |
+| `tool_run_detection(metric, threshold, lookback_days=30, dataset_config=None)` | `detection.anomaly_detector.run_detection()` | No |
+| `tool_decompose_all(current_date, previous_date, metric, dataset_config=None)` | `decomposition.decomposer.decompose_metric()` | No |
+| `tool_drill_down(dimension, segment, current_date, previous_date, metric, dataset_config=None)` | `decomposition.decomposer.fetch_detail_metrics()` + `calculate_contribution()` + `summarize_dimension()` | Yes — the one genuinely new capability Phase 1 added |
+| `tool_generate_narrative(decomposition_results)` | `narrative.generator.generate_narrative()` | No — used by `finalize` as of M1, already dataset-agnostic (no `dataset_config` param) |
 
 `tool_drill_down`'s return shape is identical to one entry of `decompose_metric()`'s `dimensions`
 dict (same `summarize_dimension()` helper both call), so `drill_down_results[dim]` and
 `decomposition_results['dimensions'][dim]` are structurally interchangeable.
+
+### `_dataset_kwargs(dataset_config, *keys) -> dict` (M6)
+
+`None` (or a `dataset_config` missing a key) → that key is simply omitted from the returned kwargs,
+letting `decomposer.py`/`anomaly_detector.py`'s own Olist/Redshift default apply — this never
+fabricates a value. Every dataset-config-aware tool call above is `some_function(..., **_dataset_kwargs(dataset_config,
+'the_specific_keys_that_function_accepts'))`. `nodes.py`'s `detect()` also uses it directly for its
+`get_comparison_dates()` fallback call (not itself a "tool," per the existing convention of calling
+that function directly from `nodes.py` rather than through a wrapper).
 
 ## Grounding (`validation.py`, `rendering.py`)
 
@@ -317,5 +360,7 @@ prompt/model change, or periodically to catch drift, not on every commit.
 - **Downstream:** `orchestration/run_pipeline.py`'s Step 4.5 (`run_investigation=True`, lazily
   imported), `dashboard_api/views.py`'s `InvestigationView` (`POST /api/investigate/`) and
   `PipelineView` (`run_investigation` body field), `lambda_handler.py`'s `run_investigation` event
-  passthrough, and the dashboard's "Investigate with AI Agent" button
-  (`templates/partials/scripts.html`'s `investigateWithAgent()`).
+  passthrough, the dashboard's "Investigate with AI Agent" button
+  (`templates/partials/scripts.html`'s `investigateWithAgent()`), and — as of M6 —
+  `onboarding/investigate.py`, which is what actually exercises `dataset_config` for real against a
+  non-Olist dataset.
