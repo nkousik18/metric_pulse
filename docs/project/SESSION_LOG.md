@@ -5,6 +5,105 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-08-17 — Built M6: real-dataset end-to-end run, Phase 2 gate met
+
+**What happened:**
+Third Phase 2 implementation session — `docs/ROADMAP.md` milestone M6, the phase's closing proof:
+run a genuinely new, real (not synthetic) dataset through `onboarding/` end-to-end, and prove the
+Phase 1 investigation agent runs against it *unmodified*. Picked "Sample Superstore Sales" (a
+well-known public retail dataset, 8,399 rows/21 columns, 2009–2012) after asking which dataset to
+use — same business domain (sales metrics) as MetricPulse but a completely different business than
+Olist, downloaded from a public GitHub mirror and verified live in a REPL before use.
+
+Resolved M5's explicitly-deferred open question: added an optional `dataset_config` field
+(`dimension_config`/`connection_factory`/`table_name`/`metric_columns`) to `InvestigationState`,
+threaded through `investigation/tools.py`'s three DB-touching tool wrappers via a small
+`_dataset_kwargs()` helper and `investigation/nodes.py`'s `detect`/`decompose_all`/`drill_down` —
+zero changes to the graph, routing, or prompts. Built `onboarding/investigate.py`
+(`python -m onboarding.investigate --dataset-id <id> --metric <col> [--run-investigation]`) as the
+actual bridge from an onboarded dataset's generated DuckDB tables to `run_detection`/
+`decompose_metric`/`generate_narrative` and, optionally, the investigation graph.
+
+**Six real bugs found and fixed via live testing against this dataset — none caught by the existing
+81-test suite**, a direct, concrete confirmation of `docs/scoping.md` §10.5's thesis that a real
+dataset's mess ("inconsistent date formats, a metric column with a few corrupted string values, a
+dimension column that's 90% one value...") can't be substituted for by a synthetic golden case:
+
+1. **The most significant finding of the session, and Phase 2's real blocker:**
+   `investigation/schemas.py`'s `EvidenceCitation.dimension` was hardcoded
+   `Literal['geography', 'product', 'payment']` — an implicit Olist-only assumption nothing had
+   tested past M3. It forced every real citation (e.g. `('Product Container', 'Small Box')`) to be
+   coerced into one of those three names by the model's structured-output call, which then failed
+   `validate_citation`'s real grounding check every time, producing `fallback_validation_failed` on
+   every single run against this dataset. Fixed by changing the field to plain `str` —
+   `validate_citation` already checks the real `(dimension, segment)` pair against live state, so
+   the `Literal` was always redundant with that check and only ever noticed for lack of a
+   non-Olist dataset to expose it. Re-verified Golden Case #1 still 3/3 `grounded_first_attempt`
+   after the change — no Phase 1 regression.
+2. Real column names with spaces (`"Order Priority"`, `"Product Sub-Category"`) broke DuckDB's own
+   `CREATE TABLE` syntax outright. Fixed with a new `onboarding/codegen.py` function,
+   `sanitize_identifier()`, applied consistently to every metric/dimension column name that
+   becomes a real SQL identifier (table/column names stay sanitized; `dimension_config`'s dict
+   *keys* and `classification.json`'s stored names stay human-readable, since they're never
+   themselves embedded in SQL).
+3. Two genuinely important metrics — `Sales` (cardinality ratio 0.971) and `Profit` (0.930) — were
+   misclassified as IDs, since `is_likely_id`'s cardinality check applied equally to every numeric
+   column and continuous dollar amounts are naturally almost-unique across thousands of rows.
+   Fixed in `onboarding/profiling.py`: float columns are now exempt from the cardinality check;
+   integer columns stay eligible (a genuinely sequential ID like `Row ID`, ratio 1.0, is still
+   caught).
+4. Reconciliation's round-to-2-decimals-then-`.equals()` approach (M5) produced a spurious 1-cent
+   false positive on this dataset's larger, messier real sums — the pre-rounding values straddled
+   a rounding boundary. Fixed by comparing unrounded sums with `np.allclose(atol=0.01, rtol=1e-6)`.
+5. `llama-3.3-70b-versatile` (the model used since M1) is gone from Groq's model catalog entirely
+   — confirmed by querying `https://api.groq.com/openai/v1/models` directly rather than trusting
+   ambiguous search results. Live-tested three replacement candidates against Golden Case #1;
+   `openai/gpt-oss-120b` was the only one that worked reliably (4/4), and is now the new default
+   in `config/settings.py`/`.env.example`.
+6. The real CSV wasn't valid UTF-8 — legacy Windows-1252 encoded, a genuine artifact of an
+   older business export, not injected for effect. Fixed with a `cp1252` fallback in
+   `onboarding/onboard.py`'s CSV read, triggered only on `UnicodeDecodeError`.
+
+**Live-verified, real output, captured exactly as it happened:**
+```
+python -m onboarding.onboard --file data/samples/superstore_sales.csv
+→ correct classification: Sales, Profit, Order Quantity, Discount, Unit Price, Shipping Cost,
+  Product Base Margin as metrics; Order Priority, Ship Mode, Province, Region, Customer Segment,
+  Product Category, Product Sub-Category, Product Container as dimensions; Row ID, Order ID,
+  Customer Name, Product Name, Ship Date correctly rejected. Codegen + reconciliation passed.
+
+python -m onboarding.investigate --dataset-id superstore_sales --metric sales
+Summary: Sales decreased 83.2% on 2012-12-30. Primary driver: Small Box (Product Container)
+contributed 89.4% of the change.
+
+python -m onboarding.investigate --dataset-id superstore_sales --metric sales --run-investigation
+Investigation status: completed
+Investigation summary: Dominant decline driven by medium priority orders: **Medium**
+(Order Priority) contributed **81.83%** of the change ($12,866.43 -> $14.15). Contributing
+factors: - major contribution from Express Air shipping: Express Air (76.31%) - large drop
+among customers in Quebec: Quebec (81.95%)
+```
+No fallback, grounded citations, across 3 separate real runs. Fingerprint cache re-verified against
+this real, larger dataset too: a second `onboard.py` run correctly printed "Using
+previously-confirmed classification" and skipped straight to (clean, `CREATE OR REPLACE`-safe)
+codegen.
+
+**Current state:** PR #18 merged into `main` (squash), branch deleted. Full suite is 81/81 passing
+(all six bugs above were found through live verification, not the unit suite, which stayed green
+throughout since none of its fixtures exercised these code paths); `flake8` clean.
+`docs/ROADMAP.md`'s M6 checkbox is checked, and **Phase 2's overall gate is now met**: a real,
+previously-unseen dataset goes from raw CSV through profiling, classification, human confirmation,
+codegen, and a real `detect → decompose → narrate` cycle, with the Phase 1 investigation agent
+running against it genuinely, verifiably unmodified.
+
+**Next steps:** M7 — the last milestone in the entire initiative. Fill in `docs/scoping.md`
+§9.3/§9.4's resume-bullet and interview-talking-point placeholders with the real numbers from M3's
+`investigation.eval` run and this session's M6 numbers above. No new code — a documentation/
+portfolio close-out milestone. Optionally, a recorded demo of the M6 live onboarding run
+(§9.6, named as optional in `docs/ROADMAP.md`).
+
+---
+
 ## 2026-08-13 — Built M5: onboarding codegen, CLI confirmation, fingerprint cache
 
 **What happened:**
