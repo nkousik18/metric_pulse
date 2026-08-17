@@ -41,6 +41,13 @@ class InvestigationState(TypedDict):
     narratives: Optional[Dict]
     grounding_failed: Optional[bool]  # True if synthesize fell back to the deterministic summary
 
+    # --- Dataset targeting (Phase 2, docs/scoping.md Section 6.2 / ROADMAP M6) ---
+    # None -> every tool call falls through to decomposer.py/anomaly_detector.py's own Olist/
+    # Redshift defaults, exactly as before this field existed. When set (by an onboarded
+    # dataset's caller), carries {dimension_config, connection_factory, table_name,
+    # metric_columns} -- see investigation/tools.py's _dataset_kwargs().
+    dataset_config: Optional[Dict]
+
     # --- Control (mirrors orchestration/run_pipeline.py's status/error convention) ---
     status: str
     error: Optional[str]
@@ -54,6 +61,7 @@ def build_initial_state(
     previous_date: Optional[str] = None,
     detection_result: Optional[Dict] = None,
     decomposition_results: Optional[Dict] = None,
+    dataset_config: Optional[Dict] = None,
 ) -> InvestigationState:
     """
     Builds a fully-defaulted InvestigationState for a fresh graph invocation
@@ -69,6 +77,10 @@ def build_initial_state(
 
     detection_result / decomposition_results are the two pre-seedable fields
     (Section 4.3) -- passing them makes detect()/decompose_all() no-ops.
+
+    dataset_config (M6): {dimension_config, connection_factory, table_name, metric_columns} for
+    running the graph against an onboarded (non-Olist) dataset -- None (default) means every
+    tool call falls through to today's exact Olist/Redshift defaults, unchanged.
     """
     return {
         'metric': metric,
@@ -88,6 +100,7 @@ def build_initial_state(
         'investigation_summary': None,
         'narratives': None,
         'grounding_failed': None,
+        'dataset_config': dataset_config,
         'status': 'running',
         'error': None,
     }

@@ -39,4 +39,4 @@ LOOKBACK_DAYS = int(os.getenv("LOOKBACK_DAYS", 30))
 
 # Investigation Agent Configuration (Phase 1 -- investigation/synthesize node)
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
