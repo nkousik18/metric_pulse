@@ -109,8 +109,14 @@ a dashboard-based onboarding wizard (CLI only for v1 — §7.3).
       have before — the real M6 cross-dataset proof (six bugs found/fixed) and the "agent runs
       unmodified against a second, independently-onboarded dataset" claim, since M6 is the actual
       proof of Goal G2 (`docs/scoping.md` §10.4), not just Phase 1/2 shipping in the abstract.
-- [ ] Optional: recorded demo of the M6 live onboarding run (`docs/scoping.md` §9.6) — not
-      required for the phase gate, left genuinely optional as named.
+- [x] Optional: recorded demo of the M6 live onboarding run (`docs/scoping.md` §9.6) — not
+      required for the phase gate, done anyway. A real, unedited `asciinema` recording of one
+      live execution — profiling, classification, human confirmation, codegen, detect/decompose/
+      narrate, and the unmodified Phase 1 investigation agent — against a fresh copy of the M6
+      dataset (`superstore_sales_demo`, same real data, new dataset_id so the fingerprint cache
+      didn't shortcut the first-time flow). Saved at
+      `docs/project/demos/m6_onboarding_demo.cast` (replay: `asciinema play <path>`); a formatted
+      transcript is also published as an artifact for easy reading/sharing.
 
 ---
 
