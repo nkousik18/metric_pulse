@@ -5,6 +5,57 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-08-19 — Built M7: portfolio close-out. Agentic-layer initiative complete.
+
+**What happened:**
+Final session on the agentic-layer initiative — `docs/ROADMAP.md` milestone M7, Phase 3's only
+milestone. Documentation-only, no new code, per `docs/scoping.md` §10.2's own definition of the
+milestone: fill Section 9.3's unlock table and 9.4's candidate resume bullets with real numbers
+from M3 and M6, replacing every bracketed placeholder that had sat there since scoping was
+written in July, before any of Phase 1/2 existed to measure.
+
+**What actually changed in `docs/scoping.md`:**
+- §9.3's table: all four claims (LangGraph investigation agent, eval suite, onboarding agent,
+  "any specific number") marked unlocked, each with its real evidence — M3's real 5-run eval
+  (`grounding_pass_rate=1.00`, `fallback_rate=0.00`, `golden_match_rate=1.00`,
+  `uncertainty_ok_rate=1.00`) and M6's real cross-dataset proof, with an explicit honesty caveat
+  that the eval suite is a small, hand-curated golden-case set (n=5), not a statistically-powered
+  benchmark — matching the same discipline Section 8.5 demanded of the eval design itself.
+- §9.4's bullets: replaced the bracketed `[measured]%` placeholder with the real number, and
+  — more substantively — added two bullets that didn't exist before: the real M6 cross-dataset
+  finding (six real bugs found and fixed running the onboarding agent against a genuinely new,
+  previously-unseen dataset) and the single strongest cross-phase claim available, that the
+  investigation agent built and tuned against one dataset ran *completely unmodified* against a
+  second, independently-onboarded dataset in a different business domain. The original draft's
+  Phase 1/Phase 2 bullets covered each phase shipping in the abstract but never actually captured
+  M6 — the milestone `docs/scoping.md` §10.4 itself names as the *only* thing that actually proves
+  Goal G2 ("MetricPulse stops being single-dataset"). Filling in M3's numbers without also adding
+  M6's finding would have left the resume material understating the initiative's strongest result.
+- Also committed a `.gitignore` entry for `docs/METRICPULSE_INTERVIEW_PREP.md` (a personal,
+  non-repo interview-prep reference doc written earlier this session, same exclusion pattern as
+  `docs/Kousik_Market_Gap_Analysis_July2026.md`) — left uncommitted from earlier in the session,
+  swept into this same small PR since it's the same "keep personal artifacts out of the public
+  repo" housekeeping.
+
+**Current state:** PR #20 merged into `main` (squash), branch deleted. `docs/ROADMAP.md`'s M7
+checkbox is checked, Phase 3's gate is marked met, and a new "Initiative Status: Complete" section
+records that all four phases (0 pre-existing, 1 = M0–M3, 2 = M4–M6, 3 = M7) now have their gates
+met. **The entire agentic-layer initiative described in `docs/scoping.md` is complete** — designed
+2026-07-28, implemented and shipped across seven milestones through 2026-08-19, roughly three
+weeks part-time, in line with the 6–8 weekend estimate `docs/scoping.md` §10.2 gave at the start.
+
+**Next steps:** None required — this initiative is done. The only named-but-optional item left
+anywhere on the roadmap is a recorded demo of the M6 live onboarding run (§9.6), explicitly not a
+gate condition. Any future work on this project either starts a new, separately-scoped initiative
+(its own `docs/scoping.md`-style design doc) or picks up one of the honestly-named deferred items
+already listed under Phase 1/Phase 2 in `docs/ROADMAP.md` (real dbt/Redshift codegen for
+onboarding, a dashboard onboarding wizard, multi-level drill-down, cross-run agent memory,
+parallel decomposition fan-out, auth/rate-limiting on `/api/investigate/`) — none of which are
+required for this initiative to be considered done, and none of which should be started without
+first being scoped, per `CLAUDE.md`'s standing instruction for this initiative.
+
+---
+
 ## 2026-08-17 — Built M6: real-dataset end-to-end run, Phase 2 gate met
 
 **What happened:**
