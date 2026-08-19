@@ -100,10 +100,30 @@ a dashboard-based onboarding wizard (CLI only for v1 — §7.3).
 ## Phase 3 — Portfolio Close-Out (`docs/scoping.md` §9–10)
 
 **Gate:** resume bullets and interview talking points are filled in with real, measured numbers
-— not the placeholders drafted in `docs/scoping.md` §9.4.
+— not the placeholders drafted in `docs/scoping.md` §9.4. **Met.**
 
-- [ ] **M7** — Section 9.3/9.4 claims updated with real numbers from M3 and M6's actual runs.
-- [ ] Optional: recorded demo of the M6 live onboarding run (`docs/scoping.md` §9.6).
+- [x] **M7** — Section 9.3/9.4 claims updated with real numbers from M3 and M6's actual runs.
+      §9.3's unlock table now marks all four claims unlocked with their real evidence; §9.4's
+      resume bullets replaced every bracketed placeholder with real measured numbers
+      (`grounding_pass_rate=1.00` across 5 real M3 runs) and gained two new bullets §9.4 didn't
+      have before — the real M6 cross-dataset proof (six bugs found/fixed) and the "agent runs
+      unmodified against a second, independently-onboarded dataset" claim, since M6 is the actual
+      proof of Goal G2 (`docs/scoping.md` §10.4), not just Phase 1/2 shipping in the abstract.
+- [ ] Optional: recorded demo of the M6 live onboarding run (`docs/scoping.md` §9.6) — not
+      required for the phase gate, left genuinely optional as named.
+
+---
+
+## Initiative Status: Complete
+
+Phase 0 (core pipeline, done pre-initiative) → Phase 1 (investigation agent, M0–M3) → Phase 2
+(dataset onboarding agent, M4–M6) → Phase 3 (portfolio close-out, M7) — all four phases' gates
+are met as of M7 (2026-08-19). The agentic-layer initiative described in `docs/scoping.md` is
+fully implemented, tested, and documented; nothing on this roadmap remains except the one named-
+optional M6 demo recording. Future work on this project either starts a new, separately-scoped
+initiative (a new `docs/scoping.md`-style design doc, per `CLAUDE.md`'s "Working on the
+Agentic-Layer Initiative" section) or addresses one of the honestly-named deferred items listed
+under Phase 1/Phase 2 above — neither is required for this initiative to be considered done.
 
 ---
 
