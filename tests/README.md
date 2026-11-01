@@ -42,6 +42,8 @@ accurate as of the current code:
 | `test_eval_summarization.py` | 4 | `summarize_results` (`investigation/eval.py`) — all first-attempt-grounded, retry-grounded excluded from `grounding_pass_rate`, fallback trials counted correctly, empty-list edge case |
 | `test_profiling.py` | 8 | `profile_column`/`profile_columns` (`onboarding/profiling.py`) — clean date-string column, numeric column never misread as a date, high-cardinality ID-like column, low-cardinality categorical column, high-null free-text column, already-`datetime64` column, sample-value cap, full-DataFrame profiling |
 | `test_classification_validation.py` | 6 | `validate_classification` (`onboarding/classification.py`) — each of the three validation rules independently, all three combined, a fully-valid case, and a `date_column=None` non-error |
+| `test_action_policy.py` | 18 (57 cases, parametrized) | `policy_check` (`action_agent/policy.py`) — every catalog action's valid proposal gets the decision its tier implies; only the tag-only `annotate_anomaly` is auto-executed; out-of-catalog and T2 (via an injected test catalog, not a mock) rejected; injected extra params, missing params, out-of-range/non-strict `days`/`expires_in_days`/`threshold` rejected; `(dimension, segment)` grounding against decomposition evidence, including an instruction-carrying segment name; malformed proposals rejected rather than raised |
+| `test_action_dry_run.py` | 15 (24 cases) | `anomaly_id`/`idempotency_key`/`canonical_json` (`action_agent/identity.py`), `resolve_owner`/`OwnersConfig` (`action_agent/owners.py`), `build_dry_run`/`evidence_table`/`render_dry_run` (`action_agent/dry_run.py`) — deterministic hashing, edit → new key, owner precedence (segment > dimension `*` > default), dry-run shape for every action, recipient resolved from owners not params, injected-clock expiries, Markdown escaping of untrusted segment names. Reuses `test_action_policy.py`'s evidence fixture |
 | `__pycache__/` | — | pytest bytecode cache, not source |
 
 No `conftest.py`, no `__init__.py` in this directory (each test file does its own `sys.path.insert(0, str(Path(__file__).parent.parent))` to import from the repo root).
@@ -75,6 +77,15 @@ from onboarding.profiling import ID_CARDINALITY_THRESHOLD, profile_column, profi
 
 # test_classification_validation.py
 from onboarding.classification import MAX_DIMENSION_CARDINALITY_RATIO, MIN_DATE_PARSE_RATE, validate_classification
+
+# test_action_policy.py
+from action_agent.catalog import CATALOG, ActionSpec, Tier
+from action_agent.policy import AUTO_EXECUTE, NEEDS_APPROVAL, REJECTED, policy_check
+
+# test_action_dry_run.py
+from action_agent.dry_run import ActionContext, build_dry_run, evidence_table, render_dry_run
+from action_agent.identity import anomaly_id, canonical_json, idempotency_key
+from action_agent.owners import OwnersConfig, load_owners, resolve_owner
 ```
 
 ## Running

@@ -1,0 +1,30 @@
+# Segment -> owner mapping for the Action Agent (docs/action-agent-scope.md §4, D8).
+#
+# Resolution order for (dataset_id, dimension, segment):
+#   1. segments[dataset_id][dimension][segment]   exact segment
+#   2. segments[dataset_id][dimension]['*']       whole-dimension owner
+#   3. default_owner
+#
+# Owners are referenced by id; every id used must be defined under `people`.
+# Emails below are placeholders -- the live SNS executor (A4) is where real
+# delivery gets configured.
+
+default_owner: analytics-oncall
+
+people:
+  analytics-oncall:
+    name: Analytics On-Call
+    email: analytics-oncall@example.com
+  payments-team:
+    name: Payments Team
+    email: payments@example.com
+  regional-sales:
+    name: Regional Sales
+    email: regional-sales@example.com
+
+segments:
+  olist:
+    payment:
+      '*': payments-team
+    geography:
+      '*': regional-sales
