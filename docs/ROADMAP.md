@@ -133,6 +133,30 @@ under Phase 1/Phase 2 above — neither is required for this initiative to be co
 
 ---
 
+## Action Agent (`docs/action-agent-scope.md`)
+
+A new, separately-scoped initiative (scoped 2026-10-26, revised 2026-11-01): turn a validated
+investigation into a proposed action from a fixed catalog, gate it on deterministic policy and
+human approval, execute it idempotently, and log it append-only. Local-only (§11 D9). Milestones
+are A1–A6 to avoid colliding with the agentic-layer initiative's M0–M7 above. Per §11 D7, A1–A3
+are built in this pass, then work stops for review before A4.
+
+**Gate (minimum slice, A1–A3):** a real local run proposes an action, `policy_check` gates it,
+a T1 action is approved via the CLI and survives a restart while pending, and the action log
+records it — with the 20b live-test result recorded in the scope doc's decision log.
+
+- [ ] **A1** — Action catalog, Pydantic schemas, `policy_check`, dry-run payload builder, tests.
+- [ ] **A2** — SQLite checkpointer, `interrupt()` approval flow, CLI approver, `actions.db` with
+      append-only `action_log` (trigger-enforced), idempotency keys.
+- [ ] **A3** — Live-test `gpt-oss-20b`; `propose_action` node, citation validation, 20b→120b
+      escalation, fallback, token budget, cost telemetry.
+- [ ] **A4** — GitHub Issue and SNS executors, `suppress_alerts` and `create_control` evaluation,
+      undo. *(approved, not started — awaits review after A3)*
+- [ ] **A5** — Golden (15, labeled by Kousik) and adversarial (10) eval suite, results table.
+- [ ] **A6** — `/actions/*` API endpoints, SPA "Pending actions" tab, DRF throttling.
+
+---
+
 ## Retrospectives
 
 `docs/project/retrospectives/` is a named convention (end-of-phase reflection, heavier than a
