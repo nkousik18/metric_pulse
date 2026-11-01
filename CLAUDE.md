@@ -18,6 +18,7 @@ Don't re-derive architecture from scratch in chat; it's already written down.
 - `docs/resume_project_doc.md` — single full source of truth (stats, decisions, known gaps).
 - `docs/ROADMAP.md` — which phase the agentic-layer initiative is in, checkbox per milestone.
 - `docs/scoping.md` — the section-by-section design spec for that initiative (goals, non-goals, decision log). `ROADMAP.md` tracks whether each part is *built*; this is the *design record* — don't assume a section being designed here means it's implemented.
+- `docs/action-agent-scope.md` — design spec for the follow-on Action Agent initiative (milestones A1–A6 in `ROADMAP.md`); its §11 decisions are fixed for the build.
 - `docs/project/SESSION_LOG.md` — session-by-session history; read before assuming what's already been tried.
 - `CHANGELOG.md` — what's actually shipped, in user-facing terms.
 - `concepts/` (see `concepts/INDEX.md`) — one file per idea worth explaining once and linking to, rather than re-explaining at length in chat every time it comes up.
