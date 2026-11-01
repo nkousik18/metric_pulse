@@ -5,6 +5,58 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-01 — Scoped the Action Agent, built A1 (policy gate)
+
+**What happened:**
+Started a new initiative, the Action Agent, from Kousik's draft `docs/metricpulse-phase3-scope.md`.
+The review found these problems and the user resolved each one:
+- **Naming:** "Phase 3"/M1–M6 collided with the roadmap's existing Phase 3/M7, so it's now
+  "Action Agent", milestones A1–A6.
+- **Model routing:** D2 assumed a bigger Groq model above Phase 1's, but Phase 1 already runs
+  `gpt-oss-120b`. The routing is flipped: 20b drafts and 120b is the escalation. 20b gets
+  live-tested first in A3.
+- **Alert suppression:** the draft made `annotate_anomaly` T0 while it also suppressed alerts,
+  so the one auto-executed action could silence detection, which is exactly what an injected
+  segment name would target. It's now tag-only, and a new T1 `suppress_alerts` action does the
+  suppressing. An adversarial eval case for it was added to D6.
+- **Token budget:** the budget covers Action Agent calls only; Phase 1 `synthesize` is logged
+  but not counted.
+- **Hosting:** the agent is local-only (D9) and the Lambda path is unchanged.
+
+The doc was renamed to `docs/action-agent-scope.md` and merged in PR #24, along with the ROADMAP
+section and `langgraph-checkpoint-sqlite==3.1.3`. That dependency forced a bump of
+`langgraph-checkpoint` from 4.1.1 to 4.3.1; `pip check` was clean, 81 tests passed, and CI was
+green.
+
+**A1:** new `action_agent/` package:
+- the catalog and strict params schemas
+- `policy_check` (catalog → tier → schema/range, which also grounds `(dimension, segment)`
+  against decomposition evidence)
+- `owners.yaml` resolution, so the recipient is never an LLM param
+- `anomaly_id`/`idempotency_key` over canonical JSON
+- the dry-run payload builder
+
+There are 81 new test cases and the suite is at 162. One real issue was caught while probing:
+Pydantic's lax mode accepted `days: true` as 1 and `"5"` as 5, so the numeric params are now
+strict. A live check against the real onboarded `superstore_sales` evidence produced the
+expected decisions. The A1 D8 choices are recorded in the scope doc's §12 decision log.
+
+**Current state:** A1 is checked on ROADMAP, with its PR open at the time of writing.
+
+**Next steps:** A2. That covers the `SqliteSaver` checkpointer, the `interrupt()` approval flow
+and CLI approver, `actions.db` with a trigger-enforced append-only `action_log`, idempotent
+execute, and D1's one-proposal-per-anomaly rule. It also needs the D8 decisions on edit scope
+and TTL expiry.
+
+**Loose ends:**
+- A separate PR is still owed to remove the stale "live on Render" claims from `CLAUDE.md` and
+  the docs.
+- Still uncommitted on `main` from earlier sessions: the
+  `resume_project_doc.md` → `MetricPulse_resume_project_doc.md` rename, four terminal screenshots
+  in `docs/project/demos/`, and `brag-output/`, an unrendered launch-video project.
+
+---
+
 ## 2026-08-19 — Built M7: portfolio close-out. Agentic-layer initiative complete.
 
 **What happened:**

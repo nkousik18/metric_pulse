@@ -145,7 +145,11 @@ are built in this pass, then work stops for review before A4.
 a T1 action is approved via the CLI and survives a restart while pending, and the action log
 records it — with the 20b live-test result recorded in the scope doc's decision log.
 
-- [ ] **A1** — Action catalog, Pydantic schemas, `policy_check`, dry-run payload builder, tests.
+- [x] **A1** — Action catalog, Pydantic schemas, `policy_check`, dry-run payload builder, tests.
+      `action_agent/` (see its README). 81 new test cases (`test_action_policy.py`,
+      `test_action_dry_run.py`), suite 162 passing. Verified live against the real onboarded
+      `superstore_sales` evidence: T1 → `needs_approval` with a full dry-run payload, T0 →
+      `auto_execute`, a 30-day suppression and an ungrounded segment both rejected with reasons.
 - [ ] **A2** — SQLite checkpointer, `interrupt()` approval flow, CLI approver, `actions.db` with
       append-only `action_log` (trigger-enforced), idempotency keys.
 - [ ] **A3** — Live-test `gpt-oss-20b`; `propose_action` node, citation validation, 20b→120b

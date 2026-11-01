@@ -153,4 +153,11 @@ An edit produces new params and so a new idempotency key. That is intended: the 
 
 Filled in as the D8 choices are made during the build. One line each: choice — reason.
 
-_(none yet)_
+**A1 (2026-11-01)**
+- **`owners.yaml` schema:** `default_owner` id + `people` (id → name, email) + `segments[dataset_id][dimension][segment | '*']` → id. Resolution goes exact segment → dimension `'*'` → default. The default is `analytics-oncall`, with placeholder emails until A4. Reason: the recipient comes from config and is never an LLM param, and each email lives in one place.
+- **`suppress_alerts` N:** integer 1–7 days, strict type. Reason: 7 days covers a holiday week, and a mistaken silence surfaces within a week. Anything longer needs a fresh proposal.
+- **Segment grounding (added check):** any `dimension`/`segment` param must be a pair present in the investigation's decomposition `top_contributors`. Reason: this is the policy-side half of N3, so an injected or hallucinated segment can't be targeted.
+- **`create_control` threshold bounds:** `0.1×`–`10×` of the segment's `max(current, previous)` value, finite, > 0. Zero-volume segments are rejected. Reason: this blocks watches that could never fire or would always fire, without needing per-metric config.
+- **Strict numerics:** `days`, `expires_in_days` and `threshold` reject bools and numeric strings. Reason: Pydantic's lax mode would turn a tampered `true` into `1`.
+
+_Pending: approver edit scope and TTL expiry (A2), the 20b live-test result (A3), live executor targets and credentials (A4), and the approver identity check (A6)._
