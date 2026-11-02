@@ -184,3 +184,31 @@ def test_graph_records_the_llm_proposer_and_its_trail_on_the_proposed_row(env, t
     assert proposed['event'] == 'proposed' and proposed['actor'] == f'llm:{LARGE}'
     assert proposed['detail'] == f'{SMALL} invalid -> {LARGE} grounded; 2,400 tokens'
     assert _events(agent, pid)[:2] == ['proposed', 'policy_passed']
+
+
+# --- BUG_LOG A5-2: gpt-oss-20b's `functions.ProposalDraft` tool name ---
+
+def _prefixed_tool_call(name='functions.ProposalDraft', args=None):
+    from langchain_core.messages import AIMessage
+    message = AIMessage(content='', tool_calls=[{'name': name, 'args': args or GOOD.model_dump(), 'id': 'c1'}],
+                        usage_metadata={'input_tokens': 1000, 'output_tokens': 200, 'total_tokens': 1200})
+    return {'raw': message, 'parsed': None, 'parsing_error': ValueError("Unknown tool type: 'functions.ProposalDraft'")}
+
+
+def test_a_prefixed_tool_name_is_repaired_instead_of_escalating(tmp_path):
+    models = Models(**{SMALL: [_prefixed_tool_call()]})
+    proposal, name, trail = proposer(models, tmp_path)(STATE)
+    assert name == f'llm:{SMALL}' and proposal == GOOD.to_proposal() and not trail['escalated']
+    assert _logged(tmp_path)[0]['repaired'] is True and _logged(tmp_path)[0]['outcome'] == 'grounded'
+
+
+def test_repair_accepts_only_that_slip(tmp_path):
+    models = Models(**{SMALL: [_prefixed_tool_call(name='functions.SomethingElse')], LARGE: [raw(GOOD)]})
+    _, name, trail = proposer(models, tmp_path)(STATE)
+    assert name == f'llm:{LARGE}' and trail['attempts'][0]['outcome'] == 'parse_error'
+
+
+def test_a_repaired_draft_is_still_validated(tmp_path):
+    models = Models(**{SMALL: [_prefixed_tool_call(args=BAD_SEGMENT.model_dump())], LARGE: [raw(GOOD)]})
+    _, name, trail = proposer(models, tmp_path)(STATE)
+    assert trail['attempts'][0]['outcome'] == 'invalid' and name == f'llm:{LARGE}'

@@ -55,13 +55,33 @@ def _print_classification(clf: SchemaClassification, profiles: dict, name: str, 
     else:
         print("(none)")
 
+    # The model's output failed validation even after its retry. Show why before anyone confirms
+    # it (BUG_LOG A5-1: this used to be silent, so an invalid classification could be confirmed).
+    if clf.requires_human_review and clf.validation_errors:
+        print("\n  NEEDS REVIEW -- failed automatic validation:")
+        for e in clf.validation_errors:
+            print(f"    - {e}")
+        print("  Fix it with [e] (a name that isn't a real column can be removed there) before confirming.")
+
 
 def _edit_classification(clf: SchemaClassification, profiles: dict) -> SchemaClassification:
     print(f"\nColumns: {', '.join(profiles.keys())}")
     column = input("Column to move: ").strip()
     if column not in profiles:
-        print(f"'{column}' is not a column in this dataset -- no change made.")
-        return clf
+        listed = (column in clf.metric_columns or any(d.column == column for d in clf.dimension_columns)
+                  or any(r.column == column for r in clf.rejected_columns) or clf.date_column == column)
+        if not listed:
+            print(f"'{column}' is not a column in this dataset -- no change made.")
+            return clf
+        # The model named something that isn't a real column (e.g. it rewrote a column name).
+        # The only sensible edit is removing it; then assign the real column.
+        print(f"Removed '{column}': it isn't a real column in this dataset.")
+        return clf.model_copy(update={
+            'date_column': None if clf.date_column == column else clf.date_column,
+            'metric_columns': [c for c in clf.metric_columns if c != column],
+            'dimension_columns': [d for d in clf.dimension_columns if d.column != column],
+            'rejected_columns': [r for r in clf.rejected_columns if r.column != column],
+        })
 
     role = input(f"New role for '{column}' (metric/dimension/reject): ").strip().lower()
 

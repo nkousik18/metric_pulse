@@ -65,10 +65,12 @@ def test_valid_proposal_decision_matches_tier(action_type):
     assert result.params == VALID_PARAMS[action_type]
 
 
-def test_only_annotate_is_auto_executed():
-    """The single T0 action must have no alerting effect -- suppression is T1 (§4)."""
+def test_nothing_in_the_catalog_auto_executes():
+    """Since A5 every action needs approval: the adversarial eval showed the one T0 action,
+    annotate_anomaly, could be triggered by injected text (scope decision log, A5)."""
     auto = {name for name, spec in CATALOG.items() if spec.tier == Tier.T0}
-    assert auto == {'annotate_anomaly'}
+    assert auto == set()
+    assert CATALOG['annotate_anomaly'].tier == Tier.T1
     assert CATALOG['suppress_alerts'].tier == Tier.T1
     assert not any('day' in f for f in AnnotateAnomalyParams.model_fields)
 

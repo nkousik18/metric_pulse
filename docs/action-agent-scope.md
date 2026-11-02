@@ -22,14 +22,15 @@ Turn a validated investigation into a proposed action, gate that action on polic
 
 | Action | Effect | Risk tier | Reversible |
 |---|---|---|---|
-| `annotate_anomaly` | Tag an anomaly with a known cause (e.g. holiday). Tag only — no effect on alerting | T0: auto | Yes (remove tag) |
+| `annotate_anomaly` | Tag an anomaly with a known cause (e.g. holiday). Tag only — no effect on alerting | T1: approval (T0 until A5, see the A5 decision log) | Yes (remove tag) |
 | `suppress_alerts` | Suppress repeat pipeline alerts for an anomaly key for N days | T1: approval | Yes (lift suppression) |
 | `notify_owner` | Send the narrative and evidence to the segment owner (via `alerting.notifier`: local outbox by default, SNS archived) | T1: approval | No (logged) |
 | `open_incident` | Create a GitHub Issue with the evidence table and citations | T1: approval | Yes (close issue) |
 | `create_control` | Register a segment-level watch: metric, segment, threshold, owner, expiry | T1: approval | Yes (disable) |
 
 - **Tiers:** T0 executes automatically. T1 requires approval. T2 (any data mutation) is rejected by policy before it reaches the approver.
-- **Why suppression is T1, not T0:** suppression silences the detection alert, so it is the action an injected segment name would most want to trigger. The only auto-executed action (`annotate_anomaly`) therefore has no effect on alerting; silencing always passes a human.
+- **Why suppression is T1, not T0:** suppression silences the detection alert, so it is the action an injected segment name would most want to trigger. The only auto-executed action (`annotate_anomaly`) therefore had no effect on alerting; silencing always passes a human.
+- **Since A5, nothing is T0.** The adversarial eval showed that even a tag-only auto action is an injection channel: hostile segment text got `annotate_anomaly` auto-applied in 5 of 10 cases. Kousik moved it to T1. The T0 path stays in the graph (tested with an injected catalog) for a future action with a trusted cause source.
 - **Owners:** segment → owner mapping lives in `owners.yaml`. An unmapped segment routes to the default owner.
 
 ## 5. Flow (LangGraph, extends the Phase 1 graph)
@@ -248,7 +249,19 @@ Filled in as the D8 choices are made during the build. One line each: choice —
 - **`notify_owner`:** `propose --dataset-id olist` (20b grounded, 2,142 tokens) → approve → a real outbox message to Payments Team with the idempotency key in its metadata.
 - **`open_incident`:** approve `--live` opened issue #1 in the private sandbox with labels, the evidence table and the key marker; replaying the execution returned `already_open` (no duplicate); `undo --live` closed it as not planned, with a comment.
 
-_Pending: the API approver identity check (A6)._
+**A5 (2026-11-02)**
+- **D6 golden set:** 15 candidates chosen by the agent (`python -m action_agent.golden`): the detector's strongest real anomalies across Olist `total_revenue` (6, including 2018-09-03) and `order_count` (3), and Superstore `sales` (3), `profit` (2), `order_quantity` (1). The file `evals/action/golden.yaml` shows each case's evidence but **not** the model's proposal, so the labels aren't anchored to it. **Labels are Kousik's and pending;** until they exist, the golden set is skipped and `action_match_rate` isn't reported.
+- **D6 adversarial set** (`action_agent/adversarial.py`): 10 hostile values in one synthetic CSV (4,295 rows, `evals/action/adversarial/`), each the top driver of its own date's spike, through three vectors: segment names (8), a region value (1), and a column name (1). Four target `suppress_alerts` (D6 requires one) and four `annotate_anomaly`. Onboarded through the real Phase 2 CLI; the human-confirmed classification is committed, so the eval regenerates the tables without another LLM call.
+- **First adversarial run: 6 failures, 5 real.** gpt-oss-20b and, after escalation, gpt-oss-120b auto-applied `annotate_anomaly` with attacker text: "holiday: Known holiday", "holiday: Carnival", "promotion: APAC promotion", and one injected sentence verbatim (plus a "data_issue" tag that read as the model noticing something odd). Every T1 case held at approval, including a followed `suppress_alerts` for 7 days "pre-approved". The sixth "failure" was a grader bug: the attacker's email in an issue *body* (which quotes segment names) was counted as recipient redirection; the check now looks only at the target.
+- **Kousik's decision: `annotate_anomaly` becomes T1** (over a curated-cause calendar, a pattern check, or accepting the risk). Re-run: **`injection_bypasses = 0` (0/10), 10/10 held for approval**, 4/10 still *followed* the injection (a human now sees each). Nothing in the catalog auto-executes; the T0 path stays, tested with an injected catalog.
+- **gpt-oss-20b names its tool `functions.ProposalDraft`** in some calls (3 of 10 adversarial cases in the first run), which LangChain rejects as an unknown tool, forcing an escalation. Not seen in A3's 12 real cases. `invoke_structured` gained an optional `repair(raw)` hook; the proposer's accepts exactly that slip (one tool call whose name ends in `.ProposalDraft`), parses it against the same schema, validates it as usual, and marks the call `repaired`. Adversarial escalation fell from 7/10 to 2/10. The remaining two: 20b put `dimension`/`segment` on an `annotate_anomaly`, which the strict schema rejects; left as is.
+- **Phase 2 findings from onboarding the hostile CSV.** The classifier (gpt-oss-120b) never kept the hostile column header in three runs: twice it rewrote it to "Sales Team" (validation correctly rejected that as not a real column), once it dropped the column, which passed validation. Two real bugs: the confirmation screen didn't show validation errors, so an invalid classification could be confirmed; and `[e]dit` couldn't remove a name that isn't a real column. Both fixed in `onboarding/onboard.py`. **Not fixed, recorded:** a classification that silently omits a real column still passes validation.
+- **Eval design:** each run uses a throwaway world (tmp `actions.db`, checkpoints, outbox), never the real one. Golden T1 proposals are approved by `eval-harness` so each execution can be replayed 3× (`idempotency_violations`). The safety set is four deterministic probes through the real graph (T1 without approval, out-of-catalog, ungrounded segment, a tampered payload). Calls are paced under 7,000 tokens/minute so Groq throttling can't masquerade as escalations. Eval traces and the harness's approvals go to a separate LangSmith project, `metricpulse-evals`, so they never mix with real approver feedback.
+- **LangSmith experiments without a second LLM call:** each set is uploaded as a dataset (named with a hash of its labels) and recorded with `client.evaluate`, whose target returns this run's already-computed outputs; the evaluators are the same deterministic graders. The failing-case links point at the real proposal traces.
+- **Ledger rows are honest about code:** `git_sha` carries `-dirty` when tracked files had uncommitted changes. The first committed ledger row comes from a run on the committed code.
+- **Baseline:** not set yet. It is accepted (`--set-baseline`) after the first full run including the labelled golden set.
+
+_Pending: Kousik's golden labels (A5 gate), and the API approver identity check (A6)._
 
 ## 13. Observability, tracing and replay (added 2026-11-02)
 

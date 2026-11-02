@@ -41,8 +41,11 @@ class ActionSpec:
 
 CATALOG: Dict[str, ActionSpec] = {
     spec.name: spec for spec in [
+        # T1 since A5 (was T0). The adversarial eval showed a T0 action is an injection channel:
+        # in 5 of 10 hostile cases the LLM auto-applied a tag copied from attacker text. Kousik
+        # chose approval over a cause calendar or a pattern check (scope decision log, A5).
         ActionSpec(
-            'annotate_anomaly', Tier.T0, True, AnnotateAnomalyParams, False,
+            'annotate_anomaly', Tier.T1, True, AnnotateAnomalyParams, False,
             'Tag an anomaly with a known cause. Tag only -- no effect on alerting.',
         ),
         ActionSpec(

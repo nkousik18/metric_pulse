@@ -57,6 +57,7 @@ class ActionAgent:
         proposer_fn=None,
         live: bool = False,
         outbox_dir=None,
+        catalog=None,
     ):
         """live: allow effects outside this machine (a real GitHub issue, a non-outbox notifier
         channel). Off by default; the CLI's --live turns it on (§9)."""
@@ -74,6 +75,7 @@ class ActionAgent:
             self.store, self.checkpointer, owners or load_owners(),
             self.executors,
             targets=targets, now_fn=now_fn, ttl_hours=ttl_hours, proposer_fn=proposer_fn,
+            catalog=catalog if catalog is not None else CATALOG,
         )
 
     def close(self) -> None:

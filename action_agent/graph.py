@@ -89,6 +89,7 @@ def build_action_graph(
     now_fn: Callable[[], datetime] = lambda: datetime.now(timezone.utc),
     ttl_hours: float = settings.PROPOSAL_TTL_HOURS,
     proposer_fn: Optional[Callable[[Dict], Tuple[Optional[Dict], str]]] = None,
+    catalog: Mapping = CATALOG,
 ):
     """Dependencies are injected (store, executors, clock, proposer) so tests use
     real SQLite on tmp_path and a RecordingExecutor. No mocks.
@@ -142,7 +143,7 @@ def build_action_graph(
         return {}
 
     def policy(state: ActionState) -> Dict:
-        result = policy_check(state['proposal'], state['evidence'])
+        result = policy_check(state['proposal'], state['evidence'], catalog)
         edited = state.get('edited', False)
         pid, trace = state['proposal_id'], state.get('trace_id')
 
@@ -249,7 +250,7 @@ def build_action_graph(
         key, action_type = dry_run['idempotency_key'], dry_run['action_type']
 
         # F1: fail closed. T1 needs an approval row for exactly this key.
-        if CATALOG[action_type].tier != Tier.T0 and not store.has_approval(pid, key):
+        if catalog[action_type].tier != Tier.T0 and not store.has_approval(pid, key):
             store.log(pid, 'execution_blocked', SYSTEM_ACTOR, action_type=action_type,
                       idempotency_key=key, detail='no approval record for this key (F1)',
                       trace_id=trace, now=now_fn())

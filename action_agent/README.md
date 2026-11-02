@@ -37,13 +37,16 @@ approval to idempotent execution and an append-only log. Local-only (scope doc �
 | `graph.py` | `build_action_graph()`: the §5 flow, compiled with a checkpointer. |
 | `runner.py` | `ActionAgent`: wires store + `SqliteSaver` + executors + LangSmith run config; `start`, `decide`, `undo`, `pending`, `waiting_on`. `live=True` allows effects outside this machine. |
 | `replay.py` | `replay_decisions()`: re-runs every logged policy decision on its stored evidence snapshot (§13.6). |
+| `eval.py` | `python -m action_agent.eval [--sets golden,adversarial,safety] [--set-baseline]`: the §7 eval suite. See `evals/README.md`. Real LLM calls. |
+| `golden.py` | `python -m action_agent.golden [--check]`: writes the 15 golden candidates for Kousik to label, and validates the labels. |
+| `adversarial.py` | The 10 adversarial cases and their synthetic CSV generator; `ensure_onboarded()` regenerates the dataset's tables from the committed classification. |
 | `cli.py` | `python -m action_agent.cli propose|pending|show|approve|edit|reject|log|replay`. `propose` uses the LLM proposer; `--no-llm` uses the deterministic one. |
 
 ## The catalog
 
 | Action | Tier | Reversible | Params |
 |---|---|---|---|
-| `annotate_anomaly` | T0 | yes | `category`, `cause` — tag only, no alerting effect |
+| `annotate_anomaly` | T1 (T0 until A5) | yes | `category`, `cause` — tag only, no alerting effect |
 | `suppress_alerts` | T1 | yes | `days` (1–7), `reason` |
 | `notify_owner` | T1 | no | `dimension`, `segment` |
 | `open_incident` | T1 | yes | `dimension`, `segment`, `title`, `severity` |
@@ -219,7 +222,11 @@ max 4,050; $0.0042 for all 12. See the scope's A3 decision log.
   Groq's `x-ratelimit-*` headers). A run uses ~2.5–4k, so back-to-back runs are throttled: the SDK
   waits and retries, and latency jumps from ~1s to 20–30s. Expect this in batch evals (A5).
 - **Temperature 0 isn't deterministic.** In the live test, 20b proposed `annotate_anomaly` once for
-  a case where a re-run proposed `notify_owner`. `annotate_anomaly` is T0 (auto) but tag-only.
+  a case where a re-run proposed `notify_owner`. (`annotate_anomaly` was T0 then; since A5 it needs
+  approval, see below.)
+- **Nothing auto-executes since A5.** The adversarial eval got hostile segment text to auto-apply
+  `annotate_anomaly` in 5 of 10 cases, so it moved to T1. The T0 path is kept and tested with an
+  injected `catalog=` (`build_action_graph`, `ActionAgent`).
 - **Only `total_revenue` and `order_count` can be proposed on for Olist.** The per-dimension
   tables don't carry `customer_count` or `avg_order_value`, so there is nothing to decompose;
   `propose` says so instead of crashing (`evidence.require_decomposable`).
