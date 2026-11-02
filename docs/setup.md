@@ -11,7 +11,7 @@
 > python manage.py migrate && python manage.py runserver          # dashboard at http://127.0.0.1:8000
 > ```
 >
-> No `.env` warehouse settings are needed; `WAREHOUSE=duckdb` is the default. Alerts still go to SNS until local-stack milestone L2 adds the local outbox, so use `--dry-run` for now.
+> No `.env` warehouse settings are needed; `WAREHOUSE=duckdb` is the default. Alerts go to a local outbox (`outbox/YYYY-MM-DD/*.md` plus `outbox/index.jsonl`, `ALERT_CHANNEL=outbox`): `python -m orchestration.run_pipeline --force-alert` writes one, and `python -m alerting.notifier --test` writes a test message. SNS is the archived channel (`ALERT_CHANNEL=sns`).
 
 ## Prerequisites (archived AWS setup)
 

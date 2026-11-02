@@ -20,6 +20,17 @@ Shared, side-effect-light utilities used by every other layer: environment loadi
 - `build_copy_credentials()` is untouched and only used by the archived `ingestion/s3_to_redshift.py`.
 - **Unchanged:** the legacy Streamlit dashboard (`dashboard/app.py`) still opens its own Redshift connection directly and does **not** follow `WAREHOUSE`. It's an archived, AWS-only component (local-stack scope §4).
 
+## Alerting and monitoring switches
+
+Same pattern as `WAREHOUSE` (local-stack scope §6.4): a local default, the archived AWS behavior as a switch, and the AWS default inside Lambda via `backend_default()`.
+
+| Setting | Default (local / Lambda) | What it controls |
+|---|---|---|
+| `ALERT_CHANNEL` | `outbox` / `sns` | `alerting/notifier.py`: write alerts to `OUTBOX_DIR`, or publish to the archived SNS topic. Unknown names raise. |
+| `OUTBOX_DIR` | `<repo>/outbox` (gitignored) | Where outbox messages and `index.jsonl` go. |
+| `ALERT_RECIPIENT` | `metric-pulse-alerts` | The recipient written on pipeline alerts in the outbox (named after the SNS topic). |
+| `CLOUDWATCH_METRICS` | `false` / `true` | Whether `run_pipeline` calls the archived `monitoring/cloudwatch_metrics.py` after a non-dry run. Off locally because working AWS credentials would otherwise publish billed metrics. `lambda_handler.py` passes `publish_metrics=False` anyway. |
+
 ## Files
 
 | File | Purpose |

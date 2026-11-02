@@ -14,11 +14,12 @@ from dotenv import load_dotenv
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from config import settings
 from config.logging_config import setup_logger
 from detection.anomaly_detector import run_detection, fetch_daily_metrics
 from decomposition.decomposer import decompose_metric, get_comparison_dates
 from narrative.generator import generate_narrative
-from alerting.sns_publisher import publish_metric_alert
+from alerting.notifier import send_metric_alert
 
 load_dotenv()
 
@@ -127,7 +128,16 @@ def run_pipeline(
                 logger.info("DRY RUN - Alert not sent")
                 results['alert'] = {'status': 'dry_run'}
             else:
-                alert_result = publish_metric_alert(narratives)
+                # ALERT_CHANNEL picks the channel: the local outbox by default, or the archived
+                # SNS publisher (docs/local-stack-scope.md §6.4). Under sns this is the same
+                # publish_metric_alert(narratives) call as before; metadata is outbox-only.
+                alert_result = send_metric_alert(narratives, metadata={
+                    'metric': metric,
+                    'current_date': current_date,
+                    'previous_date': previous_date,
+                    'anomaly_count': detection_results['anomaly_count'],
+                    'force_alert': force_alert,
+                })
                 results['alert'] = alert_result
                 logger.info(f"Alert status: {alert_result['status']}")
         else:
@@ -148,8 +158,9 @@ def run_pipeline(
         results['error'] = str(e)
         results['duration_seconds'] = (datetime.now() - start_time).total_seconds()
     
-    # Publish metrics to CloudWatch
-    if publish_metrics and not dry_run:
+    # Publish metrics to CloudWatch (archived AWS monitoring). Off unless CLOUDWATCH_METRICS is true,
+    # which is the default only inside Lambda (docs/local-stack-scope.md §6.4).
+    if publish_metrics and not dry_run and settings.CLOUDWATCH_METRICS:
         try:
             from monitoring.cloudwatch_metrics import publish_pipeline_metrics
             publish_pipeline_metrics(results)
@@ -197,6 +208,10 @@ def print_summary(results: Dict):
         print(f"\nAlert Status: {a.get('status', 'N/A')}")
         if a.get('message_id'):
             print(f"  Message ID: {a['message_id']}")
+        if a.get('channel'):
+            print(f"  Channel: {a['channel']}")
+        if a.get('path'):
+            print(f"  Outbox file: {a['path']}")
     
     print("\n" + "=" * 60)
 

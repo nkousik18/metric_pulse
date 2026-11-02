@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Project Is
 
-MetricPulse is an automated root-cause-analysis pipeline: detects anomalous daily business metrics (z-score), decomposes the change by segment, generates a plain-English narrative, and alerts via SNS — end-to-end in ~10–15s. Exposed via a Django REST API + SPA dashboard (live on Render) and a standalone Lambda handler for scheduled runs; a legacy Streamlit dashboard also exists, unused in prod.
+MetricPulse is an automated root-cause-analysis pipeline: detects anomalous daily business metrics (z-score), decomposes the change by segment, generates a plain-English narrative, and alerts (to a local Markdown outbox by default; SNS is the archived channel) — end-to-end in ~10–15s. Exposed via a Django REST API + SPA dashboard (live on Render) and a standalone Lambda handler for scheduled runs; a legacy Streamlit dashboard also exists, unused in prod.
 
 ## Session Ritual
 
@@ -61,8 +61,8 @@ dbt build --target redshift --profiles-dir .  # archived AWS target (needs REDSH
 
 ### Pipeline (analytics engine, standalone)
 ```bash
-python -m orchestration.run_pipeline --dry-run                    # full run, no SNS alert sent
-python -m orchestration.run_pipeline --force-alert                # send alert regardless of anomaly state
+python -m orchestration.run_pipeline --dry-run                    # full run, no alert sent
+python -m orchestration.run_pipeline --force-alert                # send alert regardless of anomaly state (-> outbox/)
 python -m orchestration.run_pipeline --metric order_count --threshold 2.5 --dry-run
 python -m orchestration.run_pipeline --dry-run --force-alert --run-investigation  # + agentic investigation (Phase 1)
 python -m investigation.eval --runs 5                               # Phase 1 eval suite (real LLM calls, real cost)
@@ -70,8 +70,9 @@ python -m onboarding.eval                                           # Phase 2 Go
 python -m onboarding.onboard --file data/some_new_dataset.csv       # Phase 2 dataset onboarding CLI (real LLM call, interactive confirm)
 python -m onboarding.investigate --dataset-id <id> --metric <col> [--run-investigation]  # detect/decompose/narrate (+ Phase 1 agent) against an onboarded dataset
 python -m detection.anomaly_detector                               # detection layer alone
-python -m alerting.sns_publisher --setup --email you@example.com   # one-time SNS topic + subscription setup
-python -m alerting.sns_publisher --test                             # send a test alert
+python -m alerting.notifier --test                                 # write a test alert to outbox/ (ALERT_CHANNEL=outbox)
+python -m alerting.sns_publisher --setup --email you@example.com   # archived: one-time SNS topic + subscription setup
+python -m alerting.sns_publisher --test                             # archived: really publishes to SNS
 ```
 
 ### Ingestion (one-time / on data refresh, in order)
@@ -104,7 +105,7 @@ deploy/deploy_lambda.sh   # build image, push to ECR, update Lambda
 ## Conventions Worth Knowing
 
 - Six pipeline layers (`ingestion/` → `dbt_project/` → `detection/` → `decomposition/` → `narrative/` → `alerting/`), coordinated by `orchestration/run_pipeline.py`, connected by plain dict contracts — not classes. Exact shapes are documented in each producer's own folder `README.md`; read it before changing a consumer.
-- **AWS code is archived, never deleted** (`docs/local-stack-scope.md` R1). The AWS resources were deleted on 2026-11-02. Local is the default backend (`WAREHOUSE=duckdb`, later `ALERT_CHANNEL=outbox`), and AWS stays a switch. Don't remove, move or "clean up" AWS files; Kousik restructures the codebase once, at the end of the project.
+- **AWS code is archived, never deleted** (`docs/local-stack-scope.md` R1). The AWS resources were deleted on 2026-11-02. Local is the default backend (`WAREHOUSE=duckdb`, `ALERT_CHANNEL=outbox`, `CLOUDWATCH_METRICS=false`), and AWS stays a switch. **The SNS topic and AWS credentials still work** (found in L2): `ALERT_CHANNEL=sns` or `sns_publisher --test` really publishes, and in tests set `SNS_TOPIC_ARN=''` rather than unsetting it (`sns_publisher`'s `load_dotenv()` refills a missing var). Don't remove, move or "clean up" AWS files; Kousik restructures the codebase once, at the end of the project.
 - Shared infra used by nearly every module: `config/db.py` (the warehouse connection factory: DuckDB by default, Redshift when `WAREHOUSE=redshift`; used everywhere except the legacy Streamlit dashboard, which intentionally connects directly for `@st.cache_resource`'s connection lifecycle — see `config/README.md`), `config/settings.py` (all env vars as constants — don't `os.getenv` ad hoc in new code), `config/logging_config.py` (shared logger). See `config/README.md`.
 - `orchestration/run_pipeline.py`'s per-step try/except-never-raise pattern (failure sets `status`/`error` in the result dict, never raises) is the standard error-handling convention for new pipeline code — see `orchestration/README.md`.
 - Date strings get validated (`decomposition/decomposer.py`'s `_validate_date()`) before SQL interpolation, since `redshift_connector` doesn't support parameterized queries for the DDL/COPY/date-filtered SQL used here — follow this pattern for any new SQL touching user-supplied values.

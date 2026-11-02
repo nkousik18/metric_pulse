@@ -24,7 +24,7 @@ Turn a validated investigation into a proposed action, gate that action on polic
 |---|---|---|---|
 | `annotate_anomaly` | Tag an anomaly with a known cause (e.g. holiday). Tag only — no effect on alerting | T0: auto | Yes (remove tag) |
 | `suppress_alerts` | Suppress repeat pipeline alerts for an anomaly key for N days | T1: approval | Yes (lift suppression) |
-| `notify_owner` | Send the narrative and evidence to the segment owner (SNS/email) | T1: approval | No (logged) |
+| `notify_owner` | Send the narrative and evidence to the segment owner (via `alerting.notifier`: local outbox by default, SNS archived) | T1: approval | No (logged) |
 | `open_incident` | Create a GitHub Issue with the evidence table and citations | T1: approval | Yes (close issue) |
 | `create_control` | Register a segment-level watch: metric, segment, threshold, owner, expiry | T1: approval | Yes (disable) |
 
@@ -117,7 +117,7 @@ An eval result is a short story, not a bare number. Every eval run writes one le
 | A1 | Action catalog, Pydantic schemas, `policy_check`, dry-run payload builder, and tests | 6h |
 | A2 | LangSmith tracing (§13.1–13.2), checkpointer, `interrupt` approval flow, CLI approver, action log with trace/thread links, idempotency, approver decisions as LangSmith feedback (§13.4), decision-replay test (§13.6) | 10h |
 | A3 | Live-test `gpt-oss-20b`; `propose_action` node, citation validation, fallback, model routing; shared LLM telemetry wrapper (§13.3) applied to all three agents' LLM calls | 8h |
-| A4 | GitHub Issue and SNS executors, `suppress_alerts` and `create_control` evaluation, undo | 6h |
+| A4 | GitHub Issue and notifier executors, `suppress_alerts` and `create_control` evaluation, undo | 6h |
 | A5 | Golden and adversarial eval suite as LangSmith datasets and experiments; local eval ledger and the baseline report (§7.2, §13.5) | 8h |
 | A6 | API endpoints and SPA "Pending actions" tab, throttling | 5h |
 | A7 | Detection eval, expanded investigation and onboarding golden sets (§7.1), scheduled drift run | 8h |
@@ -129,7 +129,7 @@ An eval result is a short story, not a bare number. Every eval run writes one le
 | Risk | Mitigation |
 |---|---|
 | Golden set too small to mean much | Report n and the per-case table. Make no rate claims beyond the set. |
-| GitHub/SNS side effects during tests | Executor interface with a recording fake for tests. Real executors run only behind an `--live` flag. |
+| GitHub/notifier side effects during tests | Executor interface with a recording fake for tests. Real executors run only behind an `--live` flag. |
 | Scope creep into autonomous remediation | Non-goals in §3. Any new action type needs a catalog entry plus a tier assignment. |
 | Traces send prompts and evidence to LangSmith's hosted service | Olist and Superstore are public datasets. Tracing is off unless `LANGSMITH_TRACING=true`; onboard a private dataset with it off. Recorded in D10 |
 | LangSmith retention or plan limits drop history | The local eval ledger and `llm_calls.jsonl` are the durable record; LangSmith is the exploration layer (§13.5) |
@@ -152,7 +152,7 @@ These are fixed for the build. If one turns out to be wrong in practice, stop an
 
 Token budget: 10,000 tokens per run across all Action Agent LLM calls (Phase 1 `synthesize` excluded, see N1). If the next call would exceed it, go straight to the fallback. Escalation rate = runs that reached step 2 ÷ total runs.
 
-**D3. Existing SNS alert vs `notify_owner`.** The existing pipeline alert stays as it is. It is the detection alert and goes to the pipeline's topic. `notify_owner` is a separate message to one segment owner, carrying the narrative plus the evidence table. `suppress_alerts` (T1) applies to the existing alert on local pipeline runs: a suppressed anomaly key raises no repeat pipeline alert until the suppression expires or is undone. `annotate_anomaly` never affects alerting. The Lambda path is unchanged and does not read suppressions.
+**D3. Existing pipeline alert vs `notify_owner`.** The existing pipeline alert stays as it is. It is the detection alert, delivered through `alerting.notifier` (the local outbox by default; the archived SNS topic under `ALERT_CHANNEL=sns`, local-stack scope §6.4). `notify_owner` is a separate message (`notifier.send_alert` with the owner as recipient) to one segment owner, carrying the narrative plus the evidence table. `suppress_alerts` (T1) applies to the existing alert on local pipeline runs: a suppressed anomaly key raises no repeat pipeline alert until the suppression expires or is undone. `annotate_anomaly` never affects alerting. The Lambda path is unchanged and does not read suppressions.
 
 **D4. `create_control` evaluation.** A watch is `{dataset_id, metric, dimension, segment, direction (above|below), threshold, owner, expires_at}`. The threshold is an **absolute value** of the segment's daily metric, not a z-score. Each local pipeline run evaluates every active, unexpired watch for the dataset being run, by calling the existing decomposition query for that date (`decompose_metric` with its `dimension_config`/connection arguments — the SQL itself is string-interpolated behind `_validate_date()`, not driver-parameterized). This covers both Olist/Redshift and onboarded DuckDB datasets. A breach sends one `notify_owner`-style message to the watch's owner and writes an action-log entry. Only one alert is sent per watch per day.
 
@@ -177,7 +177,7 @@ Token budget: 10,000 tokens per run across all Action Agent LLM calls (Phase 1 `
 - whether an approver's edit may change `action_type` or only `params`
 - how expiry after the 24h TTL is applied (lazily on read, or by a sweep)
 - how the API checks the single approver identity
-- which GitHub repo and SNS topic the live executors target, and where their credentials come from
+- which GitHub repo and notifier channel the live executors target, and where their credentials come from
 
 An edit produces new params and so a new idempotency key. That is intended: the edited action counts as a different action.
 
@@ -262,6 +262,6 @@ When the approver approves, edits or rejects (A2), the same decision is posted t
 For exact replay to work, `proposals` stores the evidence snapshot the decision was made on (the `decomposition_results` dict, or its hash plus the dict), not just a pointer to the live data.
 
 ### 13.7 Out of scope
-- Production metrics. CloudWatch publishing stays off on the Lambda and dashboard paths, which are unchanged under D9. This is a known gap, recorded here, not fixed.
+- Production metrics. CloudWatch (`monitoring/cloudwatch_metrics.py`) is archived AWS code, kept intact and off locally (`CLOUDWATCH_METRICS`, local-stack scope §6.4). It was never on for the Lambda or dashboard paths either.
 - Alerting on eval regressions. The drift run (A7) reports; it doesn't page anyone.
 - Self-hosted LangSmith or OpenTelemetry export.

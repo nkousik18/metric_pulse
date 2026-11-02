@@ -4,8 +4,8 @@
 > The AWS resources themselves (Redshift Serverless, S3, SNS, CloudWatch, Lambda, ECR) and the
 > Render hosting have since been deleted when the free tier ended. **All of the AWS code is kept
 > in the repo on purpose** as evidence of that architecture. A free, fully local stack (DuckDB
-> warehouse, dbt-duckdb, a local alert outbox) is scoped in `docs/local-stack-scope.md` to bring
-> the Olist pipeline back, with AWS kept as a switchable backend. Since the agentic-layer
+> warehouse, dbt-duckdb, a local alert outbox) is scoped in `docs/local-stack-scope.md` and built
+> through L2 (the Olist pipeline runs and alerts locally again), with AWS kept as a switchable backend. Since the agentic-layer
 > initiative closed, a third agent is in progress, the **Action Agent** (§15), along with an
 > **observability and evaluation design** built on LangSmith (§16).
 
@@ -51,7 +51,7 @@ tracing helpers are built; the rest is scoped.
 | Data transformation | dbt (dbt-redshift, archived; dbt-duckdb 1.11.1, active) | Version-controlled SQL with built-in testing and lineage. One committed `profiles.yml` with `local` and `redshift` targets; three Redshift-only date functions rewritten to portable SQL valid on both |
 | Anomaly detection | Python + NumPy (z-score) | Interpretable, no training data required, 30-day rolling window |
 | Narrative generation | Jinja2 3.1 | Separates template logic from Python; 4 output formats from one render |
-| Alerting | AWS SNS | Managed pub/sub; single API call to send email to N subscribers |
+| Alerting | AWS SNS (original, archived) → local Markdown outbox (active since 2026-11-02) | SNS: managed pub/sub, one API call emails N subscribers. Locally, `alerting/notifier.py` writes each alert as a Markdown file plus an `index.jsonl` line, behind an `ALERT_CHANNEL` switch that still reaches the unchanged SNS code |
 | Monitoring | AWS CloudWatch | Native AWS metrics; 3 custom metrics published per pipeline run |
 | Serverless pipeline | AWS Lambda + ECR | Schedule pipeline without always-on compute; Docker image deployment |
 | Web framework | Django 6.0 + DRF 3.17 | REST API + SPA with minimal boilerplate; SQLite for auth only |
@@ -273,16 +273,16 @@ templated at all, it's built with an f-string.
 
 `format_type` parameter controls output: `'all'` returns all 4 formats; any single key (e.g. `'slack'`) returns only that format. Previously this parameter was ignored — all 4 formats were always returned regardless.
 
-**Stage 3 — Alerting (`alerting/sns_publisher.py`)**
+**Stage 3 — Alerting (`alerting/sns_publisher.py`; since 2026-11-02 reached through `alerting/notifier.py`)**
 
-Publishes to an SNS topic when anomalies are detected (or when `force_alert=True`).
+Publishes to an SNS topic when anomalies are detected (or when `force_alert=True`). Since the local stack's L2, `run_pipeline` calls `alerting.notifier`, which writes to a local outbox by default and calls this same SNS code under `ALERT_CHANNEL=sns`.
 
 | Scenario | Alert sent |
 |----------|-----------|
 | Anomaly detected + threshold exceeded | Yes |
 | No anomaly detected | No |
 | `force_alert=True` | Yes (regardless of anomaly) |
-| `dry_run=True` | No (pipeline runs but SNS publish skipped) |
+| `dry_run=True` | No (pipeline runs but the alert is skipped) |
 
 **Stage 4 — Orchestration (`orchestration/run_pipeline.py`)**
 
@@ -522,7 +522,7 @@ Flake8 strategy: hard errors (`E9,F63,F7,F82`) fail CI; style warnings (`--exit-
 
 ---
 
-## 12. Test Coverage (202 Tests, 19 Files)
+## 12. Test Coverage (215 Tests, 20 Files)
 
 | File | Tests | What's covered |
 |------|-------|---------------|
@@ -545,6 +545,7 @@ Flake8 strategy: hard errors (`E9,F63,F7,F82`) fail CI; style warnings (`--exit-
 | `tests/test_action_graph.py` | 15 | The full A2 approval graph on a real `SqliteSaver`: restart survival, approve/edit/reject, TTL expiry, 3× execute replay = 1 execution, tampered payload fails closed, exact decision replay, numpy-evidence regression |
 | `tests/test_tracing.py` | 4 | LangSmith helpers are offline no-ops when tracing is off |
 | `tests/test_local_warehouse.py` | 12 | Local stack: `WAREHOUSE` dispatch (archived Redshift path selected without connecting), the Lambda default, read-only DuckDB, DDL parsing, and the CSV → DuckDB loader's Redshift-COPY-equivalent semantics |
+| `tests/test_notifier.py` | 13 | Local alert outbox: file and index format, never-overwrite, numpy metadata, fail-soft I/O, `ALERT_CHANNEL` dispatch to the archived SNS code without sending, the Lambda default |
 
 No mocking is used anywhere in the suite — every test calls a pure function directly with in-memory
 DataFrames/dicts/fixture state, or (for codegen/reconciliation) a real in-memory DuckDB connection.
@@ -601,7 +602,7 @@ clause swallowed failures silently.
 | Real dbt/Redshift codegen for onboarded datasets | Future work, named v2 (`docs/scoping.md` §6.6) | Would remove DuckDB's single-file, single-machine ceiling for onboarded datasets that need to scale past local memory |
 | Dashboard-based onboarding wizard | Future work, named v1 boundary | CLI only today (`onboarding/onboard.py`) |
 | Multi-level drill-down / cross-run agent memory | Future work, deliberately deferred | `detail_col` is the deepest grain currently modeled; each investigation is a fresh graph invocation with no memory of prior runs — neither was needed to prove the core design worked |
-| AWS stack deleted (2026-11) | Status, named not silent | Redshift, S3, SNS, CloudWatch, Lambda, ECR and Render are gone, and the Olist path can't run until the local stack (`docs/local-stack-scope.md`) lands. The AWS code is kept intact by design |
+| AWS stack deleted (2026-11) | Status, named not silent | Redshift, S3, Lambda, ECR and Render are gone (the SNS topic was found still live during L2). The Olist path runs locally again: DuckDB + dbt-duckdb (L1) and a local alert outbox (L2), `docs/local-stack-scope.md`. The AWS code is kept intact by design |
 | CI `dbt-check` cannot fail | Limitation, named not silent | `dbt parse … \|\| echo` swallows every failure. Replaced as the real gate by a local `dbt build` job (local-stack scope §6.5) |
 | Parallel fan-out for multi-dimension decomposition | Future work, deliberately deferred | LangGraph's `Send` API could run the 3+ dimension queries concurrently; at current data volume (sub-5s sequential) the latency savings are marginal against the added debugging complexity |
 
