@@ -156,6 +156,12 @@ reachable from its action-log row.
       flow, CLI approver, `actions.db` with append-only `action_log` (trigger-enforced) carrying
       trace/thread ids, idempotency keys, approver decisions as LangSmith feedback, decision-replay
       test (§13.6).
+      **Built; not checked:** the LangSmith half of the gate is unverified, because the first API
+      key returned 403 (unrecognized). Everything else is verified live against
+      `superstore_sales` across separate processes: propose → pause → `pending` after restart →
+      approve → executed, a re-approve refused, a second run for the same anomaly skipped (D1),
+      replay matching, a raw `DELETE` on `action_log` refused, and the run completing with tracing
+      on while LangSmith rejected every upload (fail-open, N5). 28 new tests, suite at 190.
 - [ ] **A3** — Live-test `gpt-oss-20b`; `propose_action` node, citation validation, 20b→120b
       escalation, fallback, token budget; shared LLM telemetry wrapper (§13.3) on all three
       agents' LLM calls.
