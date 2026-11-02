@@ -13,8 +13,9 @@ approval to idempotent execution and an append-only log. Local-only (scope doc �
 - **A3:** the LLM proposer (gpt-oss-20b drafts, one escalation to gpt-oss-120b, then the
   deterministic fallback, under a 10k-token budget), and `probe.py`, the live model test.
 
-`notify_owner` and `open_incident` are simulated until A4's live executors. Per D7, the build
-stops for review after A3.
+- **A4:** real executors (`notify_owner` through the notifier outbox, `open_incident` as a GitHub
+  Issue behind `--live`), undo (F3), and the pipeline hooks: D3 suppression and D4 watch
+  evaluation on local pipeline runs (`hooks.py`). `propose --dataset-id olist` works.
 
 ## Files
 
@@ -30,9 +31,11 @@ stops for review after A3.
 | `llm_proposer.py` | `make_llm_proposer()`: the D2 sequence (20b → one 120b escalation → fallback) under the token budget, `validate_proposal()` (citations + `policy_check`), `build_messages()` (evidence as a JSON data block, N3). |
 | `probe.py` | `python -m action_agent.probe [--small-only]`: live-tests the proposer on 12 real anomalies (Olist + Superstore) and prints a per-case table. Real Groq calls. |
 | `store.py` | `ActionStore` over `actions.db`: insert-only `proposals` (UNIQUE `anomaly_id`), trigger-enforced append-only `action_log`, effect tables. |
-| `executors.py` | `LocalStoreExecutor` (annotate/suppress/control → effect tables), `SimulatedExecutor` (notify/incident until A4), `RecordingExecutor` (tests). |
+| `executors.py` | `LocalStoreExecutor` (annotate/suppress/control → effect tables), `NotifierExecutor` (notify_owner → `alerting.notifier`), `GitHubIssueExecutor` + `GitHubClient` (open_incident, `--live` only), `SimulatedExecutor`, `RecordingExecutor` (tests), `default_executors(store, live)`. |
+| `hooks.py` | What local pipeline runs read: `pipeline_suppression()` (D3) and `evaluate_controls()` (D4/F4). |
+| `evidence.py` | `build_case()`: an anomaly's evidence, built exactly as the pipeline builds it, for Olist or an onboarded dataset. Used by `propose` and `probe.py`. |
 | `graph.py` | `build_action_graph()`: the §5 flow, compiled with a checkpointer. |
-| `runner.py` | `ActionAgent`: wires store + `SqliteSaver` + executors + LangSmith run config; `start`, `decide`, `pending`, `waiting_on`. |
+| `runner.py` | `ActionAgent`: wires store + `SqliteSaver` + executors + LangSmith run config; `start`, `decide`, `undo`, `pending`, `waiting_on`. `live=True` allows effects outside this machine. |
 | `replay.py` | `replay_decisions()`: re-runs every logged policy decision on its stored evidence snapshot (§13.6). |
 | `cli.py` | `python -m action_agent.cli propose|pending|show|approve|edit|reject|log|replay`. `propose` uses the LLM proposer; `--no-llm` uses the deterministic one. |
 
@@ -79,8 +82,8 @@ execution will do: `target`, `payload`, `idempotency_key`, tier, reversibility. 
 (notify/incident) are deterministic: narrative summary + the dimension's evidence table (target
 segment bolded) + the cited evidence + the anomaly id. The only LLM-written text that reaches a
 payload is the length-capped `cause`/`reason`/`title`. Segment names are escaped for Markdown.
-`targets` (`github_repo`, `sns_topic_arn`) are `None` until A4 configures them, and the dry run
-shows them as `None` rather than hiding them. `now` is injectable so expiries are deterministic in
+`targets` (`alert_channel`, `github_repo`) come from settings (`ALERT_CHANNEL`,
+`ACTION_GITHUB_REPO`); an unconfigured one shows as `None` rather than being hidden. `now` is injectable so expiries are deterministic in
 tests. It raises `ValueError` if handed a rejected `PolicyResult`, since that is a programming
 error rather than bad input.
 
@@ -123,6 +126,54 @@ python -m action_agent.cli replay e275                 # exits 1 if today's code
 - **Interrupt and resume:** `await_approval` re-runs from its first line on resume, so nothing
   before `interrupt()` writes anything. The one exception is the expiry check, which ends the
   run instead of interrupting.
+
+## Executors, `--live` and undo (A4)
+
+| Action | Executor | Effect | Without `--live` | Undo |
+|---|---|---|---|---|
+| `annotate_anomaly` | `LocalStoreExecutor` | row in `annotations` | same (local) | log-only: the tag stops counting |
+| `suppress_alerts` | `LocalStoreExecutor` | row in `suppressions` | same (local) | the pipeline alert resumes |
+| `create_control` | `LocalStoreExecutor` | row in `controls` | same (local) | the watch stops being evaluated |
+| `notify_owner` | `NotifierExecutor` | a message to the owner via `alerting.notifier` | outbox: real (local file); any other channel: `simulated` | not reversible |
+| `open_incident` | `GitHubIssueExecutor` | a GitHub Issue in `ACTION_GITHUB_REPO` | `simulated` | closes the issue with a comment (needs `--live`) |
+
+- **`--live`** (on `approve`, `edit`, `undo`) means "allowed to cause effects outside this
+  machine". The outbox is a local file, so `notify_owner` really runs without it. A simulated
+  execution still logs `executed` with detail `simulated`, so the log never claims a send that
+  didn't happen.
+- **GitHub (D8):** repo from `ACTION_GITHUB_REPO` (no default, on purpose), token from
+  `GITHUB_TOKEN` (a fine-grained PAT with Issues read/write on that one repo). The issue body
+  ends with `<!-- metricpulse:idempotency_key=… -->`, and before creating, the executor lists the
+  repo's `metricpulse`-labelled issues and reuses one carrying the key. So a crash between
+  GitHub's reply and the `executed` row can't open a duplicate on a re-run.
+- **Owner messages** go to the owner resolved from `owners.yaml`, never an LLM param, with the
+  idempotency key in the message metadata.
+- **Undo (F3):** `python -m action_agent.cli undo <id> --reason "..." [--live]`. Only an
+  `executed`, reversible action; a reason is required. It writes an `undone` row (a terminal
+  status), and the effect tables are never edited: the active-effect queries exclude keys with
+  an `undone` row. A second undo is refused.
+
+## Pipeline hooks: suppression and watches (A4, `hooks.py`)
+
+Local pipeline runs read `actions.db` (when it exists; never inside Lambda, `ACTION_PIPELINE_HOOKS`):
+
+- **D3, suppression.** `run_pipeline` step 5 checks `pipeline_suppression('olist', metric, date)`.
+  An approved, unexpired, not-undone `suppress_alerts` for that anomaly means
+  `alert.status = suppressed` (with `until` and `reason`), **even with `--force-alert`**: it's a
+  human decision, and undo is the way to alert anyway.
+- **D4/F4, watches.** `run_pipeline` step 6 (and the `onboarding.investigate` CLI, for onboarded
+  datasets) runs `evaluate_controls(dataset, metric, current, previous)`. Every active watch for
+  that dataset and metric is checked against the segment's **real value that day**, from the
+  full per-dimension query (`fetch_dimension_metrics`), not the decomposition's top 5. No rows
+  that day counts as 0. The threshold is strict (`below 500` does not fire at exactly 500).
+  A breach sends one message to the watch's owner and logs `control_breached` on the proposal
+  that created it. **One alert per watch per day**, enforced by `control_alerts`'
+  `UNIQUE (control_id, metric_date)`; a second run reports `already_sent_today`. `--dry-run`
+  reports breaches and sends nothing.
+- Both are wrapped in the pipeline's never-raise convention: a broken `actions.db` logs a warning
+  and the alert goes out unsuppressed.
+- `run_cycle()` itself doesn't evaluate watches, because `propose` calls it and making a
+  proposal must not send watch alerts.
 
 ## The LLM proposer (A3)
 
@@ -169,8 +220,11 @@ max 4,050; $0.0042 for all 12. See the scope's A3 decision log.
   waits and retries, and latency jumps from ~1s to 20–30s. Expect this in batch evals (A5).
 - **Temperature 0 isn't deterministic.** In the live test, 20b proposed `annotate_anomaly` once for
   a case where a re-run proposed `notify_owner`. `annotate_anomaly` is T0 (auto) but tag-only.
-- `propose` still only takes onboarded datasets (`run_cycle`). Olist runs locally since L1, but
-  wiring `--dataset-id olist` into `propose` is left for A4/A5 (`probe.py` builds Olist cases).
+- **Only `total_revenue` and `order_count` can be proposed on for Olist.** The per-dimension
+  tables don't carry `customer_count` or `avg_order_value`, so there is nothing to decompose;
+  `propose` says so instead of crashing (`evidence.require_decomposable`).
+- D1 means one proposal per (dataset, metric, date) ever, so re-testing the same anomaly needs a
+  scratch `ACTIONS_DB_PATH`/`CHECKPOINTS_DB_PATH`.
 - Grounding uses decomposition-level segments only, not drill-down detail values. Owners and
   `create_control` evaluation (D4) are both segment-level, and `decompose_metric` is what D4
   re-runs.
@@ -181,4 +235,6 @@ max 4,050; $0.0042 for all 12. See the scope's A3 decision log.
 `tests/test_action_store.py`, `tests/test_action_graph.py` (real SQLite and a real `SqliteSaver`
 on `tmp_path`, `RecordingExecutor`, injected clock and proposer), `tests/test_llm_proposer.py`
 (the D2 routing and budget with injected models that return canned structured outputs, N3, and
-the graph wiring). No mocks.
+the graph wiring), `tests/test_action_executors.py` (the notifier outbox, and `open_incident`
+against a real local HTTP server speaking GitHub's REST calls), `tests/test_action_hooks.py` (undo,
+D3 and D4 end to end through a real `ActionAgent`). No mocks.

@@ -24,7 +24,7 @@ from typing import Dict, Iterator, List, Optional
 # Events that end a proposal's lifecycle.
 TERMINAL_EVENTS = frozenset({
     'policy_rejected', 'rejected', 'expired', 'executed', 'execution_failed',
-    'execution_blocked', 'duplicate_skipped',
+    'execution_blocked', 'duplicate_skipped', 'undone',
 })
 
 SCHEMA = """
@@ -103,6 +103,17 @@ CREATE TABLE IF NOT EXISTS controls (
     expires_at       TEXT NOT NULL,
     idempotency_key  TEXT NOT NULL UNIQUE,
     created_at       TEXT NOT NULL
+);
+
+-- D4: one alert per watch per metric date, enforced by the database (A4).
+CREATE TABLE IF NOT EXISTS control_alerts (
+    alert_id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    control_id       INTEGER NOT NULL REFERENCES controls(control_id),
+    metric_date      TEXT NOT NULL,
+    value            REAL NOT NULL,
+    message_id       TEXT,
+    created_at       TEXT NOT NULL,
+    UNIQUE (control_id, metric_date)
 );
 """
 
@@ -248,7 +259,55 @@ class ActionStore:
         with self._tx() as c:
             return c.execute(f'INSERT INTO {table} ({cols}) VALUES ({marks})', tuple(row.values())).lastrowid
 
+    # --- A4: undo, and the effects local pipeline runs read (D3, D4) ---
+
+    def executed_row(self, proposal_id: str) -> Optional[Dict]:
+        """The proposal's `executed` row (there is at most one per key, and one key per execution)."""
+        for event in reversed(self.events(proposal_id)):
+            if event['event'] == 'executed':
+                return event
+        return None
+
+    def proposal_for_key(self, idempotency_key: str) -> Optional[str]:
+        row = self._conn.execute(
+            "SELECT proposal_id FROM action_log WHERE idempotency_key = ? AND event = 'executed'",
+            (idempotency_key,)).fetchone()
+        return row['proposal_id'] if row else None
+
+    def _not_undone(self) -> str:
+        # An effect is active until its execution's key has an `undone` row. The effect tables are
+        # never edited: undo is a compensating log entry (F3), like every other status change.
+        return ("idempotency_key NOT IN (SELECT idempotency_key FROM action_log "
+                "WHERE event = 'undone' AND idempotency_key IS NOT NULL)")
+
+    def active_suppression(self, anomaly_id: str, now: Optional[datetime] = None) -> Optional[Dict]:
+        row = self._conn.execute(
+            f"SELECT * FROM suppressions WHERE anomaly_id = ? AND expires_at > ? AND {self._not_undone()} "
+            "ORDER BY expires_at DESC LIMIT 1", (anomaly_id, _now_iso(now))).fetchone()
+        return dict(row) if row else None
+
+    def active_controls(self, dataset_id: str, metric: str, now: Optional[datetime] = None) -> List[Dict]:
+        rows = self._conn.execute(
+            f"SELECT * FROM controls WHERE dataset_id = ? AND metric = ? AND expires_at > ? "
+            f"AND {self._not_undone()} ORDER BY control_id", (dataset_id, metric, _now_iso(now)))
+        return [dict(r) for r in rows]
+
+    def record_control_alert(self, control_id: int, metric_date: str, value: float,
+                             message_id: Optional[str], now: Optional[datetime] = None) -> bool:
+        """True if this is the first alert for (watch, date); False if one was already sent (D4)."""
+        try:
+            with self._tx() as c:
+                c.execute('INSERT INTO control_alerts (control_id, metric_date, value, message_id, created_at) '
+                          'VALUES (?, ?, ?, ?, ?)', (control_id, metric_date, value, message_id, _now_iso(now)))
+            return True
+        except sqlite3.IntegrityError:
+            return False
+
+    def control_alerted(self, control_id: int, metric_date: str) -> bool:
+        return self._conn.execute('SELECT 1 FROM control_alerts WHERE control_id = ? AND metric_date = ?',
+                                  (control_id, metric_date)).fetchone() is not None
+
     def effects(self, table: str) -> List[Dict]:
-        if table not in ('annotations', 'suppressions', 'controls'):
+        if table not in ('annotations', 'suppressions', 'controls', 'control_alerts'):
             raise ValueError(f'unknown effect table: {table}')
         return [dict(r) for r in self._conn.execute(f'SELECT * FROM {table} ORDER BY rowid')]

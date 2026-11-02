@@ -84,8 +84,8 @@ def build_dry_run(
     now: Optional[datetime] = None,
 ) -> Dict:
     """
-    targets: live executor destinations, e.g. {'github_repo': ..., 'sns_topic_arn': ...}.
-             Unset in A1 (configured with the live executors in A4); shown as None.
+    targets: executor destinations, {'alert_channel': ..., 'github_repo': ...}. The runner fills
+             them from settings (ALERT_CHANNEL, ACTION_GITHUB_REPO); a missing one shows as None.
     now:     injectable clock so expiry timestamps are deterministic in tests.
     """
     if not policy.allowed:
@@ -111,7 +111,7 @@ def build_dry_run(
 
     elif action_type == 'notify_owner':
         owner = resolve_owner(owners, ctx.dataset_id, params['dimension'], params['segment'])
-        target = {'kind': 'sns_email', 'owner': owner, 'topic_arn': targets.get('sns_topic_arn')}
+        target = {'kind': 'notifier', 'channel': targets.get('alert_channel'), 'owner': owner}
         payload = {
             'subject': f"[MetricPulse] {ctx.metric} anomaly on {ctx.anomaly_date}: "
                        f"{params['segment']} ({params['dimension']})"[:100],

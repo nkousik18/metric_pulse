@@ -70,6 +70,9 @@ python -m investigation.eval --runs 5                               # Phase 1 ev
 python -m onboarding.eval                                           # Phase 2 Golden Case #2 (real LLM call, real cost)
 python -m action_agent.probe [--small-only]                         # Action Agent proposer on 12 real anomalies (real Groq calls, ~$0.005)
 python -m action_agent.cli propose --dataset-id superstore_sales --metric sales   # LLM proposer -> approval queue (--no-llm: deterministic)
+python -m action_agent.cli propose --dataset-id olist --metric total_revenue       # Olist (total_revenue or order_count only)
+python -m action_agent.cli approve <id> [--live]     # --live: allow effects outside this machine (a real GitHub issue)
+python -m action_agent.cli undo <id> --reason "..."   # F3: reverse a reversible executed action
 python -m onboarding.onboard --file data/some_new_dataset.csv       # Phase 2 dataset onboarding CLI (real LLM call, interactive confirm)
 python -m onboarding.investigate --dataset-id <id> --metric <col> [--run-investigation]  # detect/decompose/narrate (+ Phase 1 agent) against an onboarded dataset
 python -m detection.anomaly_detector                               # detection layer alone

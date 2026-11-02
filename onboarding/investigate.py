@@ -180,3 +180,23 @@ if __name__ == '__main__':
             print(f"Investigation summary:\n{inv['investigation_summary']}")
         if inv.get('grounding_failed'):
             print("(fell back to deterministic summary -- grounding failed)")
+
+    # Action Agent watches on this dataset (docs/action-agent-scope.md D4, F4). Here, in the CLI,
+    # not in run_cycle(): action_agent's `propose` also calls run_cycle, and making a proposal must
+    # not send watch alerts as a side effect.
+    from config import settings as _settings
+    if _settings.ACTION_PIPELINE_HOOKS:
+        try:
+            from action_agent.hooks import evaluate_controls
+            config, _ = load_dataset_config(args.dataset_id)
+            controls = evaluate_controls(
+                args.dataset_id, args.metric, result['current_date'], result['previous_date'],
+                dimension_config=config['dimension_config'], connection_factory=config['connection_factory'])
+            if controls.get('evaluated'):
+                print(f"\nAction Agent watches: {controls['evaluated']} evaluated, "
+                      f"{len(controls['breaches'])} breached, {controls['alerts_sent']} alerted")
+                for b in controls['breaches']:
+                    print(f"  #{b['control_id']} {b['segment']} ({b['dimension']}) = {b['value']:,.2f}, "
+                          f"{b['direction']} {b['threshold']:,.2f}: {b['alert']}")
+        except Exception as e:
+            print(f"\nAction Agent watch evaluation failed (non-blocking): {e}")

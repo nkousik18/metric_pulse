@@ -29,6 +29,9 @@ Same pattern as `WAREHOUSE` (local-stack scope §6.4): a local default, the arch
 | `ALERT_CHANNEL` | `outbox` / `sns` | `alerting/notifier.py`: write alerts to `OUTBOX_DIR`, or publish to the archived SNS topic. Unknown names raise. |
 | `OUTBOX_DIR` | `<repo>/outbox` (gitignored) | Where outbox messages and `index.jsonl` go. |
 | `ALERT_RECIPIENT` | `metric-pulse-alerts` | The recipient written on pipeline alerts in the outbox (named after the SNS topic). |
+| `ACTION_PIPELINE_HOOKS` | `true` / `false` | Whether local pipeline runs read `actions.db` for the Action Agent's suppressions (D3) and watches (D4). |
+| `ACTION_GITHUB_REPO` | unset | `owner/name` for `open_incident`'s GitHub Issues. No default on purpose. |
+| `GITHUB_TOKEN` | unset | Fine-grained PAT, Issues read/write on that one repo. Used only with `--live`. |
 | `CLOUDWATCH_METRICS` | `false` / `true` | Whether `run_pipeline` calls the archived `monitoring/cloudwatch_metrics.py` after a non-dry run. Off locally because working AWS credentials would otherwise publish billed metrics. `lambda_handler.py` passes `publish_metrics=False` anyway. |
 
 ## Files

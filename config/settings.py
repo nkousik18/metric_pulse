@@ -97,3 +97,14 @@ ACTION_SMALL_MODEL = os.getenv("ACTION_SMALL_MODEL", "openai/gpt-oss-20b")
 ACTION_LARGE_MODEL = os.getenv("ACTION_LARGE_MODEL", "openai/gpt-oss-120b")
 # D2: tokens per Action Agent run, across its LLM calls only (Phase 1 synthesize is excluded, N1).
 ACTION_TOKEN_BUDGET = int(os.getenv("ACTION_TOKEN_BUDGET", "10000"))
+
+# --- Action Agent live executors and pipeline hooks (docs/action-agent-scope.md A4, D3, D4, D8) ---
+# open_incident's GitHub repo ("owner/name"). No default on purpose: the agent must never open an
+# issue on a repo nobody chose. Token: a fine-grained PAT with Issues read/write on that one repo.
+ACTION_GITHUB_REPO = (os.getenv("ACTION_GITHUB_REPO") or "").strip() or None
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+GITHUB_API_URL = os.getenv("GITHUB_API_URL", "https://api.github.com")
+# Whether local pipeline runs read actions.db (D3 suppressions, D4 controls). Off inside Lambda,
+# which has no actions.db and is unchanged (D9).
+ACTION_PIPELINE_HOOKS = os.getenv(
+    "ACTION_PIPELINE_HOOKS", backend_default("true", "false")).strip().lower() == "true"

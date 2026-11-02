@@ -230,7 +230,25 @@ Filled in as the D8 choices are made during the build. One line each: choice —
 - **Prices pinned** in `config/settings.py` from console.groq.com/docs/models (2026-11-02): 20b $0.075/$0.30, 120b $0.15/$0.60 per 1M tokens.
 - **Not done (left for review):** `propose --dataset-id olist` (Olist runs locally since L1; `probe.py` already builds Olist cases), and the `notify_owner` dry-run target still says `sns_email` until A4's notifier executor.
 
-_Pending: live executor targets and credentials (A4), and the API approver identity check (A6)._
+**A4 (2026-11-02)**
+- **D8, GitHub target and credentials:** `ACTION_GITHUB_REPO` (no default, on purpose: an agent should never open issues on a repo nobody chose) and `GITHUB_TOKEN` (a fine-grained PAT, Issues read/write on that one repo). Kousik chose a new **private** repo, `nkousik18/metricpulse-incidents`, over the public portfolio repo. The one live check used his existing `gh` login for that run only (`GITHUB_TOKEN="$(gh auth token)"`, never printed or saved).
+- **D8, notifier channel:** `notify_owner` and watch-breach messages go through `alerting.notifier` on `ALERT_CHANNEL` (the local outbox by default), to the owner resolved from `owners.yaml`.
+- **What `--live` gates:** effects outside this machine only. The outbox is a local file, so `notify_owner` really runs without `--live`; a GitHub issue, or a notifier channel other than the outbox, is `simulated` without it. A simulated run still logs `executed` with detail `simulated`, so the log never claims a send that didn't happen.
+- **GitHub idempotency beyond the action log:** the issue body ends with `<!-- metricpulse:idempotency_key=… -->`, and before creating, the executor lists the repo's `metricpulse`-labelled issues (the list endpoint, not search, which is eventually consistent) and reuses one carrying the key. Reason: the action log's one-execution-per-key guard can't cover a crash between GitHub's reply and the `executed` row.
+- **Undo (F3) is a compensating row; effect tables are never edited.** "Active" suppressions and watches are the ones whose key has no `undone` row. `undone` is a terminal status, so a second undo is refused. An undo needs a reason. `notify_owner` isn't reversible (a sent message stays sent), and closing a real issue needs `--live`. Undo runs outside the graph, so its row has no LangSmith trace id; A6's API is a natural place to add one.
+- **D3 suppression wins over `--force-alert`.** Reason: a suppression is an approved human decision, `--force-alert` is a testing flag, and the documented way to alert anyway is to undo the suppression.
+- **D4 reads every segment, not the top 5.** `decompose_metric` keeps only the top 5 contributors per dimension, so a watch on any other segment would be blind. Evaluation calls the same per-dimension query (`fetch_dimension_metrics`) and gets every segment; a segment with no rows that day counts as 0. Thresholds are strict.
+- **One alert per watch per day is a database constraint:** `control_alerts UNIQUE (control_id, metric_date)`. A breach also writes a non-terminal `control_breached` row on the proposal that created the watch, and the message names that proposal's undo command.
+- **Where D4 runs:** `run_pipeline` step 6 (Olist), and the `onboarding.investigate` CLI (onboarded datasets), not `run_cycle()`, because `propose` calls `run_cycle` and making a proposal must not send watch alerts. `--dry-run` reports breaches and sends nothing. Both hooks are off when `ACTION_PIPELINE_HOOKS` is false (the Lambda default, D9) or `actions.db` doesn't exist, and never raise.
+- **`propose --dataset-id olist`** now works (it was a review item from A3), through a shared `action_agent/evidence.py` that `probe.py` also uses. Only `total_revenue` and `order_count` qualify: Olist's per-dimension tables don't carry the other two metrics, and `propose` now says so instead of crashing (BUG_LOG A4-1).
+
+**Verified live (2026-11-02)**, on scratch databases with the real Olist warehouse and pipeline:
+- **D3:** `run_pipeline --force-alert` → `sent`; after approving a `suppress_alerts` via the CLI → `suppressed` (until its expiry); after `undo` → `sent` again, with the log ending in an `undone` row.
+- **D4:** a `create_control` watch "Credit Card `order_count` below 5" (real value 0) approved via the CLI; the first pipeline run alerted Payments Team (the `owners.yaml` owner of Olist payment segments) and logged `control_breached`; the second run reported `already_sent_today` and sent nothing.
+- **`notify_owner`:** `propose --dataset-id olist` (20b grounded, 2,142 tokens) → approve → a real outbox message to Payments Team with the idempotency key in its metadata.
+- **`open_incident`:** approve `--live` opened issue #1 in the private sandbox with labels, the evidence table and the key marker; replaying the execution returned `already_open` (no duplicate); `undo --live` closed it as not planned, with a comment.
+
+_Pending: the API approver identity check (A6)._
 
 ## 13. Observability, tracing and replay (added 2026-11-02)
 

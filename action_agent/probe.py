@@ -25,51 +25,16 @@ from typing import Dict, List
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from action_agent.evidence import build_case, top_anomaly_dates  # noqa: E402
 from action_agent.llm_proposer import make_llm_proposer  # noqa: E402
 from action_agent.policy import policy_check  # noqa: E402
-from action_agent.runner import to_plain  # noqa: E402
 from config import settings  # noqa: E402
-from config.db import get_connection  # noqa: E402
 
 # (dataset_id, metric, how many top-|z| dates). Olist is the local DuckDB warehouse (L1);
 # superstore_sales is the onboarded Phase 2 dataset.
 DEFAULT_PLAN = [('olist', 'total_revenue', 4), ('olist', 'order_count', 2),
                 ('superstore_sales', 'sales', 3), ('superstore_sales', 'profit', 2)]
 GOLDEN = [('olist', 'total_revenue', '2018-09-03')]
-
-
-def _dataset(dataset_id: str) -> Dict:
-    if dataset_id == 'olist':
-        return {'metric_columns': None, 'table_name': 'staging.fact_daily_metrics',
-                'connection_factory': get_connection, 'dimension_config': None}
-    from onboarding.investigate import load_dataset_config
-    config, _ = load_dataset_config(dataset_id)
-    return config
-
-
-def top_anomaly_dates(dataset_id: str, metric: str, n: int) -> List[str]:
-    from detection.anomaly_detector import detect_anomalies, fetch_daily_metrics
-    cfg = _dataset(dataset_id)
-    df = fetch_daily_metrics(100_000, cfg['metric_columns'], cfg['table_name'], cfg['connection_factory'])
-    df = detect_anomalies(df, metric)
-    df = df[df['is_anomaly']].assign(absz=lambda d: d['zscore'].abs())
-    df = df.sort_values(['absz', 'metric_date'], ascending=[False, True])
-    return [str(d)[:10] for d in df['metric_date'].head(n)]
-
-
-def build_case(dataset_id: str, metric: str, target_date: str) -> Dict:
-    from decomposition.decomposer import decompose_metric, get_comparison_dates, get_top_driver
-    from narrative.generator import generate_narrative
-    cfg = _dataset(dataset_id)
-    current, previous = get_comparison_dates(target_date, table_name=cfg['table_name'],
-                                             connection_factory=cfg['connection_factory'])
-    kwargs = {'connection_factory': cfg['connection_factory']}
-    if cfg['dimension_config'] is not None:
-        kwargs['dimension_config'] = cfg['dimension_config']
-    evidence = to_plain(decompose_metric(current, previous, metric, **kwargs))
-    return {'dataset_id': dataset_id, 'metric': metric, 'anomaly_date': current,
-            'evidence': evidence, 'narrative_summary': generate_narrative(evidence)['summary'],
-            'top_driver': to_plain(get_top_driver(evidence))}
 
 
 def build_cases(plan=DEFAULT_PLAN, golden=GOLDEN) -> List[Dict]:

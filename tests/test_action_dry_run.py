@@ -143,7 +143,8 @@ def test_create_control_payload_matches_d4_watch_shape():
 
 def test_unconfigured_live_targets_are_explicit_none():
     assert _dry('open_incident')['target']['repo'] is None
-    assert _dry('notify_owner')['target']['topic_arn'] is None
+    notify = _dry('notify_owner')['target']
+    assert notify['kind'] == 'notifier' and notify['channel'] is None
 
 
 def test_evidence_table_escapes_untrusted_segment_names():
