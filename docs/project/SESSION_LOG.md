@@ -5,6 +5,19 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-02 — Started a bug log
+
+**What happened:** Kousik asked for the bugs found so far to be documented. Added
+`docs/project/BUG_LOG.md`: 33 real bugs from M1 to A3, each with how it was found, root cause,
+fix and guard, gathered from this log, the Phase 1 retrospective and this session's work.
+23 of 33 were found only by running the real thing; 2 by a unit test; 8 by review. Linked from
+`CLAUDE.md`, `docs/README.md` and a new `WORKING_CONVENTIONS.md` section: add a row in the same
+PR as the fix.
+
+**Next:** A4.
+
+---
+
 ## 2026-11-02 — Built A3: the LLM proposer and shared LLM telemetry; stopping for review (D7)
 
 **What happened:** Built Action Agent milestone A3 (branch `feat/llm-action-proposer`).

@@ -26,3 +26,4 @@ Technical reference for the MetricPulse automated root cause analysis pipeline.
 | [architecture.md](architecture.md) | System overview and component diagram |
 | [workflow_diagram.md](workflow_diagram.md) | End-to-end data flow — Mermaid diagrams + per-step input/output tables across all layers |
 | [setup.md](setup.md) | Local development setup and environment variables |
+| [project/BUG_LOG.md](project/BUG_LOG.md) | Every real bug found since 2026-08: symptom, how found, root cause, fix, and the guard against it coming back |
