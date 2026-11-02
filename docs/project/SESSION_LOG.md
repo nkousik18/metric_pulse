@@ -5,6 +5,43 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-02 — Built L2: alerts go to a local outbox
+
+**What happened:** Built local-stack milestone L2 (branch `feat/local-alert-outbox`).
+- **`alerting/notifier.py` (new):** `ALERT_CHANNEL` switch (`outbox` default, `sns` archived and
+  the Lambda default). The outbox writes `outbox/YYYY-MM-DD/<HHMMSS>_<slug>.md` (YAML front
+  matter + Markdown) and appends to `outbox/index.jsonl`. `send_metric_alert(narratives)` for the
+  pipeline; `send_alert(subject, body, recipient=…)` for A4's `notify_owner`. `--test` CLI.
+- **`run_pipeline` step 5** calls `send_metric_alert`; under `sns` it is the same
+  `publish_metric_alert(narratives)` call as before. The summary prints the channel and file.
+- **New `CLOUDWATCH_METRICS` setting** (off locally, on in Lambda), gating the archived
+  CloudWatch publish. Not in the original scope; see the finding below.
+- Action Agent scope text aligned (§4 `notify_owner`, D3, A4, the risks table, §13.7).
+- `sns_publisher.py` and `cloudwatch_metrics.py` are untouched. No AWS file deleted or moved.
+
+**Verified live:** `run_pipeline --force-alert` → `alert.status = sent`, `channel = outbox`,
+0.32s, a readable file with the real narrative (−90.6%, Credit Card 106.6%) and one index line;
+no CloudWatch call. `python -m alerting.notifier --test` works. 13 new tests; suite at 215,
+lint clean.
+
+**Findings:**
+- **The SNS topic and AWS credentials still work.** Kousik said everything AWS was deleted, but
+  a test in this session **really published one SNS message** to `metric-pulse-alerts`. Cause:
+  the test unset `SNS_TOPIC_ARN`, and `sns_publisher` calls `load_dotenv()` on import, which
+  refills a missing variable from `.env`. Fixed by setting it to `''` (dotenv never overrides a
+  set variable). Documented in `alerting/README.md`, `CLAUDE.md` and the scope's decision log.
+  With live credentials, a local non-dry run would also have published billed CloudWatch
+  metrics, which is why `CLOUDWATCH_METRICS` now defaults off.
+
+**Next:** Kousik: delete the SNS topic and deactivate the AWS access key in `.env`/`~/.aws` if
+the account is meant to be gone (credentials weren't printed). Then L3: the Olist sample, the
+real `dbt-build-local` CI job, and `cd.yml` to manual.
+
+**Loose ends:** A2's LangSmith verification is still blocked on the 403 key. The `outbox/`
+messages from today's live runs are local only (gitignored).
+
+---
+
 ## 2026-11-02 — Built L1: the Olist pipeline runs locally on DuckDB again
 
 **What happened:** Built local-stack milestone L1.

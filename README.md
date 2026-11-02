@@ -75,7 +75,7 @@ MetricPulse automates the entire workflow in **under 30 seconds**:
 | **Transformation** | dbt (11 models, 37 tests) |
 | **Backend** | Python, Django REST Framework |
 | **Detection** | NumPy, pandas (Z-score analysis) |
-| **Alerting** | AWS SNS |
+| **Alerting** | Local Markdown outbox (default); AWS SNS (archived, `ALERT_CHANNEL=sns`) |
 | **Frontend** | Tailwind CSS, Chart.js |
 | **Containerization** | Docker |
 | **CI/CD** | GitHub Actions |
@@ -101,8 +101,9 @@ metric_pulse/
 ├── narrative/               # Narrative generation
 │   ├── generator.py
 │   └── templates/
-├── alerting/                # SNS alerting
-│   └── sns_publisher.py
+├── alerting/                # alert delivery
+│   ├── notifier.py          # ALERT_CHANNEL switch + local outbox (default)
+│   └── sns_publisher.py     # archived AWS SNS channel
 ├── orchestration/           # Pipeline orchestration
 │   └── run_pipeline.py
 ├── monitoring/              # CloudWatch metrics

@@ -194,8 +194,15 @@ R1–R5). It is prioritized ahead of Action Agent A3 (scope §9).
       decomposition|narrative` and `/` returned 200 with Olist data; the result was cross-checked
       independently from the raw CSVs with pandas (−90.56%, exact match). 12 new tests, suite
       at 202. The Redshift connection code is byte-identical (diffed).
-- [ ] **L2** — `alerting/notifier.py` (local outbox, SNS kept as a channel), `run_pipeline` alert
+- [x] **L2** — `alerting/notifier.py` (local outbox, SNS kept as a channel), `run_pipeline` alert
       wiring, Action Agent scope text aligned (`notify_owner` via notifier).
+      **Verified live 2026-11-02:** `run_pipeline --force-alert` → `alert.status = sent`,
+      `channel = outbox`, 0.32s, a readable Markdown file with the real narrative and one
+      `index.jsonl` line; `python -m alerting.notifier --test` works; the `ALERT_CHANNEL=sns`
+      dispatch is tested and runs the unchanged `sns_publisher` without a network call. 13 new
+      tests, suite at 215. Added `CLOUDWATCH_METRICS` (off locally). **Finding:** the SNS topic
+      and AWS credentials still work (one real message was published by a test during the build;
+      fixed). See the scope's L2 decision log.
 - [ ] **L3** — Committed Olist sample + real `dbt-build-local` CI job (the old `dbt-check` can't
       fail); `cd.yml` to manual trigger (it has failed on every merge since 2026-08); docs pass.
 

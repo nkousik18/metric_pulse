@@ -68,3 +68,16 @@ def backend_default(local: str, aws: str, environ=os.environ) -> str:
 WAREHOUSE = os.getenv("WAREHOUSE", backend_default("duckdb", "redshift")).strip().lower()
 WAREHOUSE_PATH = Path(os.getenv("WAREHOUSE_PATH", DATA_DIR / "warehouse.duckdb"))
 RAW_DATA_DIR = Path(os.getenv("RAW_DATA_DIR", DATA_DIR / "raw"))
+
+# Alert delivery channel (docs/local-stack-scope.md §6.4, R4). The local outbox is the default:
+# each alert becomes a Markdown file under OUTBOX_DIR. SNS is the archived AWS channel, kept
+# intact (R1), and stays the default inside Lambda so the archived image behaves as it always did.
+ALERT_CHANNEL = os.getenv("ALERT_CHANNEL", backend_default("outbox", "sns")).strip().lower()
+OUTBOX_DIR = Path(os.getenv("OUTBOX_DIR", PROJECT_ROOT / "outbox"))
+# Who a pipeline alert is addressed to in the outbox. Named after the archived SNS topic.
+ALERT_RECIPIENT = os.getenv("ALERT_RECIPIENT", "metric-pulse-alerts")
+# CloudWatch pipeline metrics (archived AWS monitoring, monitoring/cloudwatch_metrics.py, kept intact).
+# Off locally: with live AWS credentials still on the machine, a local run would otherwise really
+# publish billed custom metrics. On inside Lambda, so the archived image behaves as it always did.
+CLOUDWATCH_METRICS = os.getenv(
+    "CLOUDWATCH_METRICS", backend_default("false", "true")).strip().lower() == "true"

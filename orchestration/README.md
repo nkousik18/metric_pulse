@@ -20,8 +20,8 @@ Runs 5 steps in strict sequence, all inside one `try/except`:
 3. **`decompose_metric(current_date, previous_date, metric)`** (`decomposition.decomposer`) → `decomposition_results`
 4. **`generate_narrative(decomposition_results)`** (`narrative.generator`) → `narratives`
 5. **Alert, conditionally:**
-   - Only runs `publish_metric_alert(narratives)` (`alerting.sns_publisher`) if `anomaly_detected or force_alert`
-   - If `dry_run=True`, the alert step is skipped entirely and `results['alert'] = {'status': 'dry_run'}` — no SNS call is made even if an anomaly was detected
+   - Only runs `send_metric_alert(narratives, metadata=...)` (`alerting.notifier`) if `anomaly_detected or force_alert`. The channel is `ALERT_CHANNEL`: the local outbox by default (`results['alert']` then has `channel: 'outbox'` and the file `path`), or the archived SNS publisher, called exactly as before (`publish_metric_alert(narratives)`). Metadata (`metric`, both dates, `anomaly_count`, `force_alert`) is written to the outbox front matter only. See `alerting/README.md`.
+   - If `dry_run=True`, the alert step is skipped entirely and `results['alert'] = {'status': 'dry_run'}` — nothing is sent even if an anomaly was detected
    - If no anomaly and `force_alert=False`, `results['alert'] = {'status': 'skipped', 'reason': 'no_anomaly'}`
 
 **Note on decomposition/narrative:** unlike the alert step, decomposition and narrative generation run unconditionally on every call — even when no anomaly was detected. Only the alert send is gated by `anomaly_detected or force_alert`.
@@ -43,7 +43,7 @@ Default `run_investigation=False` — zero behavior change for every pre-existin
 
 **Error handling:** any exception in steps 1–5 is caught once at the top level. `results['status']` is set to `'failed'`, `results['error'] = str(e)` is recorded, and whatever partial results were already accumulated (e.g. `detection` from step 1 if step 3 failed) are preserved and returned — the function never raises. `duration_seconds` is computed in both the success and failure paths.
 
-**CloudWatch publish (after the try/except, separate try/except):** if `publish_metrics=True` **and** `dry_run=False`, imports `monitoring.cloudwatch_metrics.publish_pipeline_metrics` and calls it with the full `results` dict. A failure here is only logged at WARNING level — it can never fail the pipeline or change `results['status']`. Note `publish_metrics` has no effect when `dry_run=True`; CloudWatch publishing is silently skipped in that case regardless of the flag's value.
+**CloudWatch publish (after the try/except, separate try/except, archived AWS monitoring):** if `publish_metrics=True` **and** `dry_run=False` **and** `settings.CLOUDWATCH_METRICS` (default `false` locally, `true` in Lambda; added in local-stack L2), imports `monitoring.cloudwatch_metrics.publish_pipeline_metrics` and calls it with the full `results` dict. A failure here is only logged at WARNING level — it can never fail the pipeline or change `results['status']`. Note `publish_metrics` has no effect when `dry_run=True`; CloudWatch publishing is silently skipped in that case regardless of the flag's value.
 
 ### `print_summary(results: Dict)`
 
@@ -68,16 +68,16 @@ Pretty-prints status, period, duration, anomaly count, narrative summary, and al
 ## Running standalone
 
 ```bash
-# Dry run — full pipeline, no SNS alert sent, no CloudWatch publish
+# Dry run — full pipeline, no alert sent, no CloudWatch publish
 python -m orchestration.run_pipeline --dry-run
 
-# Force an alert regardless of anomaly detection
+# Force an alert regardless of anomaly detection (writes to outbox/ by default)
 python -m orchestration.run_pipeline --force-alert
 
 # Custom metric/threshold
 python -m orchestration.run_pipeline --metric order_count --threshold 2.5 --dry-run
 
-# Skip CloudWatch publishing (still sends alert if anomaly/force-alert)
+# Skip CloudWatch publishing (already off unless CLOUDWATCH_METRICS=true)
 python -m orchestration.run_pipeline --no-metrics --force-alert
 
 # Run the Phase 1 investigation agent alongside the pipeline (real LLM call, real cost)
@@ -92,7 +92,7 @@ None read directly by this file — `load_dotenv()` is called so that downstream
 
 ## Dependencies on other folders
 
-`config.logging_config`, `detection.anomaly_detector`, `decomposition.decomposer`, `narrative.generator`, `alerting.sns_publisher`, and (lazily, inside the function body — not at module import time) `monitoring.cloudwatch_metrics` and (as of Phase 1's M2, also lazily, only inside the `run_investigation` gated block) `investigation.graph`/`investigation.state`. The lazy import of `monitoring` means a broken/missing monitoring module would only surface at runtime after the pipeline already completed, not at import time; the same applies to `investigation` — importing it only when actually requested keeps every non-investigation caller's import weight and env-var requirements (`GROQ_API_KEY`) unchanged.
+`config.logging_config`, `detection.anomaly_detector`, `decomposition.decomposer`, `narrative.generator`, `alerting.notifier` (which imports the archived `alerting.sns_publisher` lazily, only when `ALERT_CHANNEL=sns`), `config.settings`, and (lazily, inside the function body — not at module import time) `monitoring.cloudwatch_metrics` and (as of Phase 1's M2, also lazily, only inside the `run_investigation` gated block) `investigation.graph`/`investigation.state`. The lazy import of `monitoring` means a broken/missing monitoring module would only surface at runtime after the pipeline already completed, not at import time; the same applies to `investigation` — importing it only when actually requested keeps every non-investigation caller's import weight and env-var requirements (`GROQ_API_KEY`) unchanged.
 
 ## Gotchas
 

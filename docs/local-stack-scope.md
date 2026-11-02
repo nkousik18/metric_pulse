@@ -1,6 +1,6 @@
 # MetricPulse Local Stack — Scope
 
-**Status:** Approved 2026-11-02; L1 built · **Owner:** Kousik Nandury · **Date:** 2026-11-02
+**Status:** Approved 2026-11-02; L1–L2 built · **Owner:** Kousik Nandury · **Date:** 2026-11-02
 **Tracked in:** `docs/ROADMAP.md` → "Local Stack" (milestones L1–L3)
 **Priority:** ahead of Action Agent A3 (see §9)
 
@@ -58,7 +58,7 @@ This table is the map for anyone reading the repo later.
 | dbt | `dbt-duckdb`, target `local` in a committed `dbt_project/profiles.yml` | `dbt-redshift`, target `redshift` (credentials from env vars) | `dbt build --target local\|redshift` |
 | Pipeline alert | Local outbox `outbox/` | SNS `alerting/sns_publisher.py` | `ALERT_CHANNEL=outbox\|sns` |
 | Action Agent `notify_owner` (A4) | Outbox, to the owner from `owners.yaml` | — (SNS was the original A4 plan) | `ALERT_CHANNEL` |
-| Pipeline metrics | none (local logs only) | CloudWatch `monitoring/cloudwatch_metrics.py` | `--no-metrics` / not called locally |
+| Pipeline metrics | none (local logs only) | CloudWatch `monitoring/cloudwatch_metrics.py` | `CLOUDWATCH_METRICS=false\|true` (off locally; also `--no-metrics`) |
 | Scheduled runs | manual CLI | Lambda + EventBridge (`lambda_handler.py`, `deploy/`) | — |
 | Web app | `python manage.py runserver` | Render (gone) | — |
 | Legacy dashboard | — | Streamlit `dashboard/app.py` (Redshift only) | — |
@@ -66,7 +66,7 @@ This table is the map for anyone reading the repo later.
 | CD | manual trigger only | `cd.yml` (AWS deploy) | `workflow_dispatch` |
 
 **Archived-path defaults:** when `AWS_LAMBDA_FUNCTION_NAME` is set (that is, code running inside
-Lambda), `WAREHOUSE` defaults to `redshift` and `ALERT_CHANNEL` to `sns`. The archived Lambda
+Lambda), `WAREHOUSE` defaults to `redshift`, `ALERT_CHANNEL` to `sns` and `CLOUDWATCH_METRICS` to `true`. The archived Lambda
 image therefore keeps its original behavior with no env changes.
 
 ## 6. Design
@@ -256,3 +256,17 @@ Filled in during the build. One line each: choice — reason.
 - The full local chain was **independently verified** by recomputing 2018-08-29 → 2018-09-03 directly from the raw CSVs with pandas, bypassing DuckDB and dbt: −90.56% total revenue, Credit Card 106.59% of the change. That matches the local pipeline's narrative ("decreased 90.6% … Credit Card … 106.6%") exactly.
 - The figures "decreased 80.0% … Credit Card contributed 107.1%" that appear in some materials were **never live output**. They come from `docs/scoping.md` §3.8's illustrative Golden Case #1, which also feeds `tests/test_action_dry_run.py`'s fixture. The real figures for that date are 90.6% / 106.6%.
 - A test caught a parser bug before it could matter: `parse_ddl` matched only one column per line, so a single-line `CREATE TABLE` lost columns. The real DDL is one column per line, which is why the live load was unaffected. It now splits on top-level commas.
+
+**L2 (2026-11-02)**
+- **Two entry points, `send_alert(subject, body, …)` and `send_metric_alert(narratives, …)`.** §6.4 named only `send_alert`, but the archived SNS path takes the narratives dict (`publish_metric_alert` picks the subject, body and strips Markdown). Reason: `send_metric_alert` under `sns` calls `publish_metric_alert(narratives)` exactly as `run_pipeline` did, so "byte-for-byte the old behavior" holds literally. `send_alert` is the general one, for `notify_owner` (A4).
+- **The return dict gains `channel`** under both channels; nothing else changes. `run_pipeline`'s summary and CloudWatch's `status == 'sent'` check are unaffected.
+- **The outbox keeps Markdown.** SNS strips `*` for plain-text email; the outbox file is `.md`, so the narrative renders as written.
+- **Fail-soft I/O, loud configuration.** A write failure returns `{'status': 'error'}` like SNS's `ClientError`; an unknown `ALERT_CHANNEL` raises `ValueError`, so a typo can't silently drop every alert.
+- **Never overwrite:** files open with mode `x`; a same-second, same-subject message gets `_2`, `_3`.
+- **New: `CLOUDWATCH_METRICS` (off locally, on in Lambda).** Not in the original §6.4, added because of the finding below: with working AWS credentials still on the machine, a local non-dry run would really have published billed CloudWatch custom metrics. `lambda_handler.py` already passes `publish_metrics=False`, so Lambda behavior is unchanged either way.
+- **`ALERT_RECIPIENT`** (default `metric-pulse-alerts`, the old topic's name) addresses pipeline alerts in the outbox.
+
+**Verification findings (L2)**
+- **The AWS account is not fully torn down.** The SNS topic `metric-pulse-alerts` still exists, and the credentials in `.env` (and `~/.aws/`) still authenticate: during the build, a test **really published one SNS message** to it. Cause: the test removed `SNS_TOPIC_ARN` from the environment, and `sns_publisher` calls `load_dotenv()` on import, which refills a *missing* variable from `.env`. Fixed by setting it to an empty string instead (dotenv never overrides a set variable); recorded in `tests/test_notifier.py` and `alerting/README.md`. Reported to Kousik, who should delete the topic and deactivate the access key if the account is meant to be gone.
+- LS2 live: `python -m orchestration.run_pipeline --force-alert` → `alert.status = sent`, `channel = outbox`, 0.32s, file `outbox/2026-11-02/145939_metricpulse-total-revenue-decrease-90-6-on-2018-09-03.md` readable with the real narrative (−90.6%, Credit Card 106.6%), one matching `index.jsonl` line, and no CloudWatch call. `python -m alerting.notifier --test` wrote a second message.
+
