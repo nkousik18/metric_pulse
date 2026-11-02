@@ -26,6 +26,10 @@ run, and the following `--amend` only renamed the break commit. The push was rej
 wrong reached GitHub; I reset the branch to the remote and reverted properly, then confirmed no
 diff against the pre-break commit.
 
+**Flaky check:** `dbt-check` failed once on a docs-only commit: its unpinned `pip install
+dbt-redshift` hit a GitHub-releases HTTP 500 fetching a new dbt parser wheel. A re-run passed.
+Recorded in the scope; the job is left unchanged (R1).
+
 **Next:** the local stack (L1–L3) is complete. Kousik's call: make `dbt-build-local` a required
 check in `main`'s branch protection (repo setting, not done), and delete the still-live SNS topic
 and AWS access key. Then back to the Action Agent: A2's LangSmith check (key still 403), then A3.
