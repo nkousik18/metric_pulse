@@ -1,6 +1,6 @@
 # MetricPulse Local Stack — Scope
 
-**Status:** Approved 2026-11-02; L1–L2 built · **Owner:** Kousik Nandury · **Date:** 2026-11-02
+**Status:** Approved 2026-11-02; L1–L3 built (complete) · **Owner:** Kousik Nandury · **Date:** 2026-11-02
 **Tracked in:** `docs/ROADMAP.md` → "Local Stack" (milestones L1–L3)
 **Priority:** ahead of Action Agent A3 (see §9)
 
@@ -158,7 +158,7 @@ image therefore keeps its original behavior with no env changes.
   a broken model or a failing test.
 - **The committed sample** is `data/fixtures/olist_sample/`, a deterministic subset (orders from a
   fixed date window plus every row they reference) made by `ingestion/make_olist_sample.py`.
-  The target size is a few MB, so CI never needs the 124 MB raw data. Olist is published as CC BY-NC-SA 4.0 (re-check this on the dataset page at L3),
+  The target size is a few MB, so CI never needs the 124 MB raw data. Olist is published as CC BY-NC-SA 4.0 (confirmed at L3 from Kaggle's dataset metadata),
   so the folder carries an attribution and license note. Because of ShareAlike, the sample stays
   under that license; this is a non-commercial portfolio repo.
 - **`cd.yml` trigger changes from `push: main` to `workflow_dispatch`** (manual only). It has
@@ -269,4 +269,16 @@ Filled in during the build. One line each: choice — reason.
 **Verification findings (L2)**
 - **The AWS account is not fully torn down.** The SNS topic `metric-pulse-alerts` still exists, and the credentials in `.env` (and `~/.aws/`) still authenticate: during the build, a test **really published one SNS message** to it. Cause: the test removed `SNS_TOPIC_ARN` from the environment, and `sns_publisher` calls `load_dotenv()` on import, which refills a *missing* variable from `.env`. Fixed by setting it to an empty string instead (dotenv never overrides a set variable); recorded in `tests/test_notifier.py` and `alerting/README.md`. Reported to Kousik, who should delete the topic and deactivate the access key if the account is meant to be gone.
 - LS2 live: `python -m orchestration.run_pipeline --force-alert` → `alert.status = sent`, `channel = outbox`, 0.32s, file `outbox/2026-11-02/145939_metricpulse-total-revenue-decrease-90-6-on-2018-09-03.md` readable with the real narrative (−90.6%, Credit Card 106.6%), one matching `index.jsonl` line, and no CloudWatch call. `python -m alerting.notifier --test` wrote a second message.
+
+**L3 (2026-11-02)**
+- **Sample window: orders purchased on or after 2018-08-01, to the end of the data**, plus every referenced row. 32,749 rows, 3.5 MB. Reason: it contains the 2018-09-03 golden case and a full 30-day detection lookback, so the sample is also a usable local demo, and it is well under the "few MB" target.
+- **Rows are copied as the original lines**, not re-serialized. Reason: Olist mixes quoted and unquoted fields, and line copying keeps the sample byte-identical to the source (and the output deterministic). It's safe because every Olist CSV has one record per line, which the script checks and refuses otherwise.
+- **License confirmed: CC BY-NC-SA 4.0**, from Kaggle's own dataset metadata API (`licenseName`). The page itself didn't render for fetching. The folder's README carries the attribution, the change description, and the ShareAlike note.
+- **`dbt-build-local` installs the full `requirements.txt`** rather than only dbt. Reason: `load_local` reuses the archived `s3_to_redshift.FILE_TABLE_MAPPING`, whose module imports `config.db` → `redshift_connector` (R1 forbids reshaping the archived module). The pip cache keeps it under a minute.
+- **`cd.yml`: only the trigger changed**, plus a header comment. The job is byte-identical and still runnable from the Actions tab.
+- **Not done: branch protection.** `main`'s required checks are still `lint-and-test` and `dbt-check`. Making `dbt-build-local` required is a repository-settings change, left to Kousik.
+
+**Verification findings (L3)**
+- Locally, two runs of `make_olist_sample` produced identical files (`diff -r`), and `dbt build` on the sample gave `PASS=48 WARN=0 ERROR=0` (the full data's one WARN, the 2016 gap, is outside the window).
+- On PR #31, `dbt-build-local` passed with the same numbers (32,749 rows loaded, `PASS=48`). A throwaway commit renaming a column in `stg_customers` made it **fail** (`Binder Error: Referenced column "customer_city_DOES_NOT_EXIST" not found`, `ERROR=1 SKIP=12`), while `dbt-check` **passed** on the same commit, which demonstrates that the old job can't catch a broken model. The break was reverted on the branch (no diff against the pre-break commit) and squashed away on merge.
 

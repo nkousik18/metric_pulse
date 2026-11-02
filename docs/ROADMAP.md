@@ -203,8 +203,13 @@ R1–R5). It is prioritized ahead of Action Agent A3 (scope §9).
       tests, suite at 215. Added `CLOUDWATCH_METRICS` (off locally). **Finding:** the SNS topic
       and AWS credentials still work (one real message was published by a test during the build;
       fixed). See the scope's L2 decision log.
-- [ ] **L3** — Committed Olist sample + real `dbt-build-local` CI job (the old `dbt-check` can't
+- [x] **L3** — Committed Olist sample + real `dbt-build-local` CI job (the old `dbt-check` can't
       fail); `cd.yml` to manual trigger (it has failed on every merge since 2026-08); docs pass.
+      **Verified 2026-11-02 on PR #31:** `dbt-build-local` passed (32,749 sample rows, `PASS=48`),
+      then **failed** on a deliberately broken `stg_customers` in a throwaway commit while
+      `dbt-check` still passed; the break was reverted. Sample is deterministic (diffed), CC
+      BY-NC-SA 4.0 confirmed and attributed. `cd.yml` now has only a `workflow_dispatch` trigger.
+      5 new tests, suite at 220.
 
 ---
 
