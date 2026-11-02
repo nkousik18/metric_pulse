@@ -5,6 +5,65 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-02 — Built A2: approval flow, actions.db, decision replay, LangSmith linking
+
+**What happened:** Built the Action Agent's approval flow.
+- **`action_agent/graph.py`:** a separate LangGraph graph run after the investigation, compiled
+  with `SqliteSaver`. Approvals pause it via `interrupt()`.
+- **`store.py`:** `actions.db`. `proposals` is insert-only with a UNIQUE `anomaly_id` (D1).
+  `action_log` is append-only via triggers, and a partial unique index allows one `executed` row
+  per idempotency key.
+- **`executors.py`:** local effect-table writers for annotate/suppress/control; notify/incident
+  are simulated until A4.
+- **`runner.py`:** the `ActionAgent` wiring.
+- **`replay.py`:** exact decision replay (§13.6).
+- **`cli.py`:** the CLI approver.
+- **`observability/tracing.py`:** fail-open LangSmith helpers: root run ids stamped on log rows,
+  and approvals posted as feedback.
+- **`config/settings.py`:** LangSmith and Action Agent settings. `.env.example` and `.gitignore`
+  updated.
+
+The A2 D8 choices are in the scope doc's decision log: edit is params-only and counts as an
+approval of its own params, TTL is lazy, and the CLI approver is identified by `ACTION_APPROVER`
+or the OS user.
+
+**Bugs found:**
+- **Numpy evidence:** live `decompose_metric()` evidence carries numpy scalars, which the
+  checkpointer's msgpack serializer rejects. The tests had used plain floats. Fixed by
+  normalizing at the graph boundary, with a regression test confirmed to fail without the fix.
+- **Expired proposals listed as pending:** `pending` still showed proposals past their TTL.
+  They are now filtered out.
+
+**LangSmith key:** the key in `.env` returns 403 on both read and write, identical to a fabricated
+key, so the server doesn't recognize it. The user needs to generate a fresh Personal Access
+Token. In the meantime, verified that tracing-on with a rejected key is fail-open end to end.
+
+**Verified live** (`superstore_sales`, separate processes, scratch DBs):
+- propose printed the full dry run and paused
+- `pending` in a new process showed it
+- approve → executed (simulated)
+- re-approve refused
+- a second propose for the same anomaly skipped (D1)
+- `replay` matched
+- a raw `sqlite3 DELETE FROM action_log` was refused by the trigger
+
+28 new tests; the suite is at 190.
+
+**Current state:** A2 is code-complete but unchecked on ROADMAP, because the LangSmith half of
+its gate needs a working key.
+
+**Next steps:**
+1. With a working key: run `propose` and `approve` with `LANGSMITH_TRACING=true`, confirm both
+   traces and the approval feedback appear and link to the log rows, record the plan's quota
+   and retention, then check A2.
+2. Then A3: the 20b live test, the LLM proposer in front of `fallback_proposal`, and
+   `observability/llm.py`.
+
+**Loose ends:** Render cleanup PR. `build_action_graph` trips flake8's non-blocking C901 warning
+because the closures count toward the factory's complexity.
+
+---
+
 ## 2026-11-02 — Scoped observability, tracing and the system-wide eval suite
 
 **What happened:** The user asked what observability and evals exist today. An audit found:

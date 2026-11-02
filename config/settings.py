@@ -40,3 +40,17 @@ LOOKBACK_DAYS = int(os.getenv("LOOKBACK_DAYS", 30))
 # Investigation Agent Configuration (Phase 1 -- investigation/synthesize node)
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
+# LangSmith tracing (docs/action-agent-scope.md §13.1). LangChain/LangGraph read the
+# LANGSMITH_* variables straight from the environment (load_dotenv above puts .env there);
+# these constants mirror them for MetricPulse's own code. Off unless LANGSMITH_TRACING=true.
+LANGSMITH_TRACING = os.getenv("LANGSMITH_TRACING", "false").strip().lower() == "true"
+LANGSMITH_API_KEY = os.getenv("LANGSMITH_API_KEY")
+os.environ.setdefault("LANGSMITH_PROJECT", "metricpulse")
+LANGSMITH_PROJECT = os.environ["LANGSMITH_PROJECT"]
+
+# Action Agent (docs/action-agent-scope.md D5, D8). Local-only SQLite files (D9), gitignored.
+ACTIONS_DB_PATH = Path(os.getenv("ACTIONS_DB_PATH", PROJECT_ROOT / "actions.db"))
+CHECKPOINTS_DB_PATH = Path(os.getenv("CHECKPOINTS_DB_PATH", PROJECT_ROOT / "checkpoints.db"))
+PROPOSAL_TTL_HOURS = 24  # F2
+# Single approver identity for the CLI approver (D8). Falls back to the OS user.
+ACTION_APPROVER = os.getenv("ACTION_APPROVER")

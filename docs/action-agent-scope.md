@@ -205,7 +205,16 @@ Filled in as the D8 choices are made during the build. One line each: choice —
 - **`create_control` threshold bounds:** `0.1×`–`10×` of the segment's `max(current, previous)` value, finite, > 0. Zero-volume segments are rejected. Reason: this blocks watches that could never fire or would always fire, without needing per-metric config.
 - **Strict numerics:** `days`, `expires_in_days` and `threshold` reject bools and numeric strings. Reason: Pydantic's lax mode would turn a tampered `true` into `1`.
 
-_Pending: approver edit scope and TTL expiry (A2), the 20b live-test result (A3), live executor targets and credentials (A4), and the approver identity check (A6)._
+**A2 (2026-11-02)**
+- **Edit scope:** an approver's edit may change `params` only, never `action_type`. A changed type is logged `invalid_decision` and the proposal keeps waiting. Reason: a different type is a different tier and risk, so it is a different proposal, not an edit.
+- **An edit is an approval of its own params.** If the edited params pass `policy_check`, an `edited` row is logged for the new idempotency key and the action executes without a second approve. If they fail, the approver sees the errors and decides again; approving the failed params is refused. Reason: the approver wrote the params, and making them approve their own edit adds a step with no safety value.
+- **TTL expiry is lazy, with no sweep.** `await_approval` checks `expires_at` on entry, and every resume re-enters it, so a decision after 24h logs `expired` and ends the run without executing. `pending` hides proposals past their TTL. Reason: the agent is a single local process (D9) with nothing to run a sweep on, and F2 only requires that an expired proposal is never executed, which the decision-time check guarantees.
+- **Approver identity (CLI):** `ACTION_APPROVER`, falling back to the OS user, recorded as the `actor` on decision rows. The API check stays with A6. Reason: local-only with one approver. This records who approved; it doesn't authenticate them.
+- **Event vocabulary:** `proposed`, `policy_passed`, `policy_rejected`, `edit_submitted`, `edit_policy_rejected`, `edited`, `approved`, `rejected`, `expired`, `invalid_decision`, `executed`, `execution_failed`, `execution_blocked`, `duplicate_skipped`. Terminal events are listed in `store.TERMINAL_EVENTS`.
+- **A separate action graph, not new nodes on the Phase 1 graph.** It runs on the investigation's output. Reason: the Phase 1 graph and its no-checkpointer compile path stay byte-for-byte unchanged (§5).
+- **LangSmith key (2026-11-02):** the first key returned 403 on read and write, identical to a fabricated key, so it is not recognized. Plan, quota and retention are to be recorded once a working key is in place (§13.1).
+
+_Pending: the 20b live-test result (A3), live executor targets and credentials (A4), and the API approver identity check (A6)._
 
 ## 13. Observability, tracing and replay (added 2026-11-02)
 

@@ -4,9 +4,14 @@ The Action Agent (`docs/action-agent-scope.md`): turns a validated investigation
 action from a fixed catalog, gates it deterministically, and (from A2) routes it through human
 approval to idempotent execution and an append-only log. Local-only (scope doc §11 D9).
 
-**Built so far: A1** — the catalog, schemas, `policy_check`, owner resolution, identities, and
-the dry-run payload builder. All pure functions; no I/O except reading `owners.yaml`. Nothing here
-executes an action yet, and nothing calls an LLM yet (A3).
+**Built so far:**
+- **A1:** the catalog, schemas, `policy_check`, owner resolution, identities and the dry-run
+  payload builder.
+- **A2:** the action graph with a SQLite checkpointer and `interrupt()` approvals, the CLI
+  approver, `actions.db`, executors, decision replay and LangSmith run linking.
+
+Nothing calls an LLM yet (A3). `notify_owner` and `open_incident` are simulated until A4's live
+executors.
 
 ## Files
 
@@ -18,6 +23,13 @@ executes an action yet, and nothing calls an LLM yet (A3).
 | `owners.py` / `owners.yaml` | Segment → owner mapping and `resolve_owner()`. |
 | `identity.py` | `anomaly_id()` (D1), `idempotency_key()`, `canonical_json()`, `OLIST_DATASET_ID`. |
 | `dry_run.py` | `ActionContext`, `build_dry_run()` (exact target + payload + key), `render_dry_run()` for the CLI approver. |
+| `proposer.py` | `fallback_proposal()`: deterministic `notify_owner` for the top driver. It is A2's proposer and D2's fallback. |
+| `store.py` | `ActionStore` over `actions.db`: insert-only `proposals` (UNIQUE `anomaly_id`), trigger-enforced append-only `action_log`, effect tables. |
+| `executors.py` | `LocalStoreExecutor` (annotate/suppress/control → effect tables), `SimulatedExecutor` (notify/incident until A4), `RecordingExecutor` (tests). |
+| `graph.py` | `build_action_graph()`: the §5 flow, compiled with a checkpointer. |
+| `runner.py` | `ActionAgent`: wires store + `SqliteSaver` + executors + LangSmith run config; `start`, `decide`, `pending`, `waiting_on`. |
+| `replay.py` | `replay_decisions()`: re-runs every logged policy decision on its stored evidence snapshot (§13.6). |
+| `cli.py` | `python -m action_agent.cli propose|pending|show|approve|edit|reject|log|replay`. |
 
 ## The catalog
 
@@ -67,6 +79,46 @@ shows them as `None` rather than hiding them. `now` is injectable so expiries ar
 tests. It raises `ValueError` if handed a rejected `PolicyResult`, since that is a programming
 error rather than bad input.
 
+## The approval flow (A2)
+
+```
+check_existing -> propose -> register -> policy -> T0: execute -> record
+                                                 T1: await_approval (interrupt)
+                                                       approve -> execute -> record
+                                                       edit    -> policy (passes: execute / fails: back to await)
+                                                       reject / expired -> record
+```
+
+```bash
+python -m action_agent.cli propose --dataset-id superstore_sales --metric sales   # prints the dry run, pauses
+python -m action_agent.cli pending                     # survives restarts: the pause is in checkpoints.db
+python -m action_agent.cli approve e275 --reason "..." # any unique id prefix
+python -m action_agent.cli edit e275 --params '{"days": 2, "reason": "holiday"}'
+python -m action_agent.cli log [e275]
+python -m action_agent.cli replay e275                 # exits 1 if today's code would decide differently
+```
+
+- **One thread per proposal.** `proposal_id` is the checkpointer `thread_id`. Every `start` and
+  `decide` is its own invocation and its own LangSmith trace. That trace's root run id is
+  stamped on the `action_log` rows it writes, and the first one is stored on the proposal.
+- **F1 is enforced at execute.** A T1 action runs only if `action_log` holds an `approved` or
+  `edited` row for *exactly* its idempotency key. If the payload is tampered with between approval
+  and execution, the key changes and execution fails closed (`execution_blocked`).
+- **Idempotency is enforced twice.** `execute` checks for a prior `executed` row, and a partial
+  unique index allows at most one `executed` row per key. Re-running execute from a checkpoint
+  logs `duplicate_skipped`.
+- **Status is derived, never stored.** A proposal's status is its latest terminal `action_log`
+  event, or `pending`.
+- **Approver decisions are also posted as LangSmith feedback** (`approval`: approve=1,
+  edit=0.5 with the new params as the correction, reject=0). This is fail-open: a LangSmith
+  failure is logged as a warning and never blocks the decision.
+- **Evidence is normalized to plain JSON at the graph boundary** (`runner.to_plain`). Live
+  `decompose_metric()` output carries numpy scalars, which the checkpointer can't serialize. This
+  was found on the first live run.
+- **Interrupt and resume:** `await_approval` re-runs from its first line on resume, so nothing
+  before `interrupt()` writes anything. The one exception is the expiry check, which ends the
+  run instead of interrupting.
+
 ## Gotchas
 
 - `anomaly_id` excludes the segment (D1): one anomaly gets one proposal for its lifetime.
@@ -78,4 +130,6 @@ error rather than bad input.
 
 ## Tests
 
-`tests/test_action_policy.py`, `tests/test_action_dry_run.py`. Pure functions, no mocks.
+`tests/test_action_policy.py`, `tests/test_action_dry_run.py` (pure functions),
+`tests/test_action_store.py`, `tests/test_action_graph.py` (real SQLite and a real `SqliteSaver`
+on `tmp_path`, `RecordingExecutor`, injected clock and proposer). No mocks.
