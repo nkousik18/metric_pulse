@@ -5,6 +5,37 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-02 — Built L3: a real dbt gate in CI, CD manual; local stack complete
+
+**What happened:** Built local-stack milestone L3 (branch `ci/local-dbt-build`, PR #31).
+- **`ingestion/make_olist_sample.py` + `data/fixtures/olist_sample/`:** orders from 2018-08-01
+  plus every referenced row, 32,749 rows / 3.5 MB, lines copied byte for byte, deterministic.
+  CC BY-NC-SA 4.0 confirmed from Kaggle's metadata API; attribution README in the folder.
+- **New CI job `dbt-build-local`:** `load_local` on the sample, then `dbt build --target local`.
+  `dbt-check` (can't fail) kept as is.
+- **`cd.yml` → `workflow_dispatch` only.** Job unchanged.
+- Docs: CONTRIBUTING, WORKING_CONVENTIONS, infrastructure doc, resume doc, ingestion, dbt and
+  tests READMEs, CLAUDE.md, scope decision log, roadmap.
+
+**Verified:** sample identical across two runs; `dbt build` PASS=48 locally and in CI. A
+throwaway broken-model commit made `dbt-build-local` fail (Binder Error, ERROR=1) while
+`dbt-check` passed on the same commit; reverted. 5 new tests, suite at 220, lint clean.
+
+**Slip, caught:** my first revert attempt used `git revert -q` (not a valid flag), so it didn't
+run, and the following `--amend` only renamed the break commit. The push was rejected, so nothing
+wrong reached GitHub; I reset the branch to the remote and reverted properly, then confirmed no
+diff against the pre-break commit.
+
+**Flaky check:** `dbt-check` failed once on a docs-only commit: its unpinned `pip install
+dbt-redshift` hit a GitHub-releases HTTP 500 fetching a new dbt parser wheel. A re-run passed.
+Recorded in the scope; the job is left unchanged (R1).
+
+**Next:** the local stack (L1–L3) is complete. Kousik's call: make `dbt-build-local` a required
+check in `main`'s branch protection (repo setting, not done), and delete the still-live SNS topic
+and AWS access key. Then back to the Action Agent: A2's LangSmith check (key still 403), then A3.
+
+---
+
 ## 2026-11-02 — Built L2: alerts go to a local outbox
 
 **What happened:** Built local-stack milestone L2 (branch `feat/local-alert-outbox`).

@@ -28,8 +28,10 @@ branch name that stay generic.
    with a message describing *why*, not just *what*.
 4. `git push -u origin <branch>`, then `gh pr create` with a short summary and a test-plan
    checklist.
-5. Wait for CI to actually report pass on every check (`lint-and-test`, `dbt-check`) before
-   merging. Never merge speculatively.
+5. Wait for CI to actually report pass on every check (`lint-and-test`, `dbt-build-local`, and the archived `dbt-check`, which can't fail)
+   before merging. Never merge speculatively. `dbt-build-local` is the real dbt gate: it runs
+   `dbt build` on the committed Olist sample. CD (`cd.yml`) is manual only (`workflow_dispatch`)
+   since 2026-11-02, because it deploys to the deleted AWS stack; a merge no longer triggers it.
 6. `gh pr merge --squash --delete-branch` — squash so `main`'s history is one clean commit per
    unit of work, and delete the branch immediately (no long-lived branches besides `main`).
 

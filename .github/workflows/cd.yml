@@ -1,8 +1,10 @@
 name: CD Pipeline
 
+# Manual only since 2026-11-02 (docs/local-stack-scope.md §6.5). This deploys to the AWS
+# stack, whose resources were deleted, so it failed on every push to main from at least
+# 2026-08-19. The job itself is unchanged (R1) and can still be run from the Actions tab.
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 jobs:
   deploy:

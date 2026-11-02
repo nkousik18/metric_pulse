@@ -110,12 +110,13 @@ python manage.py runserver
 
 Triggers on push and pull requests to `develop` and `main`.
 
-**Two parallel jobs:**
+**Three parallel jobs** (`dbt-build-local` added 2026-11-02, `docs/local-stack-scope.md` §6.5):
 
 | Job | Steps |
 |-----|-------|
 | `lint-and-test` | Checkout → Python 3.12 → pip cache → install deps → flake8 lint → pytest |
-| `dbt-check` | Checkout → install dbt-redshift → `dbt parse` (syntax validation only) |
+| `dbt-check` | Checkout → install dbt-redshift → `dbt parse` (syntax validation only). **Can't fail:** it runs `dbt parse … \|\| echo`. Kept unchanged as archived |
+| `dbt-build-local` | Checkout → pip cache → install deps → `load_local` on the committed `data/fixtures/olist_sample/` → `dbt build --target local` (all models and tests on DuckDB). **The real dbt gate** |
 
 **Linting strategy (flake8):**
 
@@ -130,7 +131,7 @@ Triggers on push and pull requests to `develop` and `main`.
 
 ### CD Pipeline (`cd.yml`)
 
-Triggers on push to `main` only. Requires `production` environment approval.
+**Manual only (`workflow_dispatch`) since 2026-11-02.** It used to trigger on push to `main`, and failed on every push from at least 2026-08-19 because it needs the deleted AWS credentials and environment. The job is unchanged and can still be run from the Actions tab. Requires `production` environment approval.
 
 **Steps:** Checkout → Python 3.12 → install dependencies → configure AWS credentials → dbt run step (currently a placeholder — see note below) → deploy notification.
 
