@@ -152,12 +152,18 @@ reachable from its action-log row.
       `test_action_dry_run.py`), suite 162 passing. Verified live against the real onboarded
       `superstore_sales` evidence: T1 → `needs_approval` with a full dry-run payload, T0 →
       `auto_execute`, a 30-day suppression and an ungrounded segment both rejected with reasons.
-- [ ] **A2** — LangSmith tracing (scope §13.1–13.2), SQLite checkpointer, `interrupt()` approval
+- [x] **A2** — LangSmith tracing (scope §13.1–13.2), SQLite checkpointer, `interrupt()` approval
       flow, CLI approver, `actions.db` with append-only `action_log` (trigger-enforced) carrying
       trace/thread ids, idempotency keys, approver decisions as LangSmith feedback, decision-replay
       test (§13.6).
-      **Built; not checked:** the LangSmith half of the gate is unverified, because the first API
-      key returned 403 (unrecognized). Everything else is verified live against
+      **LangSmith half verified live 2026-11-02** (AWS US region + workspace id; see
+      `observability/README.md`): a traced `propose` → `approve` in two processes put both root
+      runs (`action_agent.start`, `action_agent.approve`) in LangSmith with the same trace ids as
+      the `action_log` rows, thread = proposal id, git SHA and tags in metadata; the approval
+      landed as feedback (`approval`/`approve`, score 1.0, the approver's reason) on the propose
+      trace. That run found and fixed a bug: feedback had been silently dropped (`project_id`
+      rejected by the SDK). Plan: free Developer, 5k traces/month, 14-day retention.
+      **Earlier (first key rejected):** Everything else is verified live against
       `superstore_sales` across separate processes: propose → pause → `pending` after restart →
       approve → executed, a re-approve refused, a second run for the same anomaly skipped (D1),
       replay matching, a raw `DELETE` on `action_log` refused, and the run completing with tracing

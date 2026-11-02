@@ -5,6 +5,31 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-02 — LangSmith working; A2 verified, and a feedback bug fixed
+
+**What happened:** Kousik made two more keys (a personal token, then a service key named
+`MetricPulse`); both returned 403 on the US and EU APIs, from the sandbox and from his own shell.
+Kousik's LangSmith URL showed the cause: the account is on **`aws.smith.langchain.com`** (AWS US
+region). On `https://aws.api.smith.langchain.com` the key authenticated (org and workspaces
+200), but data calls still returned 403 until `LANGSMITH_WORKSPACE_ID` was set, because the
+service key is org-scoped. Both settings were appended to `.env` (the key wasn't printed).
+
+**A2 verified live:** traced `propose` → `approve` against `superstore_sales`, scratch DBs.
+Both root runs reached LangSmith with the `action_log` trace ids and thread = proposal id.
+**Bug found:** the approval feedback was rejected (`project_id cannot be provided if run_id or
+trace_id is provided`, langsmith 0.10.16) and fail-open dropped it. Fixed: the project goes in
+`session_id`, via a new testable `feedback_kwargs()`. Re-run: the approval feedback is on the
+propose trace. A2 checked. Plan recorded: free Developer, 5k base traces/month, 14-day retention.
+
+**Note:** the LangSmith project `metricpulse-a2-verify` holds these test traces and two hand-made
+feedback rows from debugging. The `notify_owner` target still says `sns_email`; A4 replaces it
+with the notifier.
+
+**Next:** A3 (live-test gpt-oss-20b first, then the LLM proposer and `observability/llm.py`),
+then stop for review per D7.
+
+---
+
 ## 2026-11-02 — Built L3: a real dbt gate in CI, CD manual; local stack complete
 
 **What happened:** Built local-stack milestone L3 (branch `ci/local-dbt-build`, PR #31).

@@ -88,15 +88,26 @@ def trace_url(run_id) -> Optional[str]:
         return None
 
 
+def feedback_kwargs(run_id, key: str, *, value=None, score=None, comment=None, correction=None,
+                    session_id=None) -> Dict:
+    """Arguments for Client.create_feedback, split out so their shape is testable offline.
+
+    The project goes in `session_id`, never `project_id`: langsmith 0.10.x raises
+    "project_id cannot be provided if run_id or trace_id is provided", and warns that feedback
+    without a session_id is deprecated. Verified live against LangSmith on 2026-11-02 (A2)."""
+    return {'run_id': str(run_id), 'trace_id': str(run_id), 'key': key, 'value': value, 'score': score,
+            'comment': comment, 'correction': correction,
+            'session_id': session_id if session_id is not None else _project_id()}
+
+
 def post_feedback(run_id, key: str, *, value=None, score=None, comment: Optional[str] = None,
                   correction: Optional[Dict] = None) -> bool:
     """Attach a human decision to a trace (§13.4). Returns False and never raises on failure."""
     if not tracing_enabled() or run_id is None:
         return False
     try:
-        _client().create_feedback(run_id=str(run_id), trace_id=str(run_id), key=key, value=value,
-                                  score=score, comment=comment, correction=correction,
-                                  project_id=_project_id())
+        _client().create_feedback(**feedback_kwargs(run_id, key, value=value, score=score,
+                                                    comment=comment, correction=correction))
         return True
     except Exception as e:
         logger.warning(f'LangSmith feedback not recorded ({key} on {run_id}): {e}')
