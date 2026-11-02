@@ -1,6 +1,31 @@
 # `ingestion/`
 
-One-time (or on-demand) scripts that move the raw Olist CSVs from local disk into Redshift so dbt has something to build on. Three scripts run in a strict order: **S3 upload → table DDL → COPY load**. Nothing here is imported by the analytics pipeline at runtime — this folder is only ever invoked manually or as a setup step.
+One-time (or on-demand) scripts that move the raw Olist CSVs from local disk into the warehouse so dbt has something to build on. Nothing here is imported by the analytics pipeline at runtime — this folder is only ever invoked manually or as a setup step.
+
+> **Local stack (2026-11-02).** The AWS resources this was built on were deleted when the free tier ended. All AWS code is **kept, unchanged and switchable** (`docs/local-stack-scope.md`, rule R1).
+
+## Active: local load (one command)
+
+```bash
+python -m ingestion.load_local                       # data/raw/*.csv -> data/warehouse.duckdb, schema raw_data
+cd dbt_project && dbt build --target local --profiles-dir .
+```
+
+`load_local.py` reuses the archived path's two sources of truth instead of copying them, so the two paths can't drift:
+- **the file → table mapping:** `s3_to_redshift.FILE_TABLE_MAPPING`
+- **the schemas:** `infrastructure/redshift_setup.sql`, parsed by `parse_ddl()` and executed on DuckDB
+
+It loads **by position**, the way Redshift's `COPY … IGNOREHEADER 1` does, so the DDL's column names win over the CSV headers. Olist's products CSV misspells `product_name_lenght`/`product_description_lenght`, and the warehouse (and every dbt model) uses `…_length`; the loader logs that rename. Other details:
+- Empty unquoted fields load as NULL, matching `BLANKSASNULL`/`EMPTYASNULL`.
+- Leading zeros in zip prefixes survive, because those columns are `VARCHAR(10)`.
+- The translation CSV's UTF-8 BOM is handled.
+- Each run replaces the `raw_data` tables and touches nothing else.
+
+It prints per-table counts. **On the full data, the total is 451,535, matching the Phase 0 figure** (verified 2026-11-02, in about 2s). For CI or experiments, use `--raw-dir` / `--warehouse-path`.
+
+## Archived: AWS path (S3 → Redshift)
+
+Kept intact (R1); the resources were deleted, so it can't run any more. Three scripts run in a strict order: **S3 upload → table DDL → COPY load**.
 
 ## Files
 

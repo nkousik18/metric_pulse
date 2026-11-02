@@ -52,11 +52,11 @@ flake8 . --exit-zero --max-complexity=10 --max-line-length=120    # style warnin
 ### dbt (from `dbt_project/`)
 ```bash
 cd dbt_project
-dbt debug              # verify Redshift connection (needs ~/.dbt/profiles.yml)
-dbt run                # build all models
-dbt test                # run all schema + singular tests
-dbt build               # run + test in one step
-dbt run --select staging   # or marts / metrics — build a single layer
+# Always pass --profiles-dir . (uses the committed dbt_project/profiles.yml, not ~/.dbt)
+dbt debug --target local --profiles-dir .     # local DuckDB (default target)
+dbt build --target local --profiles-dir .     # 11 models + 37 tests, <1s; expect 1 WARN (real 2016 data gap)
+dbt run --select staging --profiles-dir .     # or marts / metrics — build a single layer
+dbt build --target redshift --profiles-dir .  # archived AWS target (needs REDSHIFT_* env vars)
 ```
 
 ### Pipeline (analytics engine, standalone)
@@ -76,6 +76,11 @@ python -m alerting.sns_publisher --test                             # send a tes
 
 ### Ingestion (one-time / on data refresh, in order)
 ```bash
+# Active: local (default WAREHOUSE=duckdb)
+python -m ingestion.load_local                      # data/raw/*.csv -> data/warehouse.duckdb (451,535 rows)
+cd dbt_project && dbt build --target local --profiles-dir .   # always pass --profiles-dir .
+
+# Archived: AWS (resources deleted 2026-11-02; code kept intact, never delete it)
 python -m ingestion.upload_to_s3
 python -m ingestion.setup_redshift_tables   # idempotent, CREATE TABLE IF NOT EXISTS
 python -m ingestion.s3_to_redshift
@@ -99,7 +104,8 @@ deploy/deploy_lambda.sh   # build image, push to ECR, update Lambda
 ## Conventions Worth Knowing
 
 - Six pipeline layers (`ingestion/` → `dbt_project/` → `detection/` → `decomposition/` → `narrative/` → `alerting/`), coordinated by `orchestration/run_pipeline.py`, connected by plain dict contracts — not classes. Exact shapes are documented in each producer's own folder `README.md`; read it before changing a consumer.
-- Shared infra used by nearly every module: `config/db.py` (the Redshift connection factory used everywhere except the legacy Streamlit dashboard, which intentionally connects directly for `@st.cache_resource`'s connection lifecycle — see `config/README.md`), `config/settings.py` (all env vars as constants — don't `os.getenv` ad hoc in new code), `config/logging_config.py` (shared logger). See `config/README.md`.
+- **AWS code is archived, never deleted** (`docs/local-stack-scope.md` R1). The AWS resources were deleted on 2026-11-02. Local is the default backend (`WAREHOUSE=duckdb`, later `ALERT_CHANNEL=outbox`), and AWS stays a switch. Don't remove, move or "clean up" AWS files; Kousik restructures the codebase once, at the end of the project.
+- Shared infra used by nearly every module: `config/db.py` (the warehouse connection factory: DuckDB by default, Redshift when `WAREHOUSE=redshift`; used everywhere except the legacy Streamlit dashboard, which intentionally connects directly for `@st.cache_resource`'s connection lifecycle — see `config/README.md`), `config/settings.py` (all env vars as constants — don't `os.getenv` ad hoc in new code), `config/logging_config.py` (shared logger). See `config/README.md`.
 - `orchestration/run_pipeline.py`'s per-step try/except-never-raise pattern (failure sets `status`/`error` in the result dict, never raises) is the standard error-handling convention for new pipeline code — see `orchestration/README.md`.
 - Date strings get validated (`decomposition/decomposer.py`'s `_validate_date()`) before SQL interpolation, since `redshift_connector` doesn't support parameterized queries for the DDL/COPY/date-filtered SQL used here — follow this pattern for any new SQL touching user-supplied values.
 - Two independent, non-interchangeable UIs: the Django SPA (production) and the Streamlit app (`dashboard/app.py`, local-only, reimplements its own contribution math rather than calling `decomposition.decomposer`) — see `dashboard/README.md`. A decomposition-math fix needs checking in both places.

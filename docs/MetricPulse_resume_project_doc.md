@@ -47,8 +47,8 @@ tracing helpers are built; the rest is scoped.
 | Component | Technology | Rationale |
 |-----------|-----------|-----------|
 | Object storage | AWS S3 | Durable raw data lake; COPY from S3 is native to Redshift |
-| Data warehouse | AWS Redshift Serverless | Columnar storage for analytical queries; no cluster management |
-| Data transformation | dbt 1.10 (dbt-redshift) | Version-controlled SQL with built-in testing and lineage |
+| Data warehouse | AWS Redshift Serverless (original, archived) → DuckDB (local, active since 2026-11-02) | Columnar storage for analytical queries; no cluster management. After the AWS teardown, the same pipeline runs on a local DuckDB file through a `WAREHOUSE` switch, with the Redshift code kept intact |
+| Data transformation | dbt (dbt-redshift, archived; dbt-duckdb 1.11.1, active) | Version-controlled SQL with built-in testing and lineage. One committed `profiles.yml` with `local` and `redshift` targets; three Redshift-only date functions rewritten to portable SQL valid on both |
 | Anomaly detection | Python + NumPy (z-score) | Interpretable, no training data required, 30-day rolling window |
 | Narrative generation | Jinja2 3.1 | Separates template logic from Python; 4 output formats from one render |
 | Alerting | AWS SNS | Managed pub/sub; single API call to send email to N subscribers |
@@ -522,7 +522,7 @@ Flake8 strategy: hard errors (`E9,F63,F7,F82`) fail CI; style warnings (`--exit-
 
 ---
 
-## 12. Test Coverage (190 Tests, 18 Files)
+## 12. Test Coverage (202 Tests, 19 Files)
 
 | File | Tests | What's covered |
 |------|-------|---------------|
@@ -544,6 +544,7 @@ Flake8 strategy: hard errors (`E9,F63,F7,F82`) fail CI; style warnings (`--exit-
 | `tests/test_action_store.py` | 9 | `actions.db`: append-only triggers (also from a raw connection), one proposal per anomaly, one execution per key |
 | `tests/test_action_graph.py` | 15 | The full A2 approval graph on a real `SqliteSaver`: restart survival, approve/edit/reject, TTL expiry, 3× execute replay = 1 execution, tampered payload fails closed, exact decision replay, numpy-evidence regression |
 | `tests/test_tracing.py` | 4 | LangSmith helpers are offline no-ops when tracing is off |
+| `tests/test_local_warehouse.py` | 12 | Local stack: `WAREHOUSE` dispatch (archived Redshift path selected without connecting), the Lambda default, read-only DuckDB, DDL parsing, and the CSV → DuckDB loader's Redshift-COPY-equivalent semantics |
 
 No mocking is used anywhere in the suite — every test calls a pure function directly with in-memory
 DataFrames/dicts/fixture state, or (for codegen/reconciliation) a real in-memory DuckDB connection.

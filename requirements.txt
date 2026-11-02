@@ -20,6 +20,7 @@ daff==1.4.2
 dbt-adapters==1.22.10
 dbt-common==1.37.3
 dbt-core==1.11.7
+dbt-duckdb==1.11.1
 dbt-extractor==0.6.0
 dbt-postgres==1.10.0
 dbt-protos==1.0.443

@@ -54,3 +54,17 @@ CHECKPOINTS_DB_PATH = Path(os.getenv("CHECKPOINTS_DB_PATH", PROJECT_ROOT / "chec
 PROPOSAL_TTL_HOURS = 24  # F2
 # Single approver identity for the CLI approver (D8). Falls back to the OS user.
 ACTION_APPROVER = os.getenv("ACTION_APPROVER")
+
+# Warehouse backend (docs/local-stack-scope.md §6.1, R2). Local DuckDB is the default; Redshift is
+# the archived AWS backend, kept intact (R1). Inside AWS Lambda (AWS_LAMBDA_FUNCTION_NAME is set)
+# the default stays Redshift, so the archived Lambda image behaves exactly as it always did.
+
+
+def backend_default(local: str, aws: str, environ=os.environ) -> str:
+    """Local backend by default; the archived AWS backend when running inside AWS Lambda."""
+    return aws if environ.get("AWS_LAMBDA_FUNCTION_NAME") else local
+
+
+WAREHOUSE = os.getenv("WAREHOUSE", backend_default("duckdb", "redshift")).strip().lower()
+WAREHOUSE_PATH = Path(os.getenv("WAREHOUSE_PATH", DATA_DIR / "warehouse.duckdb"))
+RAW_DATA_DIR = Path(os.getenv("RAW_DATA_DIR", DATA_DIR / "raw"))

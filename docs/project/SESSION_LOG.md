@@ -5,6 +5,52 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-02 — Built L1: the Olist pipeline runs locally on DuckDB again
+
+**What happened:** Built local-stack milestone L1.
+- **`config/db.py`:** `get_connection()` now dispatches on `WAREHOUSE` (`duckdb` default,
+  read-only; `redshift` archived). The Redshift body is byte-identical, verified by diff.
+- **`config/settings.py`:** `WAREHOUSE`, `WAREHOUSE_PATH`, `RAW_DATA_DIR`, and
+  `backend_default()`, which keeps Lambda on AWS.
+- **`ingestion/load_local.py`:** reuses the archived `FILE_TABLE_MAPPING` and executes the
+  archived Redshift DDL on DuckDB, loading positionally the way `COPY` did.
+- **`dbt-duckdb==1.11.1`**, plus a committed `dbt_project/profiles.yml` with `local` (default)
+  and archived `redshift` targets, credentials via env vars.
+- **Three portable SQL rewrites,** all also valid Redshift: `EXTRACT` for `DATE_PART`,
+  `dbt.datediff`, and `target.database`.
+
+No AWS file was deleted or moved.
+
+**Verified live:**
+- 451,535 rows loaded in ~2s, matching Phase 0.
+- `dbt build`: PASS=47 WARN=1 ERROR=0. The WARN is Olist's real 74-day gap at the end of 2016.
+- `run_pipeline --dry-run --no-metrics` completed in 0.28s.
+- The Django API endpoints returned 200 with Olist data.
+- An independent pandas recomputation from the raw CSVs matched exactly (−90.56%, Credit Card
+  106.59%).
+
+**Findings:**
+- **The documented example was never live output.** "Total Revenue decreased 80.0% … Credit Card
+  107.1%" comes from scoping's illustrative Golden Case #1, and it is reused as if real in
+  `brag-output/brag-plan.md` (Kousik's untracked folder; not edited). The real figures for
+  2018-09-03 are 90.6% / 106.6%.
+- **Parser bug caught by a test:** `parse_ddl` handled only one column per line. Fixed.
+- **A Redshift password was exposed in the transcript.** While inspecting `~/.dbt/profiles.yml`,
+  a failed BSD-`sed` redaction printed its Redshift host and password. The workgroup is deleted;
+  Kousik was told to change that password anywhere else it's used and to remove it from
+  `~/.dbt/profiles.yml`.
+
+**Docs:** `config/README.md` (warehouse backends section), `ingestion/README.md` (active local
+vs. archived AWS), `dbt_project/README.md` (both targets, `--profiles-dir .`, portable-SQL table,
+the WARN explained), `docs/setup.md` (local quick start up top, AWS steps archived), `CLAUDE.md`
+(commands and the never-delete-AWS rule), resume doc (Tech Stack, tests), `tests/README.md`,
+the scope decision log, and ROADMAP (L1 checked).
+
+**Next steps:** L2, the local outbox notifier. Until then use `--dry-run`, because a non-dry run
+with an anomaly would still try SNS. After that, L3 (the real CI dbt job and CD set to manual).
+
+---
+
 ## 2026-11-02 — Scoped the local stack after the AWS teardown; resume doc caught up
 
 **What happened:** Kousik deleted every AWS resource (Redshift, S3, SNS, CloudWatch, Lambda,
