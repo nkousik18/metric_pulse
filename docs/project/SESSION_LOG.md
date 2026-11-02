@@ -5,6 +5,42 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-02 — Scoped observability, tracing and the system-wide eval suite
+
+**What happened:** The user asked what observability and evals exist today. An audit found:
+- **Logging:** plain-text logs only.
+- **CloudWatch:** three counters that are never published from production, because both
+  `lambda_handler.py` and `dashboard_api/views.py` pass `publish_metrics=False`.
+- **LLM tracing:** none. `langsmith` is installed only as a LangChain dependency and is
+  unconfigured.
+- **Evals:** two hand-run scripts (investigation 1 case × 5, onboarding 1 case × 1) that print
+  to stdout and persist nothing.
+- **Detection:** no eval at all.
+
+The user chose LangSmith over MLflow for tracing, so that every decision can be tracked, traced
+and replayed. This was added to `docs/action-agent-scope.md` rather than a separate doc:
+- §7.1: a system-wide eval table, one stakeholder question per eval
+- §7.2: the report format every eval follows
+- N5
+- D10: LangSmith, and why
+- D11: local files are the source of truth; LangSmith is a mirror
+- §13: setup, linking, a telemetry wrapper for all three agents, approvals as LangSmith feedback,
+  a committed eval ledger, and three distinct meanings of "replay"
+- new milestone A7: detection eval, larger golden sets, drift run
+
+Tracing lands in A2, so the action graph is traced from its first run. The telemetry wrapper
+lands in A3. The new total estimate is ~51h. Verified against the installed SDK (0.10.16)
+before specifying: `traceable`, `evaluate`, `Client.create_feedback`, the `LANGSMITH_*` env var
+names, and LangGraph's `get_state_history`.
+
+**Next steps:** A2, starting with LangSmith setup. The user needs a LangSmith account and API key
+in `.env`, and the plan's quota and retention must be recorded per §13.1. Then A3.
+
+**Loose ends:** the Render cleanup PR is still owed, and the user's uncommitted files on `main`
+are untouched.
+
+---
+
 ## 2026-11-01 — Scoped the Action Agent, built A1 (policy gate)
 
 **What happened:**

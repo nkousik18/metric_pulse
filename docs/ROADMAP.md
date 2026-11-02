@@ -138,26 +138,34 @@ under Phase 1/Phase 2 above — neither is required for this initiative to be co
 A new, separately-scoped initiative (scoped 2026-10-26, revised 2026-11-01): turn a validated
 investigation into a proposed action from a fixed catalog, gate it on deterministic policy and
 human approval, execute it idempotently, and log it append-only. Local-only (§11 D9). Milestones
-are A1–A6 to avoid colliding with the agentic-layer initiative's M0–M7 above. Per §11 D7, A1–A3
+are A1–A7 to avoid colliding with the agentic-layer initiative's M0–M7 above. Per §11 D7, A1–A3
 are built in this pass, then work stops for review before A4.
 
 **Gate (minimum slice, A1–A3):** a real local run proposes an action, `policy_check` gates it,
 a T1 action is approved via the CLI and survives a restart while pending, and the action log
-records it — with the 20b live-test result recorded in the scope doc's decision log.
+records it — with the 20b live-test result recorded in the scope doc's decision log, and that
+run's full trace (every node and LLM call, with token/cost/latency) visible in LangSmith and
+reachable from its action-log row.
 
 - [x] **A1** — Action catalog, Pydantic schemas, `policy_check`, dry-run payload builder, tests.
       `action_agent/` (see its README). 81 new test cases (`test_action_policy.py`,
       `test_action_dry_run.py`), suite 162 passing. Verified live against the real onboarded
       `superstore_sales` evidence: T1 → `needs_approval` with a full dry-run payload, T0 →
       `auto_execute`, a 30-day suppression and an ungrounded segment both rejected with reasons.
-- [ ] **A2** — SQLite checkpointer, `interrupt()` approval flow, CLI approver, `actions.db` with
-      append-only `action_log` (trigger-enforced), idempotency keys.
+- [ ] **A2** — LangSmith tracing (scope §13.1–13.2), SQLite checkpointer, `interrupt()` approval
+      flow, CLI approver, `actions.db` with append-only `action_log` (trigger-enforced) carrying
+      trace/thread ids, idempotency keys, approver decisions as LangSmith feedback, decision-replay
+      test (§13.6).
 - [ ] **A3** — Live-test `gpt-oss-20b`; `propose_action` node, citation validation, 20b→120b
-      escalation, fallback, token budget, cost telemetry.
+      escalation, fallback, token budget; shared LLM telemetry wrapper (§13.3) on all three
+      agents' LLM calls.
 - [ ] **A4** — GitHub Issue and SNS executors, `suppress_alerts` and `create_control` evaluation,
       undo. *(approved, not started — awaits review after A3)*
-- [ ] **A5** — Golden (15, labeled by Kousik) and adversarial (10) eval suite, results table.
+- [ ] **A5** — Golden (15, labeled by Kousik) and adversarial (10) eval suite as LangSmith
+      datasets/experiments; committed eval ledger + baseline report (§7.2, §13.5).
 - [ ] **A6** — `/actions/*` API endpoints, SPA "Pending actions" tab, DRF throttling.
+- [ ] **A7** — Detection eval (≥20 labeled dates), investigation golden set ≥10 and onboarding
+      ≥3 (§7.1), scheduled drift run against stored baselines.
 
 ---
 
