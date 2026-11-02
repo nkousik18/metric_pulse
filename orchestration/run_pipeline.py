@@ -121,7 +121,15 @@ def run_pipeline(
                 results['investigation'] = {'status': 'failed', 'error': str(e)}
 
         # Step 5: Send Alert (if anomaly detected or forced)
-        if anomaly_detected or force_alert:
+        suppression = _suppression(metric, current_date) if (anomaly_detected or force_alert) else None
+        if suppression:
+            # D3 (docs/action-agent-scope.md): an approved suppress_alerts that hasn't expired or
+            # been undone means no repeat alert for this anomaly, even with --force-alert. To
+            # alert anyway, undo the suppression.
+            logger.info(f"Step 5: Alert suppressed until {suppression['expires_at']} ({suppression['reason']})")
+            results['alert'] = {'status': 'suppressed', 'until': suppression['expires_at'],
+                                'reason': suppression['reason']}
+        elif anomaly_detected or force_alert:
             logger.info("Step 5: Sending alert...")
             
             if dry_run:
@@ -143,6 +151,9 @@ def run_pipeline(
         else:
             logger.info("Step 5: No anomaly detected, skipping alert")
             results['alert'] = {'status': 'skipped', 'reason': 'no_anomaly'}
+
+        # Step 6: Action Agent watches (D4, F4). Local runs only; never fails the pipeline.
+        results['controls'] = _evaluate_controls(metric, current_date, previous_date, send=not dry_run)
         
         results['status'] = 'completed'
         results['completed_at'] = datetime.now().isoformat()
@@ -169,6 +180,35 @@ def run_pipeline(
             logger.warning(f"Failed to publish CloudWatch metrics: {e}")
     
     return results
+
+
+def _suppression(metric: str, current_date: str) -> Optional[Dict]:
+    """D3: the active suppression for today's Olist anomaly, or None. Never raises."""
+    if not settings.ACTION_PIPELINE_HOOKS:
+        return None
+    try:
+        from action_agent.hooks import pipeline_suppression
+        from action_agent.identity import OLIST_DATASET_ID
+        return pipeline_suppression(OLIST_DATASET_ID, metric, current_date)
+    except Exception as e:
+        logger.warning(f"Suppression check failed (non-blocking, alert not suppressed): {e}")
+        return None
+
+
+def _evaluate_controls(metric: str, current_date: str, previous_date: str, send: bool) -> Dict:
+    """D4: evaluate the Action Agent's active watches for this Olist metric. Never raises."""
+    if not settings.ACTION_PIPELINE_HOOKS:
+        return {'status': 'disabled'}
+    try:
+        from action_agent.hooks import evaluate_controls
+        from action_agent.identity import OLIST_DATASET_ID
+        outcome = evaluate_controls(OLIST_DATASET_ID, metric, current_date, previous_date, send=send)
+        if outcome['breaches']:
+            logger.info(f"Step 6: {len(outcome['breaches'])} watch breach(es), {outcome['alerts_sent']} alert(s) sent")
+        return outcome
+    except Exception as e:
+        logger.warning(f"Control evaluation failed (non-blocking): {e}")
+        return {'status': 'error', 'error': str(e)}
 
 
 def print_summary(results: Dict):
@@ -212,6 +252,18 @@ def print_summary(results: Dict):
             print(f"  Channel: {a['channel']}")
         if a.get('path'):
             print(f"  Outbox file: {a['path']}")
+        if a.get('status') == 'suppressed':
+            print(f"  Suppressed until {a['until']} ({a['reason']})")
+
+    controls = results.get('controls') or {}
+    if controls.get('evaluated') or controls.get('status') == 'error':
+        print(f"\nAction Agent watches: {controls.get('evaluated', 0)} evaluated, "
+              f"{len(controls.get('breaches', []))} breached, {controls.get('alerts_sent', 0)} alerted")
+        for b in controls.get('breaches', []):
+            print(f"  #{b['control_id']} {b['segment']} ({b['dimension']}) = {b['value']:,.2f}, "
+                  f"{b['direction']} {b['threshold']:,.2f}: {b['alert']}")
+        if controls.get('error'):
+            print(f"  Error: {controls['error']}")
     
     print("\n" + "=" * 60)
 

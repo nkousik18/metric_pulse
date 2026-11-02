@@ -262,6 +262,8 @@ live-tested; M4's in-memory-only `eval.py` never touched a CSV file and so never
 
 ## Bridging to the pipeline (`investigate.py`, M6)
 
+**Action Agent watches (A4):** the `python -m onboarding.investigate` CLI, after the cycle, evaluates the Action Agent's active `create_control` watches for that dataset and metric (`action_agent.hooks.evaluate_controls`, D4). That's in the CLI, not `run_cycle()`, because the Action Agent's `propose` also calls `run_cycle` and must not send watch alerts.
+
 `onboard.py` stops at a confirmed, codegen'd DuckDB file — `investigate.py` is what actually proves
 the Phase 2 gate's "goes from a raw CSV to a working `detect → decompose → narrate` cycle... and the
 Phase 1 investigation agent runs against it *unmodified*." It lives in `onboarding/`, not

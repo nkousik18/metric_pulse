@@ -9,10 +9,14 @@ CLI approver for the Action Agent (docs/action-agent-scope.md §5, §10.1: CLI o
     python -m action_agent.cli edit    <proposal_id> --params '{"days": 2, "reason": "..."}'
     python -m action_agent.cli log     [<proposal_id>]
     python -m action_agent.cli replay  <proposal_id>
+    python -m action_agent.cli undo    <proposal_id> --reason ... [--live]
 
-`propose` runs an onboarded dataset's detect -> decompose -> narrate cycle
-(onboarding.investigate.run_cycle) and feeds it to the action graph. The Olist
-path needs Redshift and is wired in with the pipeline integration later.
+`propose` builds the latest anomaly's evidence and feeds it to the action graph: for an
+onboarded dataset via its detect -> decompose -> narrate cycle (onboarding.investigate.run_cycle),
+and for `--dataset-id olist` via action_agent.evidence (the local warehouse since local-stack L1).
+
+`--live` (approve / edit / undo) allows effects outside this machine: a real GitHub issue for
+open_incident, or a non-outbox notifier channel. Without it those are simulated (§9).
 Proposal ids can be abbreviated to any unique prefix.
 
 Approver identity is ACTION_APPROVER, falling back to the OS user (decision log).
@@ -65,6 +69,15 @@ def _print_trace(trace_id) -> None:
 
 
 def cmd_propose(agent: ActionAgent, args) -> None:
+    from action_agent.identity import OLIST_DATASET_ID
+    if args.dataset_id == OLIST_DATASET_ID:
+        from action_agent.evidence import build_case
+        try:
+            case = build_case(args.dataset_id, args.metric)
+        except ValueError as e:
+            sys.exit(str(e))
+        _print_result(agent.start(**case))
+        return
     from onboarding.investigate import run_cycle
     cycle = run_cycle(args.dataset_id, args.metric)
     result = agent.start(
@@ -113,6 +126,15 @@ def cmd_decide(agent: ActionAgent, args) -> None:
     _print_result(result)
 
 
+def cmd_undo(agent: ActionAgent, args) -> None:
+    pid = _resolve(agent, args.proposal_id)
+    try:
+        result = agent.undo(pid, reason=args.reason)
+    except (ValueError, RuntimeError) as e:
+        sys.exit(str(e))
+    print(f"proposal {pid}: undone ({result['action_type']}, {result['outcome']})")
+
+
 def cmd_log(agent: ActionAgent, args) -> None:
     pid = _resolve(agent, args.proposal_id) if args.proposal_id else None
     for e in agent.store.events(pid):
@@ -151,17 +173,23 @@ def main(argv=None) -> None:
         d.add_argument('--reason', required=(name == 'reject'))
         if name == 'edit':
             d.add_argument('--params', required=True, help='JSON object of replacement params')
+        d.add_argument('--live', action='store_true', help='Allow effects outside this machine')
+    u = sub.add_parser('undo')
+    u.add_argument('proposal_id')
+    u.add_argument('--reason', required=True)
+    u.add_argument('--live', action='store_true', help='Needed to close a real GitHub issue')
     lg = sub.add_parser('log')
     lg.add_argument('proposal_id', nargs='?')
 
     args = parser.parse_args(argv)
     handlers = {'propose': cmd_propose, 'pending': cmd_pending, 'show': cmd_show, 'log': cmd_log,
-                'replay': cmd_replay, 'approve': cmd_decide, 'reject': cmd_decide, 'edit': cmd_decide}
+                'replay': cmd_replay, 'approve': cmd_decide, 'reject': cmd_decide, 'edit': cmd_decide,
+                'undo': cmd_undo}
     proposer_fn = None
     if args.command == 'propose' and not args.no_llm:
         from action_agent.llm_proposer import make_llm_proposer
         proposer_fn = make_llm_proposer()
-    agent = ActionAgent(proposer_fn=proposer_fn)
+    agent = ActionAgent(proposer_fn=proposer_fn, live=getattr(args, 'live', False))
     try:
         handlers[args.command](agent, args)
     finally:

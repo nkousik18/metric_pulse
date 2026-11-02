@@ -179,8 +179,16 @@ reachable from its action-log row.
       Phase 1 `synthesize` and Phase 2 `classify` recorded live through the same wrapper (the
       onboarding eval still passes). Found and fixed: LangSmith metadata added after the run had
       closed. 26 new tests, suite at 247. **Per D7, stop here for review before A4.**
-- [ ] **A4** — GitHub Issue and SNS executors, `suppress_alerts` and `create_control` evaluation,
-      undo. *(approved, not started — awaits review after A3)*
+- [x] **A4** — GitHub Issue and notifier executors, `suppress_alerts` and `create_control`
+      evaluation, undo.
+      **Verified live 2026-11-02** (scratch DBs, real Olist warehouse and pipeline): D3 —
+      `run_pipeline --force-alert` sent → suppressed after a CLI-approved `suppress_alerts` → sent
+      again after `undo`. D4 — a watch (Credit Card `order_count` below 5, real value 0) alerted
+      Payments Team once and logged `control_breached`; the second run `already_sent_today`.
+      `notify_owner` via `propose --dataset-id olist` wrote the owner's outbox message.
+      `open_incident --live` opened issue #1 in the private `nkousik18/metricpulse-incidents`,
+      a replayed execution reused it (no duplicate), and `undo --live` closed it. 33 new tests,
+      suite at 280. Bug found: a non-decomposable Olist metric crashed `propose` (BUG_LOG A4-1).
 - [ ] **A5** — Golden (15, labeled by Kousik) and adversarial (10) eval suite as LangSmith
       datasets/experiments; committed eval ledger + baseline report (§7.2, §13.5).
 - [ ] **A6** — `/actions/*` API endpoints, SPA "Pending actions" tab, DRF throttling.

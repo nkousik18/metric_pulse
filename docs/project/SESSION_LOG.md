@@ -5,6 +5,36 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-02 — Built A4: live executors, undo, and the pipeline honouring decisions
+
+**What happened:** Built Action Agent milestone A4 (branch `feat/live-executors`).
+- **Executors:** `notify_owner` → `alerting.notifier` (outbox by default) to the `owners.yaml`
+  owner; `open_incident` → a GitHub Issue (`GitHubClient`, `--live` only), with the idempotency
+  key embedded in the issue and reused on replay.
+- **Undo (F3):** `cli undo <id> --reason [--live]` writes a terminal `undone` row; active
+  suppressions and watches exclude undone keys; closing a real issue is part of it.
+- **Pipeline hooks (`action_agent/hooks.py`):** D3, an approved suppression gives
+  `alert.status = suppressed` (even with `--force-alert`); D4/F4, active watches are checked
+  against every segment's real value (`run_pipeline` step 6 and the `onboarding.investigate`
+  CLI), one alert per watch per day via a UNIQUE constraint, `control_breached` logged.
+- `propose --dataset-id olist`, through a shared `action_agent/evidence.py`.
+- D8 choices recorded in the scope's A4 log. Kousik chose a new private repo,
+  `nkousik18/metricpulse-incidents`, and his `gh` login for the one live run.
+
+**Verified live:** D3 (sent → suppressed → undo → sent), D4 (alerted Payments Team once, then
+`already_sent_today`), `notify_owner` from an Olist LLM proposal, and `open_incident --live`
+(issue #1 opened, replay reused it, undo closed it). 33 new tests, suite at 280, lint clean.
+
+**Bug found:** `propose --dataset-id olist --metric customer_count` crashed with a bare
+`KeyError`: only `total_revenue` and `order_count` exist in Olist's dimension tables. Now a
+clear refusal (BUG_LOG A4-1, with a test).
+
+**Next:** A5, the golden (15, labelled by Kousik) and adversarial (10) eval suite. Kousik's part:
+label the golden cases. Remember Groq's 8k tokens/minute when batching. The issue #1 in the
+sandbox repo is closed and can stay as a record.
+
+---
+
 ## 2026-11-02 — Started a bug log
 
 **What happened:** Kousik asked for the bugs found so far to be documented. Added

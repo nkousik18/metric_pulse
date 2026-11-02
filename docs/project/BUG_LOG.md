@@ -17,13 +17,13 @@ things must be run).
 
 | | Count |
 |---|---|
-| Bugs logged | 33 |
-| Found by running it live | 23 |
+| Bugs logged | 34 |
+| Found by running it live | 24 |
 | Found by a unit test | 2 |
 | Found by review | 8 |
-| Kinds | code 21, config/setup 6, constraint 1, design doc 2, process 2, test 1 |
+| Kinds | code 22, config/setup 6, constraint 1, design doc 2, process 2, test 1 |
 
-**The pattern:** 23 of 33 were found only by running the real thing (a real dataset, a real
+**The pattern:** 24 of 34 were found only by running the real thing (a real dataset, a real
 API, a real CI run). Each milestone's unit tests were green while these bugs existed, because the
 tests used tidy fixtures: plain floats instead of numpy, Olist-only dimension names, in-memory
 data instead of a CSV, a fake key instead of a real account. That is why every roadmap box is
@@ -32,10 +32,11 @@ test that was confirmed to fail without the fix.
 
 ---
 
-## Action Agent (A1–A3, 2026-11)
+## Action Agent (A1–A4, 2026-11)
 
 | # | Milestone | Kind | Bug | How found | Root cause | Fix | Guard |
 |---|---|---|---|---|---|---|---|
+| A4-1 | A4 | code | `propose --dataset-id olist --metric customer_count` crashed with a bare `KeyError: 'total_current'` | live (the new Olist propose path) | Olist's per-dimension tables carry only `total_revenue` and `order_count`, so every dimension's decomposition is an error, and `generate_narrative` indexes the first one without checking. The pipeline has the same latent issue (it reports `status: failed` with the KeyError) | `evidence.require_decomposable()` refuses such a metric with a clear message, and `propose` exits with it | `test_action_hooks.py::test_a_metric_no_dimension_carries_is_refused_clearly` |
 | A3-3 | A3 | constraint | Back-to-back proposer runs slow from ~1s to 19–30s | live (probe, 12 runs) | Groq allows gpt-oss-20b **8,000 tokens/minute** on this account (confirmed from `x-ratelimit-*` headers); the SDK silently waits and retries | None needed for single proposals; recorded so A5's batch evals pace themselves | `action_agent/README.md` Gotchas |
 | A3-2 | A3 | code | The same case gave `annotate_anomaly` once and `notify_owner` on a re-run | live (probe re-run) | LLM output isn't deterministic even at temperature 0 (expected, §13.6). It matters because `annotate_anomaly` is T0 and runs without approval | None in code: annotations are tag-only and never affect alerting | Recorded for an A5 adversarial case |
 | A3-1 | A3 | code | LLM telemetry metadata (tokens, cost, outcome) never appeared on the LangSmith run | live (traced CLI propose, inspecting the run tree) | `observability/llm.py` added metadata *after* the `traceable` function returned, when LangSmith had already closed the run. Fail-open hid it | The call and all its bookkeeping now run inside the traced function | Re-verified on a live trace; `observability/README.md` Gotcha |

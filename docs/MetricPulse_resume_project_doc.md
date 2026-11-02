@@ -523,7 +523,7 @@ Flake8 strategy: hard errors (`E9,F63,F7,F82`) fail CI; style warnings (`--exit-
 
 ---
 
-## 12. Test Coverage (247 Tests, 23 Files)
+## 12. Test Coverage (280 Tests, 25 Files)
 
 | File | Tests | What's covered |
 |------|-------|---------------|
@@ -548,6 +548,8 @@ Flake8 strategy: hard errors (`E9,F63,F7,F82`) fail CI; style warnings (`--exit-
 | `tests/test_local_warehouse.py` | 12 | Local stack: `WAREHOUSE` dispatch (archived Redshift path selected without connecting), the Lambda default, read-only DuckDB, DDL parsing, and the CSV → DuckDB loader's Redshift-COPY-equivalent semantics |
 | `tests/test_llm_telemetry.py` | 10 | The shared LLM telemetry wrapper: tokens, dated-price cost, latency, outcomes (grounded/invalid/parse error/API error/budget skip), budget charged from logged usage, fail-open logging |
 | `tests/test_llm_proposer.py` | 16 | The Action Agent LLM proposer: validation, 20b → 120b escalation, fallback, one retry only, token budget, untrusted segment names kept out of the instructions, graph wiring |
+| `tests/test_action_executors.py` | 13 | The live executors: owner messages through the outbox, and GitHub issues against a real local HTTP server (create once, reuse on replay, close on undo) |
+| `tests/test_action_hooks.py` | 20 | Undo, and the pipeline reading approved decisions: suppression, watches (once a day, strict thresholds, every segment), end to end through a real agent |
 | `tests/test_olist_sample.py` | 5 | The committed CI sample: window and referenced-rows-only rules, byte-for-byte line copying, determinism, multi-line records refused, and the committed fixture loading with no orphaned rows |
 | `tests/test_notifier.py` | 13 | Local alert outbox: file and index format, never-overwrite, numpy metadata, fail-soft I/O, `ALERT_CHANNEL` dispatch to the archived SNS code without sending, the Lambda default |
 
@@ -675,7 +677,20 @@ cannot be edited.
   run had closed (it silently never appeared), and Groq's 8,000-tokens-a-minute limit throttles
   back-to-back runs from ~1s to ~25s, which shapes how the batch evals will run.
 
-**Next (after review, per D7):** A4 adds the live executors, A5 the golden and adversarial evals, A6 the API and SPA tab, and A7
+**A4 — real effects, undo, and the pipeline reading the agent's decisions (built 2026-11-02).**
+- **Real executors behind one rule:** effects outside the machine need `--live`. Owner
+  notifications go through the same notifier as pipeline alerts (a local outbox by default);
+  incidents become GitHub Issues in a private repo. Every effect is still idempotent, and
+  `open_incident` embeds its idempotency key in the issue so even a crash mid-call can't
+  duplicate it. Verified against the real GitHub API, including the duplicate check.
+- **Undo as a compensating entry.** Reversible actions can be undone with a reason; the log gets
+  an `undone` row and nothing is ever edited. Closing a real issue is part of the undo.
+- **The pipeline now honours approved decisions:** an approved suppression stops repeat alerts
+  for that anomaly, and approved watches are checked against every segment's real daily value on
+  each run, alerting the owner at most once a day (a database constraint). Both were run live on
+  Olist through the real pipeline.
+
+**Next:** A5 adds the golden and adversarial evals, A6 the API and SPA tab, and A7
 the system-wide evals.
 
 ---

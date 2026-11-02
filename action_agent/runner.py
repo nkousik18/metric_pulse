@@ -1,7 +1,7 @@
 """
 ActionAgent: the runtime around the action graph. It wires the store, the
 SqliteSaver checkpointer, the executors and LangSmith run config, and exposes
-the three operations the CLI (and, in A6, the API) need: start, decide, inspect.
+the operations the CLI (and, in A6, the API) need: start, decide, undo, inspect.
 
 Every start and every decide is its own LangGraph invocation and so its own
 LangSmith trace. Each trace's root run id is stamped on the action_log rows it
@@ -18,6 +18,7 @@ from typing import Callable, Dict, List, Optional
 from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.types import Command
 
+from action_agent.catalog import CATALOG
 from action_agent.executors import default_executors
 from action_agent.graph import build_action_graph, default_approver
 from action_agent.owners import OwnersConfig, load_owners
@@ -54,15 +55,24 @@ class ActionAgent:
         now_fn: Callable[[], datetime] = lambda: datetime.now(timezone.utc),
         ttl_hours: float = settings.PROPOSAL_TTL_HOURS,
         proposer_fn=None,
+        live: bool = False,
+        outbox_dir=None,
     ):
+        """live: allow effects outside this machine (a real GitHub issue, a non-outbox notifier
+        channel). Off by default; the CLI's --live turns it on (§9)."""
         self.now_fn = now_fn
         self.store = ActionStore(actions_db or settings.ACTIONS_DB_PATH)
+        if executors is None:
+            executors = default_executors(self.store, live=live, outbox_dir=outbox_dir)
+        self.executors = executors
+        if targets is None:
+            targets = {'alert_channel': settings.ALERT_CHANNEL, 'github_repo': settings.ACTION_GITHUB_REPO}
         self._cp_conn = sqlite3.connect(str(checkpoints_db or settings.CHECKPOINTS_DB_PATH),
                                         check_same_thread=False)
         self.checkpointer = SqliteSaver(self._cp_conn)
         self.graph = build_action_graph(
             self.store, self.checkpointer, owners or load_owners(),
-            executors if executors is not None else default_executors(self.store),
+            self.executors,
             targets=targets, now_fn=now_fn, ttl_hours=ttl_hours, proposer_fn=proposer_fn,
         )
 
@@ -107,6 +117,32 @@ class ActionAgent:
                    'approver': approver or default_approver()}
         result = self.graph.invoke(Command(resume=payload, update={'trace_id': str(run_id)}), config)
         return self._summarize(proposal_id, result, run_id)
+
+    def undo(self, proposal_id: str, *, reason: str, approver: Optional[str] = None) -> Dict:
+        """F3: reverse an executed, reversible action with a compensating `undone` log row.
+
+        Local effects (annotation, suppression, control) stop applying because the active-effect
+        queries exclude undone keys; the effect rows themselves are never edited. An opened GitHub
+        issue is closed (needs live). notify_owner can't be undone: a sent message stays sent."""
+        status = self.store.status(proposal_id)
+        if status != 'executed':
+            raise ValueError(f'proposal {proposal_id} has nothing to undo (status: {status})')
+        row = self.store.executed_row(proposal_id)
+        action_type = row['action_type']
+        if not CATALOG[action_type].reversible:
+            raise ValueError(f'{action_type} is not reversible')
+        if not reason or not reason.strip():
+            raise ValueError('an undo needs a reason')
+        outcome = 'effect_lifted'
+        executor = self.executors.get(action_type)
+        if hasattr(executor, 'undo'):
+            outcome = executor.undo(row['external_id'], reason)['outcome']
+        self.store.log(proposal_id, 'undone', approver or default_approver(), action_type=action_type,
+                       params=row['params'], idempotency_key=row['idempotency_key'],
+                       external_id=row['external_id'], detail=f'{reason.strip()} ({outcome})',
+                       now=self.now_fn())
+        return {'proposal_id': proposal_id, 'status': 'undone', 'outcome': outcome,
+                'action_type': action_type, 'external_id': row['external_id']}
 
     def is_waiting(self, proposal_id: str) -> bool:
         state = self.graph.get_state({'configurable': {'thread_id': proposal_id}})
