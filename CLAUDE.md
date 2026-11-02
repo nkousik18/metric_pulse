@@ -79,6 +79,7 @@ python -m alerting.sns_publisher --test                             # archived: 
 ```bash
 # Active: local (default WAREHOUSE=duckdb)
 python -m ingestion.load_local                      # data/raw/*.csv -> data/warehouse.duckdb (451,535 rows)
+python -m ingestion.make_olist_sample               # regenerate the committed CI sample data/fixtures/olist_sample/ (CC BY-NC-SA)
 cd dbt_project && dbt build --target local --profiles-dir .   # always pass --profiles-dir .
 
 # Archived: AWS (resources deleted 2026-11-02; code kept intact, never delete it)
@@ -106,6 +107,7 @@ deploy/deploy_lambda.sh   # build image, push to ECR, update Lambda
 
 - Six pipeline layers (`ingestion/` → `dbt_project/` → `detection/` → `decomposition/` → `narrative/` → `alerting/`), coordinated by `orchestration/run_pipeline.py`, connected by plain dict contracts — not classes. Exact shapes are documented in each producer's own folder `README.md`; read it before changing a consumer.
 - **AWS code is archived, never deleted** (`docs/local-stack-scope.md` R1). The AWS resources were deleted on 2026-11-02. Local is the default backend (`WAREHOUSE=duckdb`, `ALERT_CHANNEL=outbox`, `CLOUDWATCH_METRICS=false`), and AWS stays a switch. **The SNS topic and AWS credentials still work** (found in L2): `ALERT_CHANNEL=sns` or `sns_publisher --test` really publishes, and in tests set `SNS_TOPIC_ARN=''` rather than unsetting it (`sns_publisher`'s `load_dotenv()` refills a missing var). Don't remove, move or "clean up" AWS files; Kousik restructures the codebase once, at the end of the project.
+- **CI:** `dbt-build-local` (`.github/workflows/ci.yml`) is the real dbt gate: `dbt build` on DuckDB against the committed Olist sample `data/fixtures/olist_sample/` (CC BY-NC-SA 4.0, attribution in its README; regenerate with `make_olist_sample`, never hand-edit). `dbt-check` can't fail and is kept as archived. **CD (`cd.yml`) is manual only** (it deploys to the deleted AWS stack), so a merge triggers no CD run.
 - Shared infra used by nearly every module: `config/db.py` (the warehouse connection factory: DuckDB by default, Redshift when `WAREHOUSE=redshift`; used everywhere except the legacy Streamlit dashboard, which intentionally connects directly for `@st.cache_resource`'s connection lifecycle — see `config/README.md`), `config/settings.py` (all env vars as constants — don't `os.getenv` ad hoc in new code), `config/logging_config.py` (shared logger). See `config/README.md`.
 - `orchestration/run_pipeline.py`'s per-step try/except-never-raise pattern (failure sets `status`/`error` in the result dict, never raises) is the standard error-handling convention for new pipeline code — see `orchestration/README.md`.
 - Date strings get validated (`decomposition/decomposer.py`'s `_validate_date()`) before SQL interpolation, since `redshift_connector` doesn't support parameterized queries for the DDL/COPY/date-filtered SQL used here — follow this pattern for any new SQL touching user-supplied values.

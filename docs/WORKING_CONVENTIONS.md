@@ -201,8 +201,9 @@ sessions' worth of work sit uncommitted waiting for a "good moment" to package i
    commit with a message describing *why*, not just *what*.
 4. `git push -u origin <branch>`, then open the PR (`gh pr create`) with a short summary and a
    test-plan checklist.
-5. Wait for CI to actually report pass on every check — `lint-and-test` and `dbt-check`
-   (the two jobs defined in `.github/workflows/ci.yml`) — before merging. Never merge
+5. Wait for CI to actually report pass on every check — `lint-and-test`, `dbt-build-local`
+   (the real dbt gate, added 2026-11-02) and the archived `dbt-check` (the jobs defined in
+   `.github/workflows/ci.yml`) — before merging. Never merge
    speculatively.
 6. `gh pr merge --squash --delete-branch` — squash so `main`'s history is one clean commit per
    unit of work regardless of how many small commits happened getting there, and delete the

@@ -64,3 +64,42 @@ jobs:
         run: |
           cd dbt_project
           dbt parse --profiles-dir . || echo "dbt parse requires profile connection"
+
+  # The real dbt gate (docs/local-stack-scope.md §6.5). dbt-check above can never fail
+  # (`|| echo`) and stays as it is (R1); this job runs an actual `dbt build` (all models and
+  # tests) on DuckDB against the committed Olist sample, and fails on a broken model or test.
+  dbt-build-local:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Load the committed Olist sample into DuckDB
+        run: |
+          python -m ingestion.load_local --raw-dir data/fixtures/olist_sample --warehouse-path "$RUNNER_TEMP/ci.duckdb"
+
+      - name: dbt build (all models and tests)
+        env:
+          WAREHOUSE_PATH: ${{ runner.temp }}/ci.duckdb
+        run: |
+          cd dbt_project
+          dbt build --target local --profiles-dir .

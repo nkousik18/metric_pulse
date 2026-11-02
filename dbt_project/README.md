@@ -91,6 +91,13 @@ dbt build --target redshift --profiles-dir .  # archived: needs REDSHIFT_* env v
 
 Verified 2026-11-02 on the full Olist data: `PASS=47 WARN=1 ERROR=0`, which is all 11 models and 37 tests. The one warning is `assert_dates_continuous` (severity `warn` by design). It flags a real 74-day gap in Olist, from 2016-10-10 to 2016-12-23, when the dataset has no orders at all. It isn't a porting artifact.
 
+**CI runs the same build** in the `dbt-build-local` job (`.github/workflows/ci.yml`), on the committed sample `data/fixtures/olist_sample/` (orders from 2018-08-01), where the result is `PASS=48 WARN=0 ERROR=0`: the 2016 gap is outside the sample. This is the real dbt gate; a broken model or failing test fails it. The older `dbt-check` job (`dbt parse … || echo`) can't fail and is kept unchanged as archived. To reproduce CI locally:
+
+```bash
+python -m ingestion.load_local --raw-dir data/fixtures/olist_sample --warehouse-path /tmp/sample.duckdb
+cd dbt_project && WAREHOUSE_PATH=/tmp/sample.duckdb dbt build --target local --profiles-dir .
+```
+
 ### Portable SQL (changed 2026-11-02)
 
 Three Redshift-only constructs failed on DuckDB with Binder Errors. Each was rewritten to a form that is valid on **both** adapters, so the archived Redshift target still works:

@@ -23,6 +23,10 @@ It loads **by position**, the way Redshift's `COPY … IGNOREHEADER 1` does, so 
 
 It prints per-table counts. **On the full data, the total is 451,535, matching the Phase 0 figure** (verified 2026-11-02, in about 2s). For CI or experiments, use `--raw-dir` / `--warehouse-path`.
 
+### The committed CI sample (`make_olist_sample.py`)
+
+`python -m ingestion.make_olist_sample` writes `data/fixtures/olist_sample/`: every order purchased on or after 2018-08-01, plus every row those orders reference (items, payments, customers, products, sellers) and the full translation table. That's 32,749 rows, about 3.5 MB, committed so CI's `dbt-build-local` job can run a real `dbt build` without the raw data. Lines are copied byte for byte in source order, so the output is identical on every run (checked by diffing two runs). It refuses a record that spans lines, since line copying would break it. The data is CC BY-NC-SA 4.0; the folder's `README.md` carries the attribution. `--start` and `--out` change the window and destination.
+
 ## Archived: AWS path (S3 → Redshift)
 
 Kept intact (R1); the resources were deleted, so it can't run any more. Three scripts run in a strict order: **S3 upload → table DDL → COPY load**.
@@ -31,6 +35,8 @@ Kept intact (R1); the resources were deleted, so it can't run any more. Three sc
 
 | File | Purpose |
 |------|---------|
+| `load_local.py` | **Active.** CSV → DuckDB `raw_data.*` (see above). |
+| `make_olist_sample.py` | **Active.** Builds the committed CI sample in `data/fixtures/olist_sample/` (see above). |
 | `upload_to_s3.py` | Scans `data/raw/*.csv` and uploads every file found to `s3://$S3_BUCKET_NAME/raw/<filename>`. |
 | `setup_redshift_tables.py` | Executes `infrastructure/redshift_setup.sql` against Redshift to create the 7 `raw_data.*` tables (`CREATE TABLE IF NOT EXISTS`, safe to rerun). |
 | `s3_to_redshift.py` | `TRUNCATE` + `COPY` for each of the 7 tables, reading CSVs straight from S3. |

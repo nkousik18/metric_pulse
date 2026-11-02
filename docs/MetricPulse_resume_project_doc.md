@@ -474,11 +474,12 @@ Direct Redshift connection. `@st.cache_resource` for connection (session-scoped)
 > **Status (2026-11-02): archived.** Everything in this section was real, but the Render service and
 > every AWS resource below have been deleted, and the code is kept unchanged as a record. Two
 > consequences are worth knowing:
-> - **`cd.yml` has failed on every push to `main` since at least 2026-08-19**, because it needs the
->   deleted AWS credentials and environment. `docs/local-stack-scope.md` §6.5 switches it to manual
->   trigger only.
+> - **`cd.yml` failed on every push to `main` from at least 2026-08-19**, because it needs the
+>   deleted AWS credentials and environment. Since local-stack L3 (2026-11-02) it is manual
+>   trigger only (`workflow_dispatch`).
 > - **CI's `dbt-check` job runs `dbt parse … || echo`, so it cannot fail.** It has never been a
->   real dbt gate. The local-stack scope adds a real `dbt build` job on DuckDB.
+>   real dbt gate. Since L3, the `dbt-build-local` job runs a real `dbt build` on DuckDB against a
+>   committed Olist sample, and fails on a broken model.
 >
 > The replacement local stack is in `docs/local-stack-scope.md`.
 
@@ -511,8 +512,8 @@ Docker image built from `public.ecr.aws/lambda/python:3.12`. Contains only pipel
 
 | Pipeline | Trigger | Jobs |
 |----------|---------|------|
-| CI (`ci.yml`) | Push / PR to `develop`, `main` | `lint-and-test` (flake8 + pytest) + `dbt-check` (dbt parse) — parallel |
-| CD (`cd.yml`) | Push to `main` | Requires `production` environment approval; installs deps, configures AWS credentials, echoes a `dbt run` placeholder — **does not itself deploy anything** |
+| CI (`ci.yml`) | Push / PR to `develop`, `main` | `lint-and-test` (flake8 + pytest) + `dbt-check` (dbt parse, can't fail) + `dbt-build-local` (real `dbt build` on DuckDB against a committed 3.5 MB Olist sample, since 2026-11-02) — parallel |
+| CD (`cd.yml`) | Manual (`workflow_dispatch`) since 2026-11-02; was push to `main` | Requires `production` environment approval; installs deps, configures AWS credentials, echoes a `dbt run` placeholder — **does not itself deploy anything** |
 
 CD does not deploy the Django app — Render deploys independently via its own git-push auto-deploy
 hook, entirely outside this GitHub Actions workflow. `cd.yml`'s only real effect today is the
@@ -522,7 +523,7 @@ Flake8 strategy: hard errors (`E9,F63,F7,F82`) fail CI; style warnings (`--exit-
 
 ---
 
-## 12. Test Coverage (215 Tests, 20 Files)
+## 12. Test Coverage (220 Tests, 21 Files)
 
 | File | Tests | What's covered |
 |------|-------|---------------|
@@ -545,6 +546,7 @@ Flake8 strategy: hard errors (`E9,F63,F7,F82`) fail CI; style warnings (`--exit-
 | `tests/test_action_graph.py` | 15 | The full A2 approval graph on a real `SqliteSaver`: restart survival, approve/edit/reject, TTL expiry, 3× execute replay = 1 execution, tampered payload fails closed, exact decision replay, numpy-evidence regression |
 | `tests/test_tracing.py` | 4 | LangSmith helpers are offline no-ops when tracing is off |
 | `tests/test_local_warehouse.py` | 12 | Local stack: `WAREHOUSE` dispatch (archived Redshift path selected without connecting), the Lambda default, read-only DuckDB, DDL parsing, and the CSV → DuckDB loader's Redshift-COPY-equivalent semantics |
+| `tests/test_olist_sample.py` | 5 | The committed CI sample: window and referenced-rows-only rules, byte-for-byte line copying, determinism, multi-line records refused, and the committed fixture loading with no orphaned rows |
 | `tests/test_notifier.py` | 13 | Local alert outbox: file and index format, never-overwrite, numpy metadata, fail-soft I/O, `ALERT_CHANNEL` dispatch to the archived SNS code without sending, the Lambda default |
 
 No mocking is used anywhere in the suite — every test calls a pure function directly with in-memory
@@ -603,7 +605,7 @@ clause swallowed failures silently.
 | Dashboard-based onboarding wizard | Future work, named v1 boundary | CLI only today (`onboarding/onboard.py`) |
 | Multi-level drill-down / cross-run agent memory | Future work, deliberately deferred | `detail_col` is the deepest grain currently modeled; each investigation is a fresh graph invocation with no memory of prior runs — neither was needed to prove the core design worked |
 | AWS stack deleted (2026-11) | Status, named not silent | Redshift, S3, Lambda, ECR and Render are gone (the SNS topic was found still live during L2). The Olist path runs locally again: DuckDB + dbt-duckdb (L1) and a local alert outbox (L2), `docs/local-stack-scope.md`. The AWS code is kept intact by design |
-| CI `dbt-check` cannot fail | Limitation, named not silent | `dbt parse … \|\| echo` swallows every failure. Replaced as the real gate by a local `dbt build` job (local-stack scope §6.5) |
+| CI `dbt-check` cannot fail | Limitation, named not silent | `dbt parse … \|\| echo` swallows every failure. Replaced as the real gate (L3, done) by a local `dbt build` job (local-stack scope §6.5) |
 | Parallel fan-out for multi-dimension decomposition | Future work, deliberately deferred | LangGraph's `Send` API could run the 3+ dimension queries concurrently; at current data volume (sub-5s sequential) the latency savings are marginal against the added debugging complexity |
 
 ---
