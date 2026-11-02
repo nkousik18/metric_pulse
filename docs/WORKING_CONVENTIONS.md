@@ -139,6 +139,15 @@ can read.
   session that crosses a real milestone mid-way benefits from a checkpoint entry rather than
   one giant entry trying to cover two different arcs of work.
 
+## Keeping the bug log
+
+`docs/project/BUG_LOG.md` holds every real bug, one row each: what broke, how it was found
+(live / test / review), the root cause, the fix, and the guard (a regression test, a check, or
+a documented gotcha). Add the row **in the same PR as the fix**, and update the summary counts.
+Rows are never rewritten. A later finding that changes the story (e.g. a fix that turned out
+wrong) gets its own row pointing back. The session log keeps the narrative; the bug log is the
+index that makes patterns visible, such as how many bugs only a live run could find.
+
 ## Keeping the roadmap
 
 `docs/ROADMAP.md` answers "which phase are we in, and what's actually left before we can call

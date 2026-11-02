@@ -21,6 +21,7 @@ Don't re-derive architecture from scratch in chat; it's already written down.
 - `docs/scoping.md` — the section-by-section design spec for that initiative (goals, non-goals, decision log). `ROADMAP.md` tracks whether each part is *built*; this is the *design record* — don't assume a section being designed here means it's implemented.
 - `docs/action-agent-scope.md` — design spec for the follow-on Action Agent initiative (milestones A1–A7 in `ROADMAP.md`); its §11 decisions are fixed for the build, and §13 specifies LangSmith tracing and replay.
 - `docs/project/SESSION_LOG.md` — session-by-session history; read before assuming what's already been tried.
+- `docs/project/BUG_LOG.md` — every real bug found (symptom, how found, root cause, fix, guard). **Add a row whenever a bug is found**, in the same PR as its fix.
 - `CHANGELOG.md` — what's actually shipped, in user-facing terms.
 - `concepts/` (see `concepts/INDEX.md`) — one file per idea worth explaining once and linking to, rather than re-explaining at length in chat every time it comes up.
 - `CONTRIBUTING.md` — branch naming and the GitHub Flow sequence (branch → PR → CI green → squash-merge). Follow it for every change, however small.
