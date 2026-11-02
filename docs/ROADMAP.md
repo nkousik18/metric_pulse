@@ -30,7 +30,7 @@ is tested, and is live.
 - [x] 15 unit tests, all pure-function, no mocking
 
 **Named gaps, not silently dropped** (full list: `docs/infrastructure_and_deployment.md`
-Known Gaps, `docs/resume_project_doc.md` §12):
+Known Gaps, `docs/MetricPulse_resume_project_doc.md` §14):
 - CD's `dbt run` step is a placeholder — transformations are run manually on data refresh.
 - Contact form email sending is disabled (`send_mail` commented out).
 - Lambda deploy scripts exist and work but aren't invoked by CD — manual only.
@@ -172,6 +172,26 @@ reachable from its action-log row.
 - [ ] **A6** — `/actions/*` API endpoints, SPA "Pending actions" tab, DRF throttling.
 - [ ] **A7** — Detection eval (≥20 labeled dates), investigation golden set ≥10 and onboarding
       ≥3 (§7.1), scheduled drift run against stored baselines.
+
+---
+
+## Local Stack (`docs/local-stack-scope.md`)
+
+The AWS free trial ended and every AWS resource was deleted (2026-11-02), so the Olist pipeline
+can't run. This work brings it back locally and for free (a DuckDB warehouse, dbt-duckdb, a local
+alert outbox), **keeping every line of AWS code** as an archived, switchable backend (scope §3
+R1–R5). It is prioritized ahead of Action Agent A3 (scope §9).
+
+**Gate:** from a fresh clone plus `data/raw/`, `load_local` → `dbt build --target local` →
+`run_pipeline --dry-run` runs end to end with no cloud account, and no AWS file has been deleted.
+
+- [ ] **L1** — `WAREHOUSE` switch in `config/db.py`, `ingestion/load_local.py`, `dbt-duckdb` +
+      committed `dbt_project/profiles.yml`, the 3 Redshift→portable SQL fixes. Row total 451,535;
+      dbt build passes; Django dashboard serves Olist from DuckDB.
+- [ ] **L2** — `alerting/notifier.py` (local outbox, SNS kept as a channel), `run_pipeline` alert
+      wiring, Action Agent scope text aligned (`notify_owner` via notifier).
+- [ ] **L3** — Committed Olist sample + real `dbt-build-local` CI job (the old `dbt-check` can't
+      fail); `cd.yml` to manual trigger (it has failed on every merge since 2026-08); docs pass.
 
 ---
 
