@@ -24,6 +24,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from config.logging_config import setup_logger  # noqa: E402
 from decomposition.decomposer import get_comparison_dates, get_top_driver  # noqa: E402
 from investigation.llm import get_synthesis_llm  # noqa: E402
+from config.settings import GROQ_MODEL  # noqa: E402
+from observability.llm import invoke_structured  # noqa: E402
 from investigation.prompts import build_synthesis_prompt  # noqa: E402
 from investigation.rendering import render_investigation_summary  # noqa: E402
 from investigation.schemas import SynthesisOutput  # noqa: E402
@@ -223,16 +225,22 @@ def _run_synthesis(state: InvestigationState) -> Tuple[Optional[SynthesisOutput]
     log = []
     try:
         llm = get_synthesis_llm()
+        # Recorded by the shared telemetry wrapper (N1). Not budgeted: the token budget is the
+        # Action Agent's only. A raise here is the same raise the bare llm.invoke() gave.
+        telemetry = {'stage': 'synthesize', 'model': GROQ_MODEL,
+                     'validate': lambda o: validate_synthesis_output(o, state),
+                     'metadata': {'metric': state.get('metric'), 'anomaly_date': state.get('current_date')}}
 
-        output = llm.invoke(build_synthesis_prompt(state))
-        errors = validate_synthesis_output(output, state)
+        output, record = invoke_structured(llm, build_synthesis_prompt(state), attempt=1, **telemetry)
+        errors = record.errors
         if not errors:
             log.append("synthesize: grounded on first attempt")
             return output, log, 'grounded_first_attempt'
 
         log.append(f"synthesize: first attempt failed validation: {errors}")
-        output = llm.invoke(build_synthesis_prompt(state, validation_errors=errors))
-        errors = validate_synthesis_output(output, state)
+        output, record = invoke_structured(llm, build_synthesis_prompt(state, validation_errors=errors),
+                                           attempt=2, **telemetry)
+        errors = record.errors
         if not errors:
             log.append("synthesize: grounded after retry")
             return output, log, 'grounded_after_retry'

@@ -140,6 +140,8 @@ def main(argv=None) -> None:
     p = sub.add_parser('propose')
     p.add_argument('--dataset-id', required=True)
     p.add_argument('--metric', required=True)
+    p.add_argument('--no-llm', action='store_true',
+                   help='Use the deterministic proposer instead of the LLM (20b -> 120b -> fallback)')
     sub.add_parser('pending')
     for name in ('show', 'replay'):
         sub.add_parser(name).add_argument('proposal_id')
@@ -155,7 +157,11 @@ def main(argv=None) -> None:
     args = parser.parse_args(argv)
     handlers = {'propose': cmd_propose, 'pending': cmd_pending, 'show': cmd_show, 'log': cmd_log,
                 'replay': cmd_replay, 'approve': cmd_decide, 'reject': cmd_decide, 'edit': cmd_decide}
-    agent = ActionAgent()
+    proposer_fn = None
+    if args.command == 'propose' and not args.no_llm:
+        from action_agent.llm_proposer import make_llm_proposer
+        proposer_fn = make_llm_proposer()
+    agent = ActionAgent(proposer_fn=proposer_fn)
     try:
         handlers[args.command](agent, args)
     finally:

@@ -168,9 +168,17 @@ reachable from its action-log row.
       approve → executed, a re-approve refused, a second run for the same anomaly skipped (D1),
       replay matching, a raw `DELETE` on `action_log` refused, and the run completing with tracing
       on while LangSmith rejected every upload (fail-open, N5). 28 new tests, suite at 190.
-- [ ] **A3** — Live-test `gpt-oss-20b`; `propose_action` node, citation validation, 20b→120b
+- [x] **A3** — Live-test `gpt-oss-20b`; `propose_action` node, citation validation, 20b→120b
       escalation, fallback, token budget; shared LLM telemetry wrapper (§13.3) on all three
       agents' LLM calls.
+      **Verified live 2026-11-02:** 20b alone grounded 12/12 real Olist + Superstore anomalies
+      (12/12 pass policy, median 2,615 tokens, $0.0042 total). Every D2 path run live:
+      escalation (a real 404 → 120b grounded), full fallback, budget skip. CLI `propose` with
+      tracing on: `proposed` row names the model and attempt trail; the `llm.propose_action`
+      LangSmith run carries tokens/cost/latency and the same trace id as `logs/llm_calls.jsonl`.
+      Phase 1 `synthesize` and Phase 2 `classify` recorded live through the same wrapper (the
+      onboarding eval still passes). Found and fixed: LangSmith metadata added after the run had
+      closed. 26 new tests, suite at 247. **Per D7, stop here for review before A4.**
 - [ ] **A4** — GitHub Issue and SNS executors, `suppress_alerts` and `create_control` evaluation,
       undo. *(approved, not started — awaits review after A3)*
 - [ ] **A5** — Golden (15, labeled by Kousik) and adversarial (10) eval suite as LangSmith

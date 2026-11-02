@@ -81,3 +81,19 @@ ALERT_RECIPIENT = os.getenv("ALERT_RECIPIENT", "metric-pulse-alerts")
 # publish billed custom metrics. On inside Lambda, so the archived image behaves as it always did.
 CLOUDWATCH_METRICS = os.getenv(
     "CLOUDWATCH_METRICS", backend_default("false", "true")).strip().lower() == "true"
+
+# --- LLM telemetry and Action Agent model routing (docs/action-agent-scope.md D2, N1, §13.3) ---
+# Every LLM call in all three agents is recorded by observability/llm.py: one JSON line each here.
+LLM_CALLS_LOG = Path(os.getenv("LLM_CALLS_LOG", LOGS_DIR / "llm_calls.jsonl"))
+# USD per 1M tokens (input, output), pinned and dated. Source: console.groq.com/docs/models,
+# read 2026-11-02. A model missing here records cost_usd = null, never a guess.
+LLM_PRICES_AS_OF = "2026-11-02"
+LLM_PRICES_USD_PER_MTOK = {
+    "openai/gpt-oss-20b": (0.075, 0.30),
+    "openai/gpt-oss-120b": (0.15, 0.60),
+}
+# D2: the small model drafts the proposal; the large one is the single escalation retry.
+ACTION_SMALL_MODEL = os.getenv("ACTION_SMALL_MODEL", "openai/gpt-oss-20b")
+ACTION_LARGE_MODEL = os.getenv("ACTION_LARGE_MODEL", "openai/gpt-oss-120b")
+# D2: tokens per Action Agent run, across its LLM calls only (Phase 1 synthesize is excluded, N1).
+ACTION_TOKEN_BUDGET = int(os.getenv("ACTION_TOKEN_BUDGET", "10000"))

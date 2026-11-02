@@ -23,4 +23,6 @@ def get_classification_llm():
     between LangChain's strict mode and some Groq-hosted models.
     """
     llm = ChatGroq(model=GROQ_MODEL, api_key=GROQ_API_KEY, temperature=0)
-    return llm.with_structured_output(SchemaClassification, method='function_calling')
+    # include_raw=True keeps the raw message, and so its token usage, for the shared
+    # telemetry wrapper (observability/llm.py, Action Agent scope N1).
+    return llm.with_structured_output(SchemaClassification, method='function_calling', include_raw=True)

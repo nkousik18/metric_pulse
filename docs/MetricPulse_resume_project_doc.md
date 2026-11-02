@@ -523,7 +523,7 @@ Flake8 strategy: hard errors (`E9,F63,F7,F82`) fail CI; style warnings (`--exit-
 
 ---
 
-## 12. Test Coverage (220 Tests, 21 Files)
+## 12. Test Coverage (247 Tests, 23 Files)
 
 | File | Tests | What's covered |
 |------|-------|---------------|
@@ -546,6 +546,8 @@ Flake8 strategy: hard errors (`E9,F63,F7,F82`) fail CI; style warnings (`--exit-
 | `tests/test_action_graph.py` | 15 | The full A2 approval graph on a real `SqliteSaver`: restart survival, approve/edit/reject, TTL expiry, 3× execute replay = 1 execution, tampered payload fails closed, exact decision replay, numpy-evidence regression |
 | `tests/test_tracing.py` | 4 | LangSmith helpers are offline no-ops when tracing is off |
 | `tests/test_local_warehouse.py` | 12 | Local stack: `WAREHOUSE` dispatch (archived Redshift path selected without connecting), the Lambda default, read-only DuckDB, DDL parsing, and the CSV → DuckDB loader's Redshift-COPY-equivalent semantics |
+| `tests/test_llm_telemetry.py` | 10 | The shared LLM telemetry wrapper: tokens, dated-price cost, latency, outcomes (grounded/invalid/parse error/API error/budget skip), budget charged from logged usage, fail-open logging |
+| `tests/test_llm_proposer.py` | 16 | The Action Agent LLM proposer: validation, 20b → 120b escalation, fallback, one retry only, token budget, untrusted segment names kept out of the instructions, graph wiring |
 | `tests/test_olist_sample.py` | 5 | The committed CI sample: window and referenced-rows-only rules, byte-for-byte line copying, determinism, multi-line records refused, and the committed fixture loading with no orphaned rows |
 | `tests/test_notifier.py` | 13 | Local alert outbox: file and index format, never-overwrite, numpy metadata, fail-soft I/O, `ALERT_CHANNEL` dispatch to the archived SNS code without sending, the Lambda default |
 
@@ -656,9 +658,24 @@ cannot be edited.
   restart → approve → executed; re-approval refused; a second run for the same anomaly skipped;
   a raw `DELETE` on the log refused by the database.
 
-**Next:** A3 adds an LLM proposer (`gpt-oss-20b` drafting, escalating to `gpt-oss-120b` only after
-a grounding failure, under a 10k-token budget, with the deterministic proposer as the fallback).
-A4 adds the live executors, A5 the golden and adversarial evals, A6 the API and SPA tab, and A7
+**A3 — the LLM proposer (built 2026-11-02).**
+- **Small model first, measured before building on it.** `gpt-oss-20b` drafts the proposal; it was
+  live-tested alone on 12 real anomalies from both datasets first: **12/12 grounded on the first
+  attempt, 12/12 passed the policy gate**, median 2,615 tokens a run, under half a cent for all 12.
+- **One escalation, then a deterministic floor.** Any failure (a citation not in the evidence, a
+  policy rejection, unparseable output, an API error) gets one retry on `gpt-oss-120b` with the
+  errors fed back; a second failure falls back to notifying the top driver's owner. A 10k-token
+  budget per run is checked before every call. Every path was run live, including a forced
+  escalation and a forced fallback.
+- **Untrusted data stays data.** Segment names and values reach the model only inside a JSON data
+  block; the instructions are a constant generated from the action catalog's own schemas.
+- **Every LLM call in all three agents is now measured** by one wrapper: tokens, cost (from a dated
+  Groq price table), latency, outcome and trace id, to a local JSONL file and to LangSmith.
+- **Two bugs found by running it live:** LangSmith telemetry metadata was being attached after the
+  run had closed (it silently never appeared), and Groq's 8,000-tokens-a-minute limit throttles
+  back-to-back runs from ~1s to ~25s, which shapes how the batch evals will run.
+
+**Next (after review, per D7):** A4 adds the live executors, A5 the golden and adversarial evals, A6 the API and SPA tab, and A7
 the system-wide evals.
 
 ---

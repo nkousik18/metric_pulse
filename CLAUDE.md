@@ -67,6 +67,8 @@ python -m orchestration.run_pipeline --metric order_count --threshold 2.5 --dry-
 python -m orchestration.run_pipeline --dry-run --force-alert --run-investigation  # + agentic investigation (Phase 1)
 python -m investigation.eval --runs 5                               # Phase 1 eval suite (real LLM calls, real cost)
 python -m onboarding.eval                                           # Phase 2 Golden Case #2 (real LLM call, real cost)
+python -m action_agent.probe [--small-only]                         # Action Agent proposer on 12 real anomalies (real Groq calls, ~$0.005)
+python -m action_agent.cli propose --dataset-id superstore_sales --metric sales   # LLM proposer -> approval queue (--no-llm: deterministic)
 python -m onboarding.onboard --file data/some_new_dataset.csv       # Phase 2 dataset onboarding CLI (real LLM call, interactive confirm)
 python -m onboarding.investigate --dataset-id <id> --metric <col> [--run-investigation]  # detect/decompose/narrate (+ Phase 1 agent) against an onboarded dataset
 python -m detection.anomaly_detector                               # detection layer alone

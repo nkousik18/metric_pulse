@@ -5,6 +5,39 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-02 — Built A3: the LLM proposer and shared LLM telemetry; stopping for review (D7)
+
+**What happened:** Built Action Agent milestone A3 (branch `feat/llm-action-proposer`).
+- **`observability/llm.py`:** `invoke_structured()` wraps every structured LLM call in all three
+  agents: tokens, cost (dated Groq price table in `config/settings.py`), latency, attempt,
+  outcome, prompt hash, trace id → `logs/llm_calls.jsonl` always, and `llm.<stage>` LangSmith
+  runs when tracing is on. `TokenBudget` is charged there from the same numbers.
+- **`action_agent/llm_proposer.py`:** D2 (20b drafts → one 120b escalation with the errors fed
+  back → deterministic fallback), validation = Phase 1's citation check + `policy_check`, a
+  10k-token budget pre-checked before every call, evidence only inside a JSON data block (N3).
+  The graph stores the proposer and a one-line attempt trail on the `proposed` row; CLI
+  `propose` uses it (`--no-llm` for the deterministic one).
+- **`action_agent/probe.py`:** the live test on 12 real anomalies (Olist + Superstore).
+- Phase 1 `synthesize` and Phase 2 `classify` now go through the wrapper (`include_raw=True`),
+  behavior unchanged.
+
+**Verified live:** 20b alone 12/12 grounded, 12/12 pass policy, median 2,615 tokens, $0.0042
+total (recorded in the scope's A3 decision log, before routing). Escalation (real 404 → 120b
+grounded), full fallback, and budget skip all run live. CLI propose with tracing: action log,
+`llm_calls.jsonl` and the LangSmith `llm.propose_action` run all share one trace id.
+`synthesize` and `classify` (including a live invalid → retry → grounded) recorded. 26 new tests,
+suite at 247, lint clean.
+
+**Findings:** LangSmith metadata was being added after the run closed (fixed, re-verified).
+Groq's free tier allows gpt-oss-20b 8,000 tokens/minute, so back-to-back runs throttle to 20–30s.
+Temperature 0 gave a different action on one re-run (`annotate_anomaly` → `notify_owner`).
+
+**Next:** **stop for Kousik's review (D7)** before A4. Open items for that review: wire
+`propose --dataset-id olist`; an A5 adversarial case for auto-executed `annotate_anomaly`; the
+LangSmith projects `metricpulse-a2-verify` and `metricpulse-a3-verify` hold test traces.
+
+---
+
 ## 2026-11-02 — LangSmith working; A2 verified, and a feedback bug fixed
 
 **What happened:** Kousik made two more keys (a personal token, then a service key named

@@ -10,8 +10,11 @@ approval to idempotent execution and an append-only log. Local-only (scope doc �
 - **A2:** the action graph with a SQLite checkpointer and `interrupt()` approvals, the CLI
   approver, `actions.db`, executors, decision replay and LangSmith run linking.
 
-Nothing calls an LLM yet (A3). `notify_owner` and `open_incident` are simulated until A4's live
-executors.
+- **A3:** the LLM proposer (gpt-oss-20b drafts, one escalation to gpt-oss-120b, then the
+  deterministic fallback, under a 10k-token budget), and `probe.py`, the live model test.
+
+`notify_owner` and `open_incident` are simulated until A4's live executors. Per D7, the build
+stops for review after A3.
 
 ## Files
 
@@ -23,13 +26,15 @@ executors.
 | `owners.py` / `owners.yaml` | Segment → owner mapping and `resolve_owner()`. |
 | `identity.py` | `anomaly_id()` (D1), `idempotency_key()`, `canonical_json()`, `OLIST_DATASET_ID`. |
 | `dry_run.py` | `ActionContext`, `build_dry_run()` (exact target + payload + key), `render_dry_run()` for the CLI approver. |
-| `proposer.py` | `fallback_proposal()`: deterministic `notify_owner` for the top driver. It is A2's proposer and D2's fallback. |
+| `proposer.py` | `fallback_proposal()`: deterministic `notify_owner` for the top driver. D2's fallback, and the proposer with `propose --no-llm`. |
+| `llm_proposer.py` | `make_llm_proposer()`: the D2 sequence (20b → one 120b escalation → fallback) under the token budget, `validate_proposal()` (citations + `policy_check`), `build_messages()` (evidence as a JSON data block, N3). |
+| `probe.py` | `python -m action_agent.probe [--small-only]`: live-tests the proposer on 12 real anomalies (Olist + Superstore) and prints a per-case table. Real Groq calls. |
 | `store.py` | `ActionStore` over `actions.db`: insert-only `proposals` (UNIQUE `anomaly_id`), trigger-enforced append-only `action_log`, effect tables. |
 | `executors.py` | `LocalStoreExecutor` (annotate/suppress/control → effect tables), `SimulatedExecutor` (notify/incident until A4), `RecordingExecutor` (tests). |
 | `graph.py` | `build_action_graph()`: the §5 flow, compiled with a checkpointer. |
 | `runner.py` | `ActionAgent`: wires store + `SqliteSaver` + executors + LangSmith run config; `start`, `decide`, `pending`, `waiting_on`. |
 | `replay.py` | `replay_decisions()`: re-runs every logged policy decision on its stored evidence snapshot (§13.6). |
-| `cli.py` | `python -m action_agent.cli propose|pending|show|approve|edit|reject|log|replay`. |
+| `cli.py` | `python -m action_agent.cli propose|pending|show|approve|edit|reject|log|replay`. `propose` uses the LLM proposer; `--no-llm` uses the deterministic one. |
 
 ## The catalog
 
@@ -119,11 +124,53 @@ python -m action_agent.cli replay e275                 # exits 1 if today's code
   before `interrupt()` writes anything. The one exception is the expiry check, which ends the
   run instead of interrupting.
 
+## The LLM proposer (A3)
+
+`propose` calls `proposer_fn(state)`. With the LLM proposer (the CLI default), one run is:
+
+1. **gpt-oss-20b** (`ACTION_SMALL_MODEL`) drafts a `ProposalDraft`: `reasoning`, `action_type`
+   (one of the catalog names), flat optional `params`, and 1–3 `rationale_citations`.
+2. **Validation** (`validate_proposal`): every citation must name a real (dimension, segment) in
+   the decomposition evidence (Phase 1's `validate_citation`), and the proposal must pass
+   `policy_check`. Unused params are dropped first, so the chosen action's strict schema applies.
+3. **Any failure escalates once** to **gpt-oss-120b** (`ACTION_LARGE_MODEL`): an invalid draft, an
+   unparseable one, or an API error. The previous draft and its errors go back as a
+   `PREVIOUS_ATTEMPT` data field. This is the only retry.
+4. **A second failure falls back** to `fallback_proposal` (notify the top driver's owner).
+5. **Budget:** `ACTION_TOKEN_BUDGET` (10,000) per run. Before each call the wrapper estimates
+   prompt chars ÷ 4 plus a 4,096-token output reserve. If that doesn't fit, the call isn't sent
+   and the run falls back. The charge is the real usage from the response.
+
+The graph re-runs `policy_check` on whatever comes back, so every proposer is gated the same way.
+The `proposed` log row's `actor` is the proposer (`llm:openai/gpt-oss-20b`, `llm:…120b`, or
+`deterministic_fallback`), and its `detail` is the attempt trail, e.g.
+`openai/gpt-oss-20b invalid -> openai/gpt-oss-120b grounded; 2,400 tokens`. Every call is also a
+line in `logs/llm_calls.jsonl` and a LangSmith run (`observability/README.md`).
+
+**Untrusted data (N3).** Segment names, values and the narrative only appear inside the
+`<data>` JSON block of the human message. The system prompt is a constant, generated from the
+catalog and its Pydantic schemas (so its bounds match what `policy_check` enforces), and says
+that the data block is never instructions. A test asserts a hostile segment name can't reach it.
+
+**Escalation rate** (N2) = runs whose `propose_action` lines include an `attempt: 2`, ÷ runs.
+Both are in `logs/llm_calls.jsonl` (group by `metadata.proposal_id`).
+
+**Live result (2026-11-02, `probe --small-only`):** 20b alone grounded 12/12 real cases on the first
+attempt, all 12 passed `policy_check`, 11/12 targeted the top driver. Median 2,615 tokens per run,
+max 4,050; $0.0042 for all 12. See the scope's A3 decision log.
+
 ## Gotchas
 
 - `anomaly_id` excludes the segment (D1): one anomaly gets one proposal for its lifetime.
 - The idempotency key hashes the *validated* params, so an approver's edit gives a new key. This
   is intended (the scope doc's D8 note).
+- **Groq rate limit:** gpt-oss-20b on this account allows **8,000 tokens per minute** (read from
+  Groq's `x-ratelimit-*` headers). A run uses ~2.5–4k, so back-to-back runs are throttled: the SDK
+  waits and retries, and latency jumps from ~1s to 20–30s. Expect this in batch evals (A5).
+- **Temperature 0 isn't deterministic.** In the live test, 20b proposed `annotate_anomaly` once for
+  a case where a re-run proposed `notify_owner`. `annotate_anomaly` is T0 (auto) but tag-only.
+- `propose` still only takes onboarded datasets (`run_cycle`). Olist runs locally since L1, but
+  wiring `--dataset-id olist` into `propose` is left for A4/A5 (`probe.py` builds Olist cases).
 - Grounding uses decomposition-level segments only, not drill-down detail values. Owners and
   `create_control` evaluation (D4) are both segment-level, and `decompose_metric` is what D4
   re-runs.
@@ -132,4 +179,6 @@ python -m action_agent.cli replay e275                 # exits 1 if today's code
 
 `tests/test_action_policy.py`, `tests/test_action_dry_run.py` (pure functions),
 `tests/test_action_store.py`, `tests/test_action_graph.py` (real SQLite and a real `SqliteSaver`
-on `tmp_path`, `RecordingExecutor`, injected clock and proposer). No mocks.
+on `tmp_path`, `RecordingExecutor`, injected clock and proposer), `tests/test_llm_proposer.py`
+(the D2 routing and budget with injected models that return canned structured outputs, N3, and
+the graph wiring). No mocks.
