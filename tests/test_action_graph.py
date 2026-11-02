@@ -104,13 +104,32 @@ def test_reject_never_executes(env):
         agent.decide(pid, 'approve')
 
 
-def test_t0_auto_executes_without_approval(env):
+def test_t0_auto_executes_without_approval(tmp_path):
+    """The T0 path stays supported, though no catalog action uses it since A5: shown with a test
+    catalog (injected, not a mock) where annotate_anomaly is T0."""
+    from dataclasses import replace
+
+    from action_agent.catalog import CATALOG, Tier
+    rec = RecordingExecutor()
+    catalog = {**CATALOG, 'annotate_anomaly': replace(CATALOG['annotate_anomaly'], tier=Tier.T0)}
+    agent = ActionAgent(actions_db=tmp_path / 'a.db', checkpoints_db=tmp_path / 'c.db', owners=OWNERS,
+                        executors={k: rec for k in catalog}, now_fn=Clock(), catalog=catalog,
+                        proposer_fn=_proposer('annotate_anomaly', {'category': 'holiday', 'cause': 'Independence Day'}))
+    try:
+        result = _start(agent)
+        assert result['status'] == 'executed'
+        assert _events(agent, result['proposal_id']) == ['proposed', 'policy_passed', 'executed']
+        assert len(rec.calls) == 1
+    finally:
+        agent.store.close()
+        agent._cp_conn.close()
+
+
+def test_annotate_now_waits_for_approval(env):
     factory, rec, _ = env
     agent = factory(_proposer('annotate_anomaly', {'category': 'holiday', 'cause': 'Independence Day'}))
     result = _start(agent)
-    assert result['status'] == 'executed'
-    assert _events(agent, result['proposal_id']) == ['proposed', 'policy_passed', 'executed']
-    assert len(rec.calls) == 1
+    assert result['status'] == 'awaiting_approval' and rec.calls == []
 
 
 def test_policy_rejected_proposal_is_logged_and_never_reaches_approver(env):

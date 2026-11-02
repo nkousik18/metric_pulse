@@ -79,6 +79,7 @@ class LLMCall:
     trace_id: Optional[str] = None
     errors: List[str] = field(default_factory=list)
     budget_remaining: Optional[int] = None
+    repaired: bool = False      # the output only parsed via the caller's repair() hook
     metadata: Dict[str, Any] = field(default_factory=dict)
     ts: str = ''
     prices_as_of: str = settings.LLM_PRICES_AS_OF
@@ -156,6 +157,7 @@ def invoke_structured(llm, messages: Sequence, *, stage: str, model: str, attemp
                       validate: Optional[Callable[[Any], List[str]]] = None,
                       budget: Optional[TokenBudget] = None, reserve_output: int = 0,
                       metadata: Optional[Dict] = None, log_path: Optional[Path] = None,
+                      repair: Optional[Callable[[Any], Any]] = None,
                       now_fn: Callable[[], datetime] = lambda: datetime.now(timezone.utc)
                       ) -> Tuple[Any, LLMCall]:
     """Run one structured-output call and record it. Returns (parsed or None, LLMCall).
@@ -164,6 +166,9 @@ def invoke_structured(llm, messages: Sequence, *, stage: str, model: str, attemp
       not sent; returns (None, record with outcome skipped_budget).
     - validate(parsed) -> list of error strings; sets the outcome to grounded or invalid and
       is stored on the record. The parsed object is returned either way; the caller decides.
+    - repair(raw_message) -> parsed or None: tried only when the structured output didn't parse,
+      for a known, harmless format slip (e.g. gpt-oss-20b naming its tool `functions.X`). A
+      repaired call is still validated like any other and is marked `repaired=True`.
     - Raises whatever the call raised (API error, or the parse error), after recording it.
     """
     log_path = Path(log_path or settings.LLM_CALLS_LOG)
@@ -193,6 +198,14 @@ def invoke_structured(llm, messages: Sequence, *, stage: str, model: str, attemp
         if isinstance(result, dict) and 'raw' in result:
             record.input_tokens, record.output_tokens, record.total_tokens = _usage(result.get('raw'))
             parsed = result.get('parsed')
+            if (result.get('parsing_error') is not None or parsed is None) and repair is not None:
+                try:
+                    parsed = repair(result.get('raw'))
+                except Exception:
+                    parsed = None
+                record.repaired = parsed is not None
+                if record.repaired:
+                    result = {**result, 'parsing_error': None}
             if result.get('parsing_error') is not None or parsed is None:
                 raised = result.get('parsing_error') or ValueError('structured output did not parse')
                 record.outcome = PARSE_ERROR

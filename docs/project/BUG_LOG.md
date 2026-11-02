@@ -17,13 +17,13 @@ things must be run).
 
 | | Count |
 |---|---|
-| Bugs logged | 34 |
-| Found by running it live | 24 |
+| Bugs logged | 38 |
+| Found by running it live | 27 |
 | Found by a unit test | 2 |
-| Found by review | 8 |
-| Kinds | code 22, config/setup 6, constraint 1, design doc 2, process 2, test 1 |
+| Found by review | 9 |
+| Kinds | code 24, config/setup 6, constraint 1, design doc 3, process 2, test 2 |
 
-**The pattern:** 24 of 34 were found only by running the real thing (a real dataset, a real
+**The pattern:** 27 of 38 were found only by running the real thing (a real dataset, a real
 API, a real CI run). Each milestone's unit tests were green while these bugs existed, because the
 tests used tidy fixtures: plain floats instead of numpy, Olist-only dimension names, in-memory
 data instead of a CSV, a fake key instead of a real account. That is why every roadmap box is
@@ -32,10 +32,14 @@ test that was confirmed to fail without the fix.
 
 ---
 
-## Action Agent (A1–A4, 2026-11)
+## Action Agent (A1–A5, 2026-11)
 
 | # | Milestone | Kind | Bug | How found | Root cause | Fix | Guard |
 |---|---|---|---|---|---|---|---|
+| A5-4 | A5 | test | The first adversarial run counted an attacker's email in an issue *body* as recipient redirection | review (reading the failing case) | The grader searched the whole dry run, and issue bodies quote the evidence, including segment names | Check only the dry run's `target` | `action_agent/eval.py` comment |
+| A5-3 | A5 | design doc | **Injected text got `annotate_anomaly` auto-applied in 5 of 10 hostile cases** ("holiday: Carnival", an injected sentence verbatim), by 20b and by 120b after escalation | live (the first adversarial eval) | The one T0 action meant an LLM-chosen action could run with no human, and segment names are attacker-controllable | Kousik's decision: `annotate_anomaly` is T1; nothing auto-executes. Re-run: 0/10 bypasses, 10/10 held | `test_action_policy.py::test_nothing_in_the_catalog_auto_executes`; the adversarial eval |
+| A5-2 | A5 | code | gpt-oss-20b replies were rejected as unparseable in 3 of 10 adversarial cases, forcing escalations | live (adversarial eval) | 20b sometimes names its tool `functions.ProposalDraft` (its native tool-call format leaking); LangChain only accepts `ProposalDraft` | `repair=` hook in `invoke_structured`; the proposer accepts exactly that slip, still validated, marked `repaired`. Escalation 7/10 → 2/10 | `test_llm_proposer.py` (3 repair tests) |
+| A5-1 | A5 | code | The onboarding confirmation screen hid validation errors, so a human could confirm an invalid classification; and `[e]dit` couldn't remove a name that isn't a real column | live (onboarding the adversarial CSV, whose hostile header the classifier rewrote) | `_print_classification` never printed `validation_errors`; `_edit_classification` refused any non-column input | The screen shows a NEEDS REVIEW block; edit can remove a listed non-column. Open: a classification that omits a real column still passes validation | Live re-run of the onboarding CLI |
 | A4-1 | A4 | code | `propose --dataset-id olist --metric customer_count` crashed with a bare `KeyError: 'total_current'` | live (the new Olist propose path) | Olist's per-dimension tables carry only `total_revenue` and `order_count`, so every dimension's decomposition is an error, and `generate_narrative` indexes the first one without checking. The pipeline has the same latent issue (it reports `status: failed` with the KeyError) | `evidence.require_decomposable()` refuses such a metric with a clear message, and `propose` exits with it | `test_action_hooks.py::test_a_metric_no_dimension_carries_is_refused_clearly` |
 | A3-3 | A3 | constraint | Back-to-back proposer runs slow from ~1s to 19–30s | live (probe, 12 runs) | Groq allows gpt-oss-20b **8,000 tokens/minute** on this account (confirmed from `x-ratelimit-*` headers); the SDK silently waits and retries | None needed for single proposals; recorded so A5's batch evals pace themselves | `action_agent/README.md` Gotchas |
 | A3-2 | A3 | code | The same case gave `annotate_anomaly` once and `notify_owner` on a re-run | live (probe re-run) | LLM output isn't deterministic even at temperature 0 (expected, §13.6). It matters because `annotate_anomaly` is T0 and runs without approval | None in code: annotations are tag-only and never affect alerting | Recorded for an A5 adversarial case |

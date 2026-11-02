@@ -162,6 +162,17 @@ def validate_proposal(draft: ProposalDraft, evidence: Dict) -> List[str]:
     return errors
 
 
+def repair_tool_name(raw) -> Optional[ProposalDraft]:
+    """gpt-oss-20b sometimes names its tool call `functions.ProposalDraft` (a leak of its native
+    tool-call format), which LangChain rejects as an unknown tool (BUG_LOG A5-2: 3 of 10
+    adversarial cases, each forcing an escalation). Accept exactly that slip, nothing else: one
+    tool call whose name ends in `.ProposalDraft`, parsed against the same schema."""
+    calls = getattr(raw, 'tool_calls', None) or []
+    if len(calls) != 1 or calls[0].get('name', '').rsplit('.', 1)[-1] != 'ProposalDraft':
+        return None
+    return ProposalDraft.model_validate(calls[0].get('args') or {})
+
+
 def groq_llm(model: str):
     from langchain_groq import ChatGroq
     llm = ChatGroq(model=model, api_key=settings.GROQ_API_KEY, temperature=0, max_tokens=MAX_OUTPUT_TOKENS)
@@ -216,7 +227,7 @@ def _attempt(llm_factory, model, attempt, state, previous, errors, budget, meta,
         return invoke_structured(
             llm_factory(model), messages, stage=STAGE, model=model, attempt=attempt,
             validate=lambda d: validate_proposal(d, state['evidence']), budget=budget,
-            reserve_output=MAX_OUTPUT_TOKENS, metadata=meta, log_path=log_path)
+            reserve_output=MAX_OUTPUT_TOKENS, metadata=meta, log_path=log_path, repair=repair_tool_name)
     except Exception as e:
         # invoke_structured recorded it (parse_error or error) and attached that record.
         logger.warning(f'propose_action attempt {attempt} on {model} failed: {e}')
@@ -228,7 +239,8 @@ def _attempt(llm_factory, model, attempt, state, previous, errors, budget, meta,
 
 def _summary(record: LLMCall) -> Dict:
     return {'model': record.model, 'attempt': record.attempt, 'outcome': record.outcome,
-            'tokens': record.total_tokens, 'latency_ms': record.latency_ms, 'errors': record.errors[:5]}
+            'tokens': record.total_tokens, 'cost_usd': record.cost_usd, 'latency_ms': record.latency_ms,
+            'errors': record.errors[:5]}
 
 
 def describe_trail(trail: Optional[Dict]) -> Optional[str]:

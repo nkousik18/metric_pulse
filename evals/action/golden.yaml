@@ -1,0 +1,531 @@
+# Action Agent golden set (docs/action-agent-scope.md D6, §7). 15 real anomalies.
+#
+# FOR KOUSIK TO LABEL. For each case, fill in:
+#   expected_action: the action you'd want proposed. One of:
+#       notify_owner | open_incident | create_control | annotate_anomaly | suppress_alerts
+#     or a list of acceptable ones, e.g. [notify_owner, open_incident].
+#   expected_owner: the owner id who should receive it (from action_agent/owners.yaml:
+#       analytics-oncall | payments-team | regional-sales), or null when the action names
+#       no segment (annotate_anomaly, suppress_alerts).
+#   notes: optional, why.
+#
+# The agent chose the cases (the detector's strongest real anomalies) but did not label them,
+# and this file deliberately doesn't show what the model proposes. "owner_if_top_driver" is
+# only what owners.yaml would resolve for the biggest segment, for reference.
+#
+# A case counts as a match when the proposed action is (one of) expected_action, and, if
+# expected_owner is set, the owner resolved for the proposed segment equals it.
+
+- id: g01
+  dataset_id: olist
+  metric: total_revenue
+  anomaly_date: '2018-09-03'
+  previous_date: '2018-08-29'
+  total_change_pct: -90.56
+  summary: 'Total Revenue decreased 90.6% on 2018-09-03. Primary driver: Credit Card (payment) contributed 106.6%
+    of the change.'
+  top_segments:
+    geography:
+    - 'Southeast: +68.0% of change (1,251.74 -> 166.46)'
+    - 'South: +32.0% of change (510.96 -> 0.00)'
+    product:
+    - 'Other: +49.0% of change (948.81 -> 166.46)'
+    - 'Health & Beauty: +39.6% of change (632.75 -> 0.00)'
+    - 'Electronics: +5.9% of change (93.75 -> 0.00)'
+    payment:
+    - 'Credit Card: +106.6% of change (1,701.41 -> 0.00)'
+    - 'Voucher: -6.6% of change (61.29 -> 166.46)'
+  owner_if_top_driver: payments-team (payment / Credit Card)
+  expected_action: null
+  expected_owner: null
+  notes: null
+- id: g02
+  dataset_id: olist
+  metric: total_revenue
+  anomaly_date: '2017-11-24'
+  previous_date: '2017-11-23'
+  total_change_pct: 254.47
+  summary: 'Total Revenue increased 254.5% on 2017-11-24. Primary driver: Credit Card (payment) contributed 80.5%
+    of the change.'
+  top_segments:
+    geography:
+    - 'Southeast: +72.1% of change (31,090.51 -> 123,394.08)'
+    - 'South: +13.5% of change (8,440.03 -> 25,728.45)'
+    - 'Central-West: +8.3% of change (2,303.30 -> 12,915.14)'
+    product:
+    - 'Other: +25.3% of change (13,026.90 -> 45,421.48)'
+    - 'Home & Furniture: +24.6% of change (8,667.82 -> 40,155.61)'
+    - 'Electronics: +12.2% of change (6,584.52 -> 22,225.96)'
+    payment:
+    - 'Credit Card: +80.5% of change (42,362.88 -> 145,446.05)'
+    - 'Boleto: +18.9% of change (7,795.15 -> 31,929.92)'
+    - 'Debit Card: +0.5% of change (146.30 -> 759.26)'
+  owner_if_top_driver: payments-team (payment / Credit Card)
+  expected_action: null
+  expected_owner: null
+  notes: null
+- id: g03
+  dataset_id: olist
+  metric: total_revenue
+  anomaly_date: '2017-11-25'
+  previous_date: '2017-11-24'
+  total_change_pct: -59.72
+  summary: 'Total Revenue decreased 59.7% on 2017-11-25. Primary driver: Credit Card (payment) contributed 77.5%
+    of the change.'
+  top_segments:
+    geography:
+    - 'Southeast: +70.4% of change (123,394.08 -> 48,378.23)'
+    - 'South: +15.4% of change (25,728.45 -> 9,307.88)'
+    - 'Central-West: +8.6% of change (12,915.14 -> 3,742.39)'
+    product:
+    - 'Other: +29.4% of change (45,421.48 -> 14,145.52)'
+    - 'Home & Furniture: +23.0% of change (40,155.61 -> 15,639.91)'
+    - 'Kids & Toys: +12.4% of change (20,302.47 -> 7,080.43)'
+    payment:
+    - 'Credit Card: +77.5% of change (145,446.05 -> 62,896.77)'
+    - 'Boleto: +22.3% of change (31,929.92 -> 8,171.56)'
+    - 'Debit Card: +0.7% of change (759.26 -> 46.31)'
+  owner_if_top_driver: payments-team (payment / Credit Card)
+  expected_action: null
+  expected_owner: null
+  notes: null
+- id: g04
+  dataset_id: olist
+  metric: total_revenue
+  anomaly_date: '2018-05-16'
+  previous_date: '2018-05-15'
+  total_change_pct: 30.87
+  summary: 'Total Revenue increased 30.9% on 2018-05-16. Primary driver: Credit Card (payment) contributed 103.5%
+    of the change.'
+  top_segments:
+    geography:
+    - 'Southeast: +68.6% of change (35,779.39 -> 46,244.12)'
+    - 'Northeast: +12.9% of change (2,895.50 -> 4,871.54)'
+    - 'Central-West: +10.1% of change (2,911.52 -> 4,449.57)'
+    product:
+    - 'Kids & Toys: +34.6% of change (3,812.56 -> 9,094.45)'
+    - 'Other: +23.0% of change (16,669.16 -> 20,180.66)'
+    - 'Health & Beauty: +22.6% of change (4,763.31 -> 8,203.25)'
+    payment:
+    - 'Credit Card: +103.5% of change (39,107.17 -> 54,874.28)'
+    - 'Voucher: -6.5% of change (1,074.46 -> 92.06)'
+    - 'Boleto: +4.5% of change (8,888.21 -> 9,567.15)'
+  owner_if_top_driver: payments-team (payment / Credit Card)
+  expected_action: null
+  expected_owner: null
+  notes: null
+- id: g05
+  dataset_id: olist
+  metric: total_revenue
+  anomaly_date: '2018-08-06'
+  previous_date: '2018-08-05'
+  total_change_pct: 50.03
+  summary: 'Total Revenue increased 50.0% on 2018-08-06. Primary driver: Credit Card (payment) contributed 87.8%
+    of the change.'
+  top_segments:
+    geography:
+    - 'Southeast: +47.6% of change (28,790.56 -> 38,817.85)'
+    - 'South: +17.1% of change (7,299.11 -> 10,888.20)'
+    - 'Northeast: +16.9% of change (2,986.99 -> 6,545.23)'
+    product:
+    - 'Auto & Tools: +30.0% of change (2,292.34 -> 8,607.19)'
+    - 'Other: +29.0% of change (14,220.98 -> 20,322.93)'
+    - 'Electronics: +23.9% of change (4,110.39 -> 9,147.35)'
+    payment:
+    - 'Credit Card: +87.8% of change (33,568.22 -> 52,048.33)'
+    - 'Boleto: +17.7% of change (6,203.79 -> 9,935.75)'
+    - 'Debit Card: -5.3% of change (1,968.77 -> 846.18)'
+  owner_if_top_driver: payments-team (payment / Credit Card)
+  expected_action: null
+  expected_owner: null
+  notes: null
+- id: g06
+  dataset_id: olist
+  metric: total_revenue
+  anomaly_date: '2018-05-14'
+  previous_date: '2018-05-13'
+  total_change_pct: 71.41
+  summary: 'Total Revenue increased 71.4% on 2018-05-14. Primary driver: Credit Card (payment) contributed 76.4%
+    of the change.'
+  top_segments:
+    geography:
+    - 'Southeast: +71.0% of change (24,618.66 -> 42,964.34)'
+    - 'Northeast: +14.4% of change (2,832.84 -> 6,545.18)'
+    - 'Central-West: +6.9% of change (1,938.33 -> 3,726.69)'
+    product:
+    - 'Auto & Tools: +28.2% of change (4,681.71 -> 11,975.54)'
+    - 'Home & Furniture: +19.9% of change (3,676.02 -> 8,807.80)'
+    - 'Other: +14.7% of change (16,459.48 -> 20,246.19)'
+    payment:
+    - 'Credit Card: +76.4% of change (29,296.73 -> 49,042.95)'
+    - 'Boleto: +23.1% of change (6,739.37 -> 12,697.94)'
+    - 'Voucher: +0.5% of change (78.87 -> 205.38)'
+  owner_if_top_driver: payments-team (payment / Credit Card)
+  expected_action: null
+  expected_owner: null
+  notes: null
+- id: g07
+  dataset_id: olist
+  metric: order_count
+  anomaly_date: '2017-11-24'
+  previous_date: '2017-11-23'
+  total_change_pct: 324.0
+  summary: 'Order Count increased 324.0% on 2017-11-24. Primary driver: Credit Card (payment) contributed 81.8%
+    of the change.'
+  top_segments:
+    geography:
+    - 'Southeast: +71.7% of change (169.00 -> 808.00)'
+    - 'South: +15.2% of change (48.00 -> 183.00)'
+    - 'Northeast: +6.6% of change (34.00 -> 93.00)'
+    product:
+    - 'Home & Furniture: +23.1% of change (60.00 -> 267.00)'
+    - 'Other: +17.8% of change (55.00 -> 215.00)'
+    - 'Electronics: +15.9% of change (39.00 -> 182.00)'
+    payment:
+    - 'Credit Card: +81.8% of change (213.00 -> 942.00)'
+    - 'Boleto: +17.2% of change (60.00 -> 213.00)'
+    - 'Debit Card: +0.7% of change (1.00 -> 7.00)'
+  owner_if_top_driver: payments-team (payment / Credit Card)
+  expected_action: null
+  expected_owner: null
+  notes: null
+- id: g08
+  dataset_id: olist
+  metric: order_count
+  anomaly_date: '2017-11-25'
+  previous_date: '2017-11-24'
+  total_change_pct: -57.29
+  summary: 'Order Count decreased 57.3% on 2017-11-25. Primary driver: Credit Card (payment) contributed 78.7% of
+    the change.'
+  top_segments:
+    geography:
+    - 'Southeast: +71.4% of change (808.00 -> 331.00)'
+    - 'South: +17.5% of change (183.00 -> 66.00)'
+    - 'Central-West: +5.7% of change (72.00 -> 34.00)'
+    product:
+    - 'Home & Furniture: +20.7% of change (267.00 -> 128.00)'
+    - 'Other: +20.3% of change (215.00 -> 79.00)'
+    - 'Electronics: +15.5% of change (182.00 -> 78.00)'
+    payment:
+    - 'Credit Card: +78.7% of change (942.00 -> 416.00)'
+    - 'Boleto: +21.4% of change (213.00 -> 70.00)'
+    - 'Voucher: -1.1% of change (4.00 -> 11.00)'
+  owner_if_top_driver: payments-team (payment / Credit Card)
+  expected_action: null
+  expected_owner: null
+  notes: null
+- id: g09
+  dataset_id: olist
+  metric: order_count
+  anomaly_date: '2017-11-27'
+  previous_date: '2017-11-26'
+  total_change_pct: 3.36
+  summary: 'Order Count increased 3.4% on 2017-11-27. Primary driver: South (geography) contributed 138.5% of the
+    change.'
+  top_segments:
+    geography:
+    - 'South: +138.5% of change (53.00 -> 71.00)'
+    - 'Southeast: -130.8% of change (287.00 -> 270.00)'
+    - 'Northeast: +84.6% of change (24.00 -> 35.00)'
+    product:
+    - 'Home & Furniture: +50.0% of change (78.00 -> 86.00)'
+    - 'Electronics: +43.8% of change (60.00 -> 67.00)'
+    - 'Auto & Tools: -37.5% of change (49.00 -> 43.00)'
+    payment:
+    - 'Boleto: +107.7% of change (49.00 -> 63.00)'
+    - 'Credit Card: -23.1% of change (330.00 -> 327.00)'
+    - 'Voucher: +23.1% of change (2.00 -> 5.00)'
+  owner_if_top_driver: regional-sales (geography / South)
+  expected_action: null
+  expected_owner: null
+  notes: null
+- id: g10
+  dataset_id: superstore_sales
+  metric: sales
+  anomaly_date: '2009-03-21'
+  previous_date: '2009-03-20'
+  total_change_pct: 684.68
+  summary: 'Sales increased 684.7% on 2009-03-21. Primary driver: Regular Air (Ship Mode) contributed 104.5% of
+    the change.'
+  top_segments:
+    Order Priority:
+    - 'Medium: +84.1% of change (9,795.05 -> 95,697.71)'
+    - 'High: +17.9% of change (0.00 -> 18,268.55)'
+    - 'Low: -4.0% of change (4,620.05 -> 522.62)'
+    Ship Mode:
+    - 'Regular Air: +104.5% of change (10,300.32 -> 117,076.41)'
+    - 'Delivery Truck: -4.5% of change (4,620.05 -> 0.00)'
+    Customer Name:
+    - 'Emily Phan: +93.7% of change (0.00 -> 95,697.71)'
+    - 'Harold Ryan: +17.7% of change (0.00 -> 18,081.76)'
+    - 'Barry Weirich: -9.6% of change (9,771.59 -> 0.00)'
+    Province:
+    - 'New Brunswick: +93.7% of change (0.00 -> 95,697.71)'
+    - 'Ontario: +17.2% of change (505.27 -> 18,081.76)'
+    - 'Nunavut: -9.4% of change (9,620.82 -> 0.00)'
+    Region:
+    - 'Atlantic: +93.5% of change (150.77 -> 95,697.71)'
+    - 'Ontario: +17.2% of change (505.27 -> 18,081.76)'
+    - 'Nunavut: -9.4% of change (9,620.82 -> 0.00)'
+    Customer Segment:
+    - 'Consumer: +91.7% of change (4,620.05 -> 98,285.24)'
+    - 'Home Office: +17.9% of change (505.27 -> 18,791.17)'
+    - 'Corporate: -9.6% of change (9,795.05 -> 0.00)'
+    Product Category:
+    - 'Technology: +96.1% of change (150.77 -> 98,285.24)'
+    - 'Office Supplies: +8.9% of change (9,744.64 -> 18,791.17)'
+    - 'Furniture: -4.9% of change (5,024.96 -> 0.00)'
+    Product Sub-Category:
+    - 'Office Machines: +87.2% of change (0.00 -> 89,061.05)'
+    - 'Binders and Binder Accessories: +17.7% of change (0.00 -> 18,081.76)'
+    - 'Scissors, Rulers and Trimmers: -9.4% of change (9,620.82 -> 0.00)'
+    Product Container:
+    - 'Large Box: +87.2% of change (0.00 -> 89,061.05)'
+    - 'Small Box: +27.2% of change (174.23 -> 28,015.36)'
+    - 'Medium Box: -9.4% of change (9,620.82 -> 0.00)'
+  owner_if_top_driver: analytics-oncall (Ship Mode / Regular Air)
+  expected_action: null
+  expected_owner: null
+  notes: null
+- id: g11
+  dataset_id: superstore_sales
+  metric: sales
+  anomaly_date: '2012-08-07'
+  previous_date: '2012-08-06'
+  total_change_pct: 21714.92
+  summary: 'Sales increased 21714.9% on 2012-08-07. Primary driver: Delivery Truck (Ship Mode) contributed 92.0%
+    of the change.'
+  top_segments:
+    Order Priority:
+    - 'High: +36.8% of change (190.59 -> 28,022.59)'
+    - 'Medium: +28.0% of change (157.40 -> 21,320.58)'
+    - 'Low: +26.9% of change (0.00 -> 20,353.98)'
+    Ship Mode:
+    - 'Delivery Truck: +92.0% of change (0.00 -> 69,481.76)'
+    - 'Regular Air: +8.1% of change (347.99 -> 6,431.99)'
+    Customer Name:
+    - 'Brooke Gillingham: +31.5% of change (0.00 -> 23,775.56)'
+    - 'Barry Weirich: +28.2% of change (0.00 -> 21,320.58)'
+    - 'Erica Bern: +26.9% of change (0.00 -> 20,333.82)'
+    Province:
+    - 'Alberta: +31.5% of change (0.00 -> 23,775.56)'
+    - 'British Columbia: +28.2% of change (0.00 -> 21,320.58)'
+    - 'Prince Edward Island: +26.9% of change (0.00 -> 20,333.82)'
+    Region:
+    - 'West: +59.7% of change (0.00 -> 45,096.14)'
+    - 'Atlantic: +26.9% of change (0.00 -> 20,333.82)'
+    - 'Prarie: +13.8% of change (0.00 -> 10,463.63)'
+    Customer Segment:
+    - 'Small Business: +58.4% of change (0.00 -> 44,109.38)'
+    - 'Corporate: +41.9% of change (157.40 -> 31,804.37)'
+    - 'Home Office: -0.2% of change (190.59 -> 0.00)'
+    Product Category:
+    - 'Technology: +59.7% of change (0.00 -> 45,096.14)'
+    - 'Furniture: +32.5% of change (0.00 -> 24,580.85)'
+    - 'Office Supplies: +7.8% of change (347.99 -> 6,236.76)'
+    Product Sub-Category:
+    - 'Office Machines: +59.7% of change (0.00 -> 45,096.14)'
+    - 'Tables: +32.3% of change (0.00 -> 24,385.62)'
+    - 'Storage & Organization: +8.2% of change (0.00 -> 6,216.60)'
+    Product Container:
+    - 'Jumbo Drum: +59.7% of change (0.00 -> 45,096.14)'
+    - 'Jumbo Box: +32.3% of change (0.00 -> 24,385.62)'
+    - 'Small Box: +8.2% of change (267.10 -> 6,431.99)'
+  owner_if_top_driver: analytics-oncall (Ship Mode / Delivery Truck)
+  expected_action: null
+  expected_owner: null
+  notes: null
+- id: g12
+  dataset_id: superstore_sales
+  metric: sales
+  anomaly_date: '2012-12-02'
+  previous_date: '2012-12-01'
+  total_change_pct: 83.31
+  summary: 'Sales increased 83.3% on 2012-12-02. Primary driver: Delivery Truck (Ship Mode) contributed 189.9% of
+    the change.'
+  top_segments:
+    Order Priority:
+    - 'High: +114.6% of change (0.00 -> 37,406.65)'
+    - 'Not Specified: -75.6% of change (39,180.62 -> 14,508.18)'
+    - 'Critical: +57.4% of change (0.00 -> 18,740.25)'
+    Ship Mode:
+    - 'Delivery Truck: +189.9% of change (3,731.59 -> 65,729.23)'
+    - 'Regular Air: -89.9% of change (35,449.03 -> 6,092.25)'
+    Customer Name:
+    - 'Dennis Kane: -117.6% of change (38,399.35 -> 0.00)'
+    - 'John Lucas: +114.6% of change (0.00 -> 37,406.65)'
+    - 'Ken Heidel: +56.1% of change (0.00 -> 18,316.30)'
+    Province:
+    - 'Quebec: -114.3% of change (38,399.35 -> 1,100.21)'
+    - 'Ontario: +112.4% of change (781.27 -> 37,472.84)'
+    - 'Saskachewan: +56.1% of change (0.00 -> 18,316.30)'
+    Region:
+    - 'Quebec: -114.3% of change (38,399.35 -> 1,100.21)'
+    - 'Ontario: +112.4% of change (781.27 -> 37,472.84)'
+    - 'Prarie: +89.3% of change (0.00 -> 29,153.70)'
+    Customer Segment:
+    - 'Corporate: +100.6% of change (0.00 -> 32,824.48)'
+    - 'Small Business: -1.7% of change (38,399.35 -> 37,830.60)'
+    - 'Home Office: +1.2% of change (781.27 -> 1,166.40)'
+    Product Category:
+    - 'Furniture: +133.9% of change (3,731.59 -> 47,429.90)'
+    - 'Technology: -28.9% of change (33,367.85 -> 23,918.22)'
+    - 'Office Supplies: -4.9% of change (2,081.18 -> 473.36)'
+    Product Sub-Category:
+    - 'Copiers and Fax: -102.2% of change (33,367.85 -> 0.00)'
+    - 'Tables: +91.5% of change (0.00 -> 29,851.98)'
+    - 'Office Machines: +56.1% of change (0.00 -> 18,316.30)'
+    Product Container:
+    - 'Large Box: -102.2% of change (33,367.85 -> 0.00)'
+    - 'Jumbo Drum: +98.5% of change (3,731.59 -> 35,877.25)'
+    - 'Jumbo Box: +91.5% of change (0.00 -> 29,851.98)'
+  owner_if_top_driver: analytics-oncall (Ship Mode / Delivery Truck)
+  expected_action: null
+  expected_owner: null
+  notes: null
+- id: g13
+  dataset_id: superstore_sales
+  metric: profit
+  anomaly_date: '2009-03-21'
+  previous_date: '2009-03-20'
+  total_change_pct: -2026.86
+  summary: 'Profit increased 2026.9% on 2009-03-21. Primary driver: Regular Air (Ship Mode) contributed 99.4% of
+    the change.'
+  top_segments:
+    Order Priority:
+    - 'Medium: +76.7% of change (-1,827.23 -> 28,844.39)'
+    - 'High: +21.8% of change (0.00 -> 8,733.68)'
+    - 'Not Specified: +0.8% of change (84.04 -> 401.85)'
+    Ship Mode:
+    - 'Regular Air: +99.4% of change (-1,743.19 -> 38,014.44)'
+    - 'Delivery Truck: +0.6% of change (-229.68 -> 0.00)'
+    Customer Name:
+    - 'Emily Phan: +72.1% of change (0.00 -> 28,844.39)'
+    - 'Harold Ryan: +22.1% of change (0.00 -> 8,822.28)'
+    - 'Barry Weirich: +4.6% of change (-1,831.81 -> 0.00)'
+    Province:
+    - 'New Brunswick: +72.1% of change (0.00 -> 28,844.39)'
+    - 'Ontario: +21.9% of change (84.04 -> 8,822.28)'
+    - 'Nunavut: +4.4% of change (-1,759.58 -> 0.00)'
+    Region:
+    - 'Atlantic: +72.3% of change (-72.23 -> 28,844.39)'
+    - 'Ontario: +21.9% of change (84.04 -> 8,822.28)'
+    - 'Nunavut: +4.4% of change (-1,759.58 -> 0.00)'
+    Customer Segment:
+    - 'Consumer: +73.7% of change (-229.68 -> 29,246.24)'
+    - 'Home Office: +21.7% of change (84.04 -> 8,768.20)'
+    - 'Corporate: +4.6% of change (-1,827.23 -> 0.00)'
+    Product Category:
+    - 'Technology: +73.3% of change (-72.23 -> 29,246.24)'
+    - 'Office Supplies: +26.3% of change (-1,736.59 -> 8,768.20)'
+    - 'Furniture: +0.4% of change (-164.05 -> 0.00)'
+    Product Sub-Category:
+    - 'Office Machines: +68.1% of change (0.00 -> 27,220.69)'
+    - 'Binders and Binder Accessories: +22.1% of change (0.00 -> 8,822.28)'
+    - 'Scissors, Rulers and Trimmers: +4.4% of change (-1,759.58 -> 0.00)'
+    Product Container:
+    - 'Large Box: +68.1% of change (0.00 -> 27,220.69)'
+    - 'Small Box: +27.2% of change (-67.65 -> 10,793.75)'
+    - 'Medium Box: +4.4% of change (-1,759.58 -> 0.00)'
+  owner_if_top_driver: analytics-oncall (Ship Mode / Regular Air)
+  expected_action: null
+  expected_owner: null
+  notes: null
+- id: g14
+  dataset_id: superstore_sales
+  metric: profit
+  anomaly_date: '2009-10-20'
+  previous_date: '2009-10-19'
+  total_change_pct: 793.08
+  summary: 'Profit increased 793.1% on 2009-10-20. Primary driver: Regular Air (Ship Mode) contributed 96.1% of
+    the change.'
+  top_segments:
+    Order Priority:
+    - 'Medium: +48.2% of change (0.00 -> 9,766.60)'
+    - 'High: +30.9% of change (-220.33 -> 6,047.20)'
+    - 'Critical: +19.8% of change (2,992.80 -> 6,993.06)'
+    Ship Mode:
+    - 'Regular Air: +96.1% of change (2,756.58 -> 22,217.57)'
+    - 'Express Air: +2.7% of change (-202.85 -> 341.10)'
+    - 'Delivery Truck: +1.2% of change (0.00 -> 248.19)'
+    Customer Name:
+    - 'Dean Percer: +48.1% of change (0.00 -> 9,746.79)'
+    - 'William Brown: +34.5% of change (0.00 -> 6,993.06)'
+    - 'Magdelene Morse: +28.2% of change (0.00 -> 5,706.10)'
+    Province:
+    - 'New Brunswick: +48.2% of change (-15.13 -> 9,746.79)'
+    - 'Saskachewan: +35.5% of change (-203.61 -> 6,993.06)'
+    - 'Ontario: +28.2% of change (0.00 -> 5,706.10)'
+    Region:
+    - 'Atlantic: +48.2% of change (-15.13 -> 9,746.79)'
+    - 'Ontario: +28.2% of change (0.00 -> 5,706.10)'
+    - 'Prarie: +20.8% of change (2,789.19 -> 6,993.06)'
+    Customer Segment:
+    - 'Home Office: +62.7% of change (0.00 -> 12,699.16)'
+    - 'Consumer: +33.5% of change (2,992.80 -> 9,766.60)'
+    - 'Corporate: +2.1% of change (-423.94 -> 0.00)'
+    Product Category:
+    - 'Technology: +38.1% of change (2,789.95 -> 10,511.65)'
+    - 'Furniture: +35.5% of change (0.00 -> 7,193.53)'
+    - 'Office Supplies: +26.4% of change (-236.22 -> 5,101.68)'
+    Product Sub-Category:
+    - 'Copiers and Fax: +46.9% of change (0.00 -> 9,498.60)'
+    - 'Chairs & Chairmats: +33.0% of change (0.00 -> 6,687.75)'
+    - 'Binders and Binder Accessories: +25.5% of change (-64.08 -> 5,103.21)'
+    Product Container:
+    - 'Large Box: +80.6% of change (-139.53 -> 16,186.35)'
+    - 'Small Box: +18.2% of change (2,693.26 -> 6,373.85)'
+    - 'Jumbo Box: +1.2% of change (0.00 -> 248.19)'
+  owner_if_top_driver: analytics-oncall (Ship Mode / Regular Air)
+  expected_action: null
+  expected_owner: null
+  notes: null
+- id: g15
+  dataset_id: superstore_sales
+  metric: order_quantity
+  anomaly_date: '2012-03-28'
+  previous_date: '2012-03-27'
+  total_change_pct: 380.31
+  summary: 'Order Quantity increased 380.3% on 2012-03-28. Primary driver: Regular Air (Ship Mode) contributed 63.8%
+    of the change.'
+  top_segments:
+    Order Priority:
+    - 'Not Specified: +48.6% of change (0.00 -> 235.00)'
+    - 'High: +31.3% of change (11.00 -> 162.00)'
+    - 'Low: +14.7% of change (0.00 -> 71.00)'
+    Ship Mode:
+    - 'Regular Air: +63.8% of change (90.00 -> 398.00)'
+    - 'Delivery Truck: +18.8% of change (37.00 -> 128.00)'
+    - 'Express Air: +17.4% of change (0.00 -> 84.00)'
+    Customer Name:
+    - 'Raymond Book: +29.8% of change (0.00 -> 144.00)'
+    - 'Brian Derr: +28.2% of change (0.00 -> 136.00)'
+    - 'Tom Boeckenhauer: +19.2% of change (0.00 -> 93.00)'
+    Province:
+    - 'Alberta: +49.1% of change (0.00 -> 237.00)'
+    - 'Nova Scotia: +34.4% of change (0.00 -> 166.00)'
+    - 'Saskachewan: +11.4% of change (0.00 -> 55.00)'
+    Region:
+    - 'West: +47.4% of change (11.00 -> 240.00)'
+    - 'Atlantic: +34.4% of change (0.00 -> 166.00)'
+    - 'Yukon: +7.0% of change (37.00 -> 71.00)'
+    Customer Segment:
+    - 'Small Business: +45.1% of change (0.00 -> 218.00)'
+    - 'Corporate: +39.3% of change (0.00 -> 190.00)'
+    - 'Consumer: +22.8% of change (37.00 -> 147.00)'
+    Product Category:
+    - 'Office Supplies: +60.9% of change (13.00 -> 307.00)'
+    - 'Furniture: +21.1% of change (48.00 -> 150.00)'
+    - 'Technology: +18.0% of change (66.00 -> 153.00)'
+    Product Sub-Category:
+    - 'Paper: +26.1% of change (0.00 -> 126.00)'
+    - 'Chairs & Chairmats: +12.6% of change (0.00 -> 61.00)'
+    - 'Telephones and Communication: +12.0% of change (35.00 -> 93.00)'
+    Product Container:
+    - 'Wrap Bag: +32.1% of change (0.00 -> 155.00)'
+    - 'Small Box: +29.4% of change (90.00 -> 232.00)'
+    - 'Small Pack: +19.1% of change (0.00 -> 92.00)'
+  owner_if_top_driver: analytics-oncall (Ship Mode / Regular Air)
+  expected_action: null
+  expected_owner: null
+  notes: null

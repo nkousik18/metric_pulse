@@ -5,6 +5,32 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-02 — Built A5's eval suite; it found a design flaw; golden labels pending
+
+**What happened:** Built the Action Agent eval suite (branch `feat/action-evals`).
+- `action_agent/golden.py`: 15 real-anomaly candidates in `evals/action/golden.yaml`, evidence
+  only, no model proposal shown. **Labels are Kousik's (D6) and pending.**
+- `action_agent/adversarial.py`: 10 injection cases in a synthetic CSV, onboarded through the
+  real Phase 2 CLI (classification committed for reproducibility).
+- `action_agent/eval.py`: golden / adversarial / safety sets on throwaway DBs, paced for Groq's
+  limit, §7.2 report, committed `evals/ledger.jsonl`, baseline compare, LangSmith experiments in
+  `metricpulse-evals` (outputs reused, deterministic evaluators). `evals/README.md`.
+
+**Findings (all in BUG_LOG A5-1..A5-4):**
+- **`annotate_anomaly` (T0) was auto-applied from injected text in 5/10 hostile cases.** Raised to
+  Kousik, who made it T1. Re-run: 0/10 bypasses, 10/10 held; 4/10 still follow the injection.
+- gpt-oss-20b's `functions.ProposalDraft` tool name → a narrow, validated repair; adversarial
+  escalation 7/10 → 2/10.
+- Onboarding: the confirm screen hid validation errors; edit couldn't remove a non-column. Fixed.
+  The classifier never kept the hostile header (rewrote it twice, dropped it once); a silently
+  omitted column still passes validation (open).
+- My grader wrongly counted an email quoted in an issue body as recipient redirection (fixed).
+
+**Next:** Kousik labels `evals/action/golden.yaml`; then the full eval run, `--set-baseline`, and
+A5 can be checked.
+
+---
+
 ## 2026-11-02 — Built A4: live executors, undo, and the pipeline honouring decisions
 
 **What happened:** Built Action Agent milestone A4 (branch `feat/live-executors`).

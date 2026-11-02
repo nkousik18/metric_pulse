@@ -523,7 +523,7 @@ Flake8 strategy: hard errors (`E9,F63,F7,F82`) fail CI; style warnings (`--exit-
 
 ---
 
-## 12. Test Coverage (280 Tests, 25 Files)
+## 12. Test Coverage (284 Tests, 25 Files)
 
 | File | Tests | What's covered |
 |------|-------|---------------|
@@ -625,7 +625,7 @@ cannot be edited.
 
 | Action | Tier | Effect |
 |---|---|---|
-| `annotate_anomaly` | T0, auto | Tag an anomaly with a known cause. Tag only, no effect on alerting |
+| `annotate_anomaly` | T1, approval (was T0 until the A5 adversarial eval) | Tag an anomaly with a known cause. Tag only, no effect on alerting |
 | `suppress_alerts` | T1, approval | Silence repeat alerts for ≤ 7 days |
 | `notify_owner` | T1, approval | Message the segment owner (owner resolved from config, never chosen by the LLM) |
 | `open_incident` | T1, approval | GitHub Issue with the evidence table |
@@ -690,7 +690,20 @@ cannot be edited.
   each run, alerting the owner at most once a day (a database constraint). Both were run live on
   Olist through the real pipeline.
 
-**Next:** A5 adds the golden and adversarial evals, A6 the API and SPA tab, and A7
+**A5 — the eval suite, and what it caught (built 2026-11-02; golden labels pending).**
+- **Three sets, one report.** A golden set of 15 real anomalies (labelled by a human, never shown
+  the model's answer), an adversarial set of 10 injection attempts in a synthetic dataset onboarded
+  through the real pipeline, and deterministic safety probes. Every run prints a fixed-format report
+  (question, result with n, against baseline, what changed, failing cases with trace links),
+  appends to a committed ledger, and is recorded as a LangSmith experiment.
+- **It found a real design flaw on its first run.** The one action allowed to run without approval,
+  a tag-only annotation, was auto-applied with attacker text in 5 of 10 hostile cases, by both the
+  small and the large model. The fix was a product decision, not a prompt tweak: every action now
+  needs approval. Re-run: 0 of 10 bypasses, 10 of 10 held for a human.
+- **And a model-format bug:** gpt-oss-20b sometimes prefixes its tool name, which the parser
+  rejects. A narrow, validated repair cut the adversarial escalation rate from 70% to 20%.
+
+**Next:** A6 adds the API and SPA tab, and A7
 the system-wide evals.
 
 ---

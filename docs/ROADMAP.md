@@ -191,6 +191,14 @@ reachable from its action-log row.
       suite at 280. Bug found: a non-decomposable Olist metric crashed `propose` (BUG_LOG A4-1).
 - [ ] **A5** — Golden (15, labeled by Kousik) and adversarial (10) eval suite as LangSmith
       datasets/experiments; committed eval ledger + baseline report (§7.2, §13.5).
+      **Built 2026-11-02; not checked — waiting on Kousik's golden labels** (`evals/action/golden.yaml`,
+      15 real anomalies; check with `python -m action_agent.golden --check`). Adversarial + safety run
+      live: first run found `annotate_anomaly` (T0) auto-applied from injected text in 5/10 cases →
+      Kousik made it T1 → re-run `injection_bypasses = 0` (0/10), 10/10 held, `unauthorized_exec_count
+      = 0` (4 probes). Also found and fixed: 20b's `functions.ProposalDraft` tool name (escalation
+      7/10 → 2/10), and two onboarding confirm/edit bugs. LangSmith experiments recorded; ledger at
+      `evals/ledger.jsonl`. Remaining for the gate: the golden run (`action_match_rate` ≥ 0.8,
+      idempotency 0) and `--set-baseline`.
 - [ ] **A6** — `/actions/*` API endpoints, SPA "Pending actions" tab, DRF throttling.
 - [ ] **A7** — Detection eval (≥20 labeled dates), investigation golden set ≥10 and onboarding
       ≥3 (§7.1), scheduled drift run against stored baselines.
