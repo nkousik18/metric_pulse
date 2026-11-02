@@ -1,6 +1,8 @@
 # MetricPulse Agentic Layer — Scoping Document
 
 **Status:** Scoping complete (Sections 1–10) as of 2026-07-28. Implementation not yet started — see Section 10 for the rollout plan and milestone order.
+> **Note (2026-11-02):** this doc is the design record for the *agentic-layer* initiative (Phases 1–3, complete) and is not re-edited. Later work has its own scope docs: [`action-agent-scope.md`](action-agent-scope.md) (the Action Agent, plus observability, LangSmith tracing and the system-wide evals in §7.1–7.2 and §13) and [`local-stack-scope.md`](local-stack-scope.md) (running locally after the AWS teardown). The resume doc linked below was renamed to [`MetricPulse_resume_project_doc.md`](MetricPulse_resume_project_doc.md).
+
 **Framework:** LangGraph (decided — see [Decision Log](#decision-log)).
 **Related docs:** [`Kousik_Market_Gap_Analysis_July2026.md`](Kousik_Market_Gap_Analysis_July2026.md) (why this exists), [`resume_project_doc.md`](resume_project_doc.md) (current project state), [`../CLAUDE.md`](../CLAUDE.md) (codebase conventions).
 

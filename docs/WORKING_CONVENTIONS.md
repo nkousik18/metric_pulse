@@ -23,7 +23,7 @@ different rate. Knowing which one to reach for is most of this discipline.
 | `CLAUDE.md` | How do we work together, what's non-negotiable | rarely | a fresh AI session |
 | `docs/ROADMAP.md` | Which phase are we in, what's left to hit the gate | phase-by-phase | anyone tracking progress |
 | `docs/scoping.md` | The design record for the agentic-layer initiative — goals, non-goals, decision log | as sections get designed | whoever's about to implement a milestone |
-| `docs/resume_project_doc.md` | The full, exhaustively verified source of truth — every stat, table, and decision in one place | when a layer's real behavior changes | resume-writing, interview prep, or anyone needing ground truth fast |
+| `docs/MetricPulse_resume_project_doc.md` (was `resume_project_doc.md`) | The full, exhaustively verified source of truth — every stat, table, and decision in one place | when a layer's real behavior changes | resume-writing, interview prep, or anyone needing ground truth fast |
 | `docs/project/SESSION_LOG.md` | What happened *last time*, what's next | every session | the very next session |
 | `CHANGELOG.md` | What's shipped, in user-facing terms | every notable change | a user of the software |
 

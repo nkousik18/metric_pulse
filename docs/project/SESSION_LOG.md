@@ -5,6 +5,57 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-02 — Scoped the local stack after the AWS teardown; resume doc caught up
+
+**What happened:** Kousik deleted every AWS resource (Redshift, S3, SNS, CloudWatch, Lambda,
+ECR, and the dbt models on Redshift) after the free trial ended and billing started. Render
+was already gone.
+
+Kousik's decisions:
+- **Never delete AWS code.** It stays as portfolio evidence, and the codebase gets restructured
+  once at the end of the project.
+- Make a local stack the priority.
+- Use a local outbox for alerts.
+- Make the dbt check in CI real.
+- Change only what's necessary, and document it thoroughly.
+
+Wrote `docs/local-stack-scope.md`:
+- **R1–R5 ground rules:** AWS code is never deleted; local is the default and AWS is a switch.
+- **A component status table** (active local vs. archived AWS, and how to switch).
+- **Designs** for the `WAREHOUSE` switch, `load_local.py`, dbt-duckdb with a committed
+  two-target `profiles.yml`, the outbox notifier, and the CI/CD changes.
+- **Milestones L1–L3** (~9h), ordered before Action Agent A3.
+
+**Findings during scoping (verified, not assumed):**
+- **My earlier claim was wrong.** I had said the dbt models have no Redshift-specific SQL; that
+  grep was case-sensitive. In fact `DATE_PART(year, x)` and `DATEDIFF(day, a, b)` fail on DuckDB
+  with Binder Errors (tested live), and the sources pin `database: dev`. The scope lists the
+  portable rewrites, all of which are also valid Redshift.
+- **CI's `dbt-check` can never fail** (`dbt parse … || echo`).
+- **`cd.yml` has failed on every merge to `main` since at least 2026-08-19,** including PRs
+  #24–#27, which were reported as "CI green" without checking the post-merge CD run.
+
+**Observability visibility:** Kousik couldn't find the observability work. It lives in
+`docs/action-agent-scope.md` (§7.1–7.2, §13, D10–D11), and the resume doc had never been updated
+for it or for the Action Agent. That has now been fixed:
+- the resume doc gained a status banner, §15 Action Agent and §16 Observability, Tracing &
+  Evals, updated test counts (190 tests, 18 files), and archived notes in Deployment and Known
+  Limitations
+- the rename `resume_project_doc.md` → `MetricPulse_resume_project_doc.md` is committed, with
+  live pointers updated
+- `docs/scoping.md` and `docs/README.md` now point to the newer scope docs
+
+**LangSmith:** Kousik updated the key, but it still returns 403 from this sandbox. An
+unsandboxed check was blocked by auto mode, so Kousik needs to run the curl check themselves
+(it prints only the status code) to tell a key problem from a sandbox problem.
+
+**Next steps:**
+1. Kousik approves the local-stack scope.
+2. Build L1 → L2 → L3.
+3. Then return to A2's LangSmith verification and A3.
+
+---
+
 ## 2026-11-02 — Built A2: approval flow, actions.db, decision replay, LangSmith linking
 
 **What happened:** Built the Action Agent's approval flow.

@@ -1,5 +1,14 @@
 # MetricPulse — Project Documentation (Resume Source of Truth)
 
+> **Current status (2026-11-02).** The AWS stack described in §2–§11 is real and was built and run.
+> The AWS resources themselves (Redshift Serverless, S3, SNS, CloudWatch, Lambda, ECR) and the
+> Render hosting have since been deleted when the free tier ended. **All of the AWS code is kept
+> in the repo on purpose** as evidence of that architecture. A free, fully local stack (DuckDB
+> warehouse, dbt-duckdb, a local alert outbox) is scoped in `docs/local-stack-scope.md` to bring
+> the Olist pipeline back, with AWS kept as a switchable backend. Since the agentic-layer
+> initiative closed, a third agent is in progress, the **Action Agent** (§15), along with an
+> **observability and evaluation design** built on LangSmith (§16).
+
 ---
 
 ## 1. Project Summary
@@ -20,6 +29,16 @@ then running against that new dataset completely unmodified. Both agents were pr
 built: Phase 1 against a real 5-run eval suite (§7), and Phase 2 against a genuinely new, real
 public dataset (Sample Superstore Sales, 8,399 rows) that surfaced and fixed six real integration
 bugs no synthetic fixture had ever exercised (§8).
+
+A third initiative, the **Action Agent** (§15, `docs/action-agent-scope.md`), turns a validated
+investigation into a proposed action from a fixed catalog. A deterministic policy gate checks it,
+a human approves it via a LangGraph interrupt that survives restarts, and it executes
+idempotently into an append-only, trigger-enforced log. Every decision can be replayed exactly.
+The policy gate (A1) and the approval flow (A2) are built and verified live. Alongside it, a
+LangSmith-based observability and eval design (§16) covers per-decision tracing, a shared LLM
+cost/latency wrapper, approvals captured as trace feedback, a committed eval ledger with
+baselines, and a system-wide eval suite where each eval answers one stakeholder question. The
+tracing helpers are built; the rest is scoped.
 
 ---
 
@@ -452,6 +471,17 @@ Direct Redshift connection. `@st.cache_resource` for connection (session-scoped)
 
 ## 11. Deployment Architecture
 
+> **Status (2026-11-02): archived.** Everything in this section was real, but the Render service and
+> every AWS resource below have been deleted, and the code is kept unchanged as a record. Two
+> consequences are worth knowing:
+> - **`cd.yml` has failed on every push to `main` since at least 2026-08-19**, because it needs the
+>   deleted AWS credentials and environment. `docs/local-stack-scope.md` §6.5 switches it to manual
+>   trigger only.
+> - **CI's `dbt-check` job runs `dbt parse … || echo`, so it cannot fail.** It has never been a
+>   real dbt gate. The local-stack scope adds a real `dbt build` job on DuckDB.
+>
+> The replacement local stack is in `docs/local-stack-scope.md`.
+
 **Render (web app — live)**
 
 | Setting | Value |
@@ -492,7 +522,7 @@ Flake8 strategy: hard errors (`E9,F63,F7,F82`) fail CI; style warnings (`--exit-
 
 ---
 
-## 12. Test Coverage (81 Tests, 13 Files)
+## 12. Test Coverage (190 Tests, 18 Files)
 
 | File | Tests | What's covered |
 |------|-------|---------------|
@@ -509,6 +539,11 @@ Flake8 strategy: hard errors (`E9,F63,F7,F82`) fail CI; style warnings (`--exit-
 | `tests/test_codegen.py` | 6 | `load_and_aggregate`/`write_fact_table`/`write_dimension_tables`/`sanitize_identifier` against a real in-memory DuckDB connection |
 | `tests/test_reconciliation.py` | 3 | `validate_generated_tables` — including a deliberately-corrupted fixture confirming it actually catches a broken case |
 | `tests/test_schema_fingerprint.py` | 6 | `schema_fingerprint`'s order-independence and sensitivity to rename/retype/add/remove |
+| `tests/test_action_policy.py` | 57 cases (18 functions) | Action Agent A1 `policy_check`: catalog, tier, strict params, segment grounding, injection-shaped segment names, malformed input rejected rather than raised |
+| `tests/test_action_dry_run.py` | 24 cases (15 functions) | Identities (`anomaly_id`, `idempotency_key`), owner resolution, the dry-run payload builder, Markdown escaping of untrusted values |
+| `tests/test_action_store.py` | 9 | `actions.db`: append-only triggers (also from a raw connection), one proposal per anomaly, one execution per key |
+| `tests/test_action_graph.py` | 15 | The full A2 approval graph on a real `SqliteSaver`: restart survival, approve/edit/reject, TTL expiry, 3× execute replay = 1 execution, tampered payload fails closed, exact decision replay, numpy-evidence regression |
+| `tests/test_tracing.py` | 4 | LangSmith helpers are offline no-ops when tracing is off |
 
 No mocking is used anywhere in the suite — every test calls a pure function directly with in-memory
 DataFrames/dicts/fixture state, or (for codegen/reconciliation) a real in-memory DuckDB connection.
@@ -565,4 +600,118 @@ clause swallowed failures silently.
 | Real dbt/Redshift codegen for onboarded datasets | Future work, named v2 (`docs/scoping.md` §6.6) | Would remove DuckDB's single-file, single-machine ceiling for onboarded datasets that need to scale past local memory |
 | Dashboard-based onboarding wizard | Future work, named v1 boundary | CLI only today (`onboarding/onboard.py`) |
 | Multi-level drill-down / cross-run agent memory | Future work, deliberately deferred | `detail_col` is the deepest grain currently modeled; each investigation is a fresh graph invocation with no memory of prior runs — neither was needed to prove the core design worked |
+| AWS stack deleted (2026-11) | Status, named not silent | Redshift, S3, SNS, CloudWatch, Lambda, ECR and Render are gone, and the Olist path can't run until the local stack (`docs/local-stack-scope.md`) lands. The AWS code is kept intact by design |
+| CI `dbt-check` cannot fail | Limitation, named not silent | `dbt parse … \|\| echo` swallows every failure. Replaced as the real gate by a local `dbt build` job (local-stack scope §6.5) |
 | Parallel fan-out for multi-dimension decomposition | Future work, deliberately deferred | LangGraph's `Send` API could run the 3+ dimension queries concurrently; at current data volume (sub-5s sequential) the latency savings are marginal against the added debugging complexity |
+
+---
+
+## 15. Action Agent (LangGraph, in progress)
+
+**Design record:** `docs/action-agent-scope.md`. **Progress:** `docs/ROADMAP.md` → Action Agent (A1–A7).
+
+**What it does.** It takes a finished investigation and proposes *one* action from a fixed catalog.
+A deterministic gate checks the proposal. Low-risk actions run automatically; everything else
+waits for a human. The approved action runs exactly once, and every step is written to a log that
+cannot be edited.
+
+| Action | Tier | Effect |
+|---|---|---|
+| `annotate_anomaly` | T0, auto | Tag an anomaly with a known cause. Tag only, no effect on alerting |
+| `suppress_alerts` | T1, approval | Silence repeat alerts for ≤ 7 days |
+| `notify_owner` | T1, approval | Message the segment owner (owner resolved from config, never chosen by the LLM) |
+| `open_incident` | T1, approval | GitHub Issue with the evidence table |
+| `create_control` | T1, approval | A segment watch with a threshold and a ≤ 30-day expiry |
+| any data mutation | T2 | Always rejected by policy |
+
+**Built and verified (A1, A2):**
+- **`policy_check`** makes three fail-closed checks: the action is in the catalog, its tier is
+  permitted, and its params pass schema and range checks. The range checks include **grounding**:
+  any segment an action targets must exist in the investigation's real evidence, so neither a
+  hallucinated segment nor an injected one can be targeted. Numeric params are strict types,
+  because probing found Pydantic's lax mode accepted `days: true` as 1 day.
+- **Human approval via LangGraph `interrupt()`** with a SQLite checkpointer, so a pending approval
+  survives a process restart. The approver sees a dry run of exactly what will be sent or written.
+  Edits are params-only, re-checked by policy, and executed under a new idempotency key.
+  Proposals expire after 24h.
+- **`actions.db`:**
+  - proposals are insert-only, with one proposal per anomaly enforced by a UNIQUE constraint
+  - `action_log` is append-only, enforced by SQLite triggers
+  - a partial unique index allows one execution per idempotency key
+  - status is derived from the log, never stored
+- **Fails closed at execution.** A T1 action needs an approval row for *exactly* its payload's
+  key. A payload altered after approval is blocked.
+- **Idempotent.** Re-running execution three times from its checkpoint produced one execution
+  and three logged skips.
+- **Exact decision replay.** Every logged policy decision is re-run against the evidence snapshot
+  stored with it. Any difference fails loudly.
+- **Bug found live.** Real `decompose_metric()` output carries numpy scalars, which the
+  checkpointer can't serialize. The tests had used plain floats. It is now normalized at the
+  graph boundary, with a regression test confirmed to fail without the fix.
+- **Verified live** on the onboarded Superstore dataset across separate processes: propose →
+  restart → approve → executed; re-approval refused; a second run for the same anomaly skipped;
+  a raw `DELETE` on the log refused by the database.
+
+**Next:** A3 adds an LLM proposer (`gpt-oss-20b` drafting, escalating to `gpt-oss-120b` only after
+a grounding failure, under a 10k-token budget, with the deterministic proposer as the fallback).
+A4 adds the live executors, A5 the golden and adversarial evals, A6 the API and SPA tab, and A7
+the system-wide evals.
+
+---
+
+## 16. Observability, Tracing & Evals (LangSmith)
+
+**Design record:** `docs/action-agent-scope.md` §7.1, §7.2, §13, decisions D10/D11.
+
+**Why.** An audit on 2026-11-02 found:
+- no LLM tracing, and no record of tokens, cost or latency
+- CloudWatch counters that production never published (`publish_metrics=False` on both
+  production entry points)
+- two hand-run eval scripts that persisted nothing
+- no eval of the anomaly detector at all
+
+**Tool choice: LangSmith** over MLflow (D10). It traces LangGraph natively with no per-node code,
+its Playground can re-run any LLM call, and it provides datasets, experiments and a feedback API.
+It was already installed as a LangChain dependency. The trade-off is that it's hosted, so traces
+leave the machine. Hence D11: **local files are the source of truth and LangSmith is a mirror.**
+Nothing reads LangSmith to make a decision, and a LangSmith outage loses traces, never decisions.
+
+**Design:**
+- **Track, trace, replay.** Every run is tagged with dataset, metric, anomaly, git SHA, prompt hash
+  and model. Each action-log row stores the id of the trace that wrote it, and each trace carries
+  the anomaly id, so you can go from log to trace and back. "Replay" means three precise things:
+  - exact replay for deterministic decisions
+  - a Playground re-run for LLM decisions (comparable, not identical, since LLMs vary even at
+    temperature 0)
+  - checkpoint time-travel for action-graph runs
+- **One LLM telemetry wrapper** for all three agents: tokens, cost, latency and outcome, sent to
+  LangSmith plus a local JSONL file. The token budget counts from the same wrapper.
+- **Human approvals become trace feedback,** building a human-labeled set of real proposals over
+  time.
+- **A committed eval ledger** with a baseline per eval. Every eval run reports, in order:
+  1. the question it answers
+  2. each metric with its n
+  3. the delta from baseline
+  4. what changed (git SHA, model, prompt)
+  5. the failing cases, each with a trace link
+- **A system-wide eval suite.** Each eval answers one stakeholder question:
+
+| Question | Eval |
+|---|---|
+| Does it alarm at the right times? | detection precision/recall (new) |
+| Is the agent making things up? | `grounding_pass_rate` |
+| Does it find the right cause? | `golden_match_rate` |
+| Does it admit uncertainty? | `uncertainty_ok_rate` |
+| How often does the LLM fail outright? | `fallback_rate` |
+| Can it understand an unseen dataset? | onboarding field match |
+| Can it be tricked or go rogue? | `unauthorized_exec_count`, `injection_resistance` |
+| Does it pick the right response? | `action_match_rate` |
+| Does the human agree? | approval / edit / reject rates |
+| What does quality cost? | escalation rate, cost per run, p95 latency |
+| Has anything silently regressed? | scheduled drift run vs. baseline |
+
+**Built so far:** `observability/tracing.py`. Every action-graph invocation gets a known root run
+id that is stamped on the log rows it wrote, and approvals post as LangSmith feedback, all
+fail-open. With tracing on and LangSmith rejecting every request, a run was verified to still
+complete. **Not yet verified:** traces actually appearing in LangSmith. The first API keys were
+rejected with 403, and that check is the open item on A2's gate.
