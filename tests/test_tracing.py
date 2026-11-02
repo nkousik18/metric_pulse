@@ -37,3 +37,16 @@ def test_run_config_carries_metadata_tags_and_thread():
 
 def test_run_config_without_thread_has_no_configurable():
     assert 'configurable' not in tracing.run_config(run_name='x', run_id=uuid.uuid4())
+
+
+def test_feedback_names_the_project_as_session_id_not_project_id():
+    # Regression (A2 live verification, 2026-11-02): langsmith 0.10.x rejects project_id together
+    # with run_id/trace_id, so every approval's feedback was silently dropped.
+    import inspect
+
+    from langsmith import Client
+
+    kwargs = tracing.feedback_kwargs('run-1', 'approval', value='approved', score=1, session_id='proj-1')
+    assert 'project_id' not in kwargs
+    assert kwargs['session_id'] == 'proj-1' and kwargs['run_id'] == kwargs['trace_id'] == 'run-1'
+    inspect.signature(Client.create_feedback).bind(None, **kwargs)   # every key is a real parameter
