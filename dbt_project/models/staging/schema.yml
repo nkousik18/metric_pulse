@@ -2,7 +2,7 @@ version: 2
 
 sources:
   - name: raw_data
-    database: dev
+    database: "{{ target.database }}"   # 'dev' on the archived Redshift target, 'warehouse' on local DuckDB
     schema: raw_data
     description: "Raw data loaded from S3 Brazilian E-Commerce dataset"
     tables:

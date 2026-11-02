@@ -1,6 +1,8 @@
 # `dbt_project/`
 
-A standard dbt project (`dbt-redshift` adapter) that transforms the 7 raw tables loaded by `ingestion/` into analysis-ready tables for the Python detection/decomposition pipeline. Three layers — **staging → marts → metrics** — 11 models total, 37 automated tests. Everything materializes into the single `staging` schema on Redshift (see `dbt_project.yml`; there is no separate `marts` schema despite the folder name — `config/settings.py`'s `REDSHIFT_SCHEMA_MARTS` constant is unused/dead for this reason).
+> **Local stack (2026-11-02).** The AWS resources this was built on were deleted when the free tier ended. All AWS code is **kept, unchanged and switchable** (`docs/local-stack-scope.md`, rule R1). This project now runs on **DuckDB** (`dbt-duckdb`, target `local`, the default), and the original **Redshift** target is kept as `redshift`. Both are defined in the committed `dbt_project/profiles.yml`.
+
+A standard dbt project (originally `dbt-redshift`) that transforms the 7 raw tables loaded by `ingestion/` into analysis-ready tables for the Python detection/decomposition pipeline. Three layers — **staging → marts → metrics** — 11 models total, 37 automated tests. Everything materializes into the single `staging` schema on Redshift (see `dbt_project.yml`; there is no separate `marts` schema despite the folder name — `config/settings.py`'s `REDSHIFT_SCHEMA_MARTS` constant is unused/dead for this reason).
 
 > Note: this file was previously a stale top-level project overview (project-status checklist from an early milestone, wrong table counts, no mention of the metrics layer). It's been replaced with a folder-specific reference; see the root `README.md` and `docs/` for the whole-project story.
 
@@ -77,6 +79,32 @@ All three exclude `canceled`/`unavailable` orders and grain to `(metric_date, se
 Verified directly against `models/*/schema.yml` and `tests/*.sql` — this matches `docs/dbt_transformations.md`; an earlier version of `docs/resume_project_doc.md` stated 5 marts / 2 metrics tables and was wrong (fixed as part of this documentation pass).
 
 ## Running
+
+**Always pass `--profiles-dir .`** so the committed `profiles.yml` is used, not a personal `~/.dbt/profiles.yml`:
+
+```bash
+cd dbt_project
+dbt debug --target local --profiles-dir .
+dbt build --target local --profiles-dir .     # active: 11 models + 37 tests, under 1s on DuckDB
+dbt build --target redshift --profiles-dir .  # archived: needs REDSHIFT_* env vars and a live workgroup
+```
+
+Verified 2026-11-02 on the full Olist data: `PASS=47 WARN=1 ERROR=0`, which is all 11 models and 37 tests. The one warning is `assert_dates_continuous` (severity `warn` by design). It flags a real 74-day gap in Olist, from 2016-10-10 to 2016-12-23, when the dataset has no orders at all. It isn't a porting artifact.
+
+### Portable SQL (changed 2026-11-02)
+
+Three Redshift-only constructs failed on DuckDB with Binder Errors. Each was rewritten to a form that is valid on **both** adapters, so the archived Redshift target still works:
+
+| File | Was (Redshift-only) | Now (portable) |
+|---|---|---|
+| `models/staging/stg_orders.sql` | `DATE_PART(year\|month\|dow, x)`, `DATEDIFF(day, a, b)` | `EXTRACT(year\|month\|dow FROM x)`, `{{ dbt.datediff('a', 'b', 'day') }}` |
+| `models/marts/fact_daily_metrics.sql` | `DATE_PART(year\|month\|dow, x)` | `EXTRACT(… FROM x)` |
+| `tests/assert_dates_continuous.sql` | `DATEDIFF(day, …)` | `{{ dbt.datediff(…) }}` |
+| `models/staging/schema.yml` (source) | `database: dev` | `database: "{{ target.database }}"` (`dev` on Redshift, `warehouse` on DuckDB) |
+
+One known type difference: `EXTRACT` returns an integer (`BIGINT` on DuckDB) where Redshift's `DATE_PART` returned a double. It affects only `order_year`, `order_month`, `order_day_of_week`, `metric_year`, `metric_month` and `day_of_week`, and no Python code does arithmetic on those columns.
+
+### Archived Redshift commands (original)
 
 ```bash
 cd dbt_project

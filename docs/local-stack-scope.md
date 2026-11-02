@@ -1,6 +1,6 @@
 # MetricPulse Local Stack — Scope
 
-**Status:** Draft for approval · **Owner:** Kousik Nandury · **Date:** 2026-11-02
+**Status:** Approved 2026-11-02; L1 built · **Owner:** Kousik Nandury · **Date:** 2026-11-02
 **Tracked in:** `docs/ROADMAP.md` → "Local Stack" (milestones L1–L3)
 **Priority:** ahead of Action Agent A3 (see §9)
 
@@ -127,9 +127,8 @@ image therefore keeps its original behavior with no env changes.
   One subtle difference: Redshift's `DATE_PART` returns a double while `EXTRACT` returns an
   integer. Only `metric_year`, `metric_month` and `day_of_week` are affected, and nothing in the
   Python code does arithmetic on them. This gets checked during the build.
-- Gate: `dbt build --target local --profiles-dir .` passes all 11 models and all of
-  their tests: the 37 the Phase 0 docs count, plus the 2 singular tests in `dbt_project/tests/`
-  if they aren't already part of that 37 (the L1 build reports the real number).
+- Gate: `dbt build --target local --profiles-dir .` passes all 11 models and all 37 tests
+  (35 schema + 2 singular, per `dbt_project/README.md`).
 
 ### 6.4 Alerting: local outbox (`alerting/notifier.py`, new)
 
@@ -245,4 +244,15 @@ Every doc below gets updated in the PR that changes its behavior, not saved for 
 
 Filled in during the build. One line each: choice — reason.
 
-_(none yet)_
+**L1 (2026-11-02)**
+- **Schemas come from the archived DDL, executed on DuckDB, loaded by position.** Reason: it's the schema Redshift actually used, `COPY` loaded positionally, and it fixes Olist's misspelled `product_*_lenght` headers the same way Redshift did. There is one schema definition for both paths, not two.
+- **`dbt-duckdb==1.11.1`** next to `dbt-core==1.11.7` / `dbt-redshift==1.10.1`. `pip check` is clean and no other package changed version.
+- **`get_connection()` delegates to `connection_factory(backend)`.** Reason: the archived Redshift path can't be run live, but which code path gets selected can still be tested (LS6). The Redshift body is byte-identical to before (diffed).
+- **Lambda keeps AWS defaults** via `settings.backend_default(local, aws)`, keyed on `AWS_LAMBDA_FUNCTION_NAME`. Reason: the archived image needs no env changes (R1).
+- **The committed `profiles.yml`'s Redshift target has env-var defaults** (e.g. host `redshift-deleted.invalid`). Reason: dbt can still parse the archived target with no credentials set, and nothing secret is committed.
+- **Not a porting error: `assert_dates_continuous` WARN.** It is a real 74-day gap in Olist (2016-10-10 → 2016-12-23, no orders). The test's severity is `warn` by design, so it would have warned on Redshift too.
+
+**Verification findings (L1)**
+- The full local chain was **independently verified** by recomputing 2018-08-29 → 2018-09-03 directly from the raw CSVs with pandas, bypassing DuckDB and dbt: −90.56% total revenue, Credit Card 106.59% of the change. That matches the local pipeline's narrative ("decreased 90.6% … Credit Card … 106.6%") exactly.
+- The figures "decreased 80.0% … Credit Card contributed 107.1%" that appear in some materials were **never live output**. They come from `docs/scoping.md` §3.8's illustrative Golden Case #1, which also feeds `tests/test_action_dry_run.py`'s fixture. The real figures for that date are 90.6% / 106.6%.
+- A test caught a parser bug before it could matter: `parse_ddl` matched only one column per line, so a single-line `CREATE TABLE` lost columns. The real DDL is one column per line, which is why the live load was unaffected. It now splits on top-level commas.

@@ -53,3 +53,7 @@ docs/METRICPULSE_INTERVIEW_PREP.md
 # Action Agent local state (docs/action-agent-scope.md D5)
 actions.db*
 checkpoints.db*
+
+# Local DuckDB warehouse (docs/local-stack-scope.md §6.1)
+data/warehouse.duckdb*
+dbt_project/.user.yml

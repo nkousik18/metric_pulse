@@ -1,6 +1,19 @@
 # MetricPulse Setup Guide
 
-## Prerequisites
+> **Local setup (current, free, ~2 minutes).** The AWS resources below were deleted on 2026-11-02, and Steps 3+ (AWS) are archived for reference (`docs/local-stack-scope.md`). To run everything locally:
+>
+> ```bash
+> python -m venv metric_venv && source metric_venv/bin/activate && pip install -r requirements.txt
+> # put the 9 Olist CSVs in data/raw/  (only 7 are loaded)
+> python -m ingestion.load_local                                  # -> data/warehouse.duckdb (451,535 rows)
+> (cd dbt_project && dbt build --target local --profiles-dir .)   # 11 models, 37 tests
+> python -m orchestration.run_pipeline --dry-run --no-metrics     # detect -> decompose -> narrate
+> python manage.py migrate && python manage.py runserver          # dashboard at http://127.0.0.1:8000
+> ```
+>
+> No `.env` warehouse settings are needed; `WAREHOUSE=duckdb` is the default. Alerts still go to SNS until local-stack milestone L2 adds the local outbox, so use `--dry-run` for now.
+
+## Prerequisites (archived AWS setup)
 
 - Python 3.12+
 - AWS Account with billing enabled

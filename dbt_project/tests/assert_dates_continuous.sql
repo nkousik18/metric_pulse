@@ -5,7 +5,7 @@ WITH date_gaps AS (
     SELECT 
         metric_date,
         LAG(metric_date) OVER (ORDER BY metric_date) AS prev_date,
-        DATEDIFF(day, LAG(metric_date) OVER (ORDER BY metric_date), metric_date) AS gap_days
+        {{ dbt.datediff('LAG(metric_date) OVER (ORDER BY metric_date)', 'metric_date', 'day') }} AS gap_days
     FROM {{ ref('fact_daily_metrics') }}
 )
 SELECT *

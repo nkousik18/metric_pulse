@@ -34,8 +34,8 @@ SELECT
     ROUND(avg_order_value, 2) AS avg_order_value,
     ROUND(min_order_value, 2) AS min_order_value,
     ROUND(max_order_value, 2) AS max_order_value,
-    DATE_PART(year, metric_date) AS metric_year,
-    DATE_PART(month, metric_date) AS metric_month,
-    DATE_PART(dow, metric_date) AS day_of_week
+    EXTRACT(year FROM metric_date) AS metric_year,
+    EXTRACT(month FROM metric_date) AS metric_month,
+    EXTRACT(dow FROM metric_date) AS day_of_week
 FROM daily_metrics
 ORDER BY metric_date

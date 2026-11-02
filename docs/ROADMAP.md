@@ -185,9 +185,15 @@ R1–R5). It is prioritized ahead of Action Agent A3 (scope §9).
 **Gate:** from a fresh clone plus `data/raw/`, `load_local` → `dbt build --target local` →
 `run_pipeline --dry-run` runs end to end with no cloud account, and no AWS file has been deleted.
 
-- [ ] **L1** — `WAREHOUSE` switch in `config/db.py`, `ingestion/load_local.py`, `dbt-duckdb` +
+- [x] **L1** — `WAREHOUSE` switch in `config/db.py`, `ingestion/load_local.py`, `dbt-duckdb` +
       committed `dbt_project/profiles.yml`, the 3 Redshift→portable SQL fixes. Row total 451,535;
       dbt build passes; Django dashboard serves Olist from DuckDB.
+      **Verified live 2026-11-02:** `load_local` loaded 451,535 rows in ~2s (matches Phase 0);
+      `dbt build` gave PASS=47 WARN=1 ERROR=0 (the WARN is a real 2016 data gap);
+      `run_pipeline --dry-run --no-metrics` completed in 0.28s; `/api/health|metrics|anomalies|
+      decomposition|narrative` and `/` returned 200 with Olist data; the result was cross-checked
+      independently from the raw CSVs with pandas (−90.56%, exact match). 12 new tests, suite
+      at 202. The Redshift connection code is byte-identical (diffed).
 - [ ] **L2** — `alerting/notifier.py` (local outbox, SNS kept as a channel), `run_pipeline` alert
       wiring, Action Agent scope text aligned (`notify_owner` via notifier).
 - [ ] **L3** — Committed Olist sample + real `dbt-build-local` CI job (the old `dbt-check` can't

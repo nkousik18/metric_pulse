@@ -1,6 +1,24 @@
 # `config/`
 
-Shared, side-effect-light utilities used by every other layer: environment loading, the Redshift connection factory, and the logger factory. No business logic lives here — if you're tempted to add a helper that touches metrics/decomposition/narrative, it belongs in that layer instead, not here.
+Shared, side-effect-light utilities used by every other layer: environment loading, the warehouse connection factory, and the logger factory. No business logic lives here — if you're tempted to add a helper that touches metrics/decomposition/narrative, it belongs in that layer instead, not here.
+
+> **Local stack (2026-11-02).** The AWS resources this was built on were deleted when the free tier ended. All AWS code is **kept, unchanged and switchable** (`docs/local-stack-scope.md`, rule R1).
+
+## Warehouse backends (`WAREHOUSE`)
+
+`get_connection()` returns a connection to whichever backend `config/settings.py`'s `WAREHOUSE` names. Every module that queries the warehouse goes through it, so this one setting switches the whole Olist pipeline, plus the Django API and the investigation agent.
+
+| `WAREHOUSE` | Status | What `get_connection()` opens | How it's built |
+|---|---|---|---|
+| `duckdb` (default) | **Active** | `duckdb.connect(WAREHOUSE_PATH, read_only=True)`; default path `data/warehouse.duckdb` (gitignored) | `python -m ingestion.load_local`, then `cd dbt_project && dbt build --target local --profiles-dir .` |
+| `redshift` | **Archived (AWS)** | `_redshift_connection()`: the original `redshift_connector.connect(...)`, body unchanged | `ingestion/` S3 → Redshift scripts + `dbt build --target redshift` |
+
+- **Inside AWS Lambda** (`AWS_LAMBDA_FUNCTION_NAME` set), `WAREHOUSE` defaults to `redshift` via `settings.backend_default()`, so the archived Lambda image behaves exactly as before with no env changes.
+- **Read-only, single writer.** Callers only read, so the DuckDB connection is read-only, and several readers (the dashboard plus a CLI run) can share the file. DuckDB allows one writer at a time, so `load_local` or `dbt build` fails while a reader holds the file, and vice versa. Stop the dashboard before rebuilding. The error message says so.
+- **Missing warehouse file:** `get_connection()` raises a `RuntimeError` that names the two build commands.
+- **`connection_factory(backend)`** returns the zero-argument connection function without calling it. Tests use it to check that `redshift` selects the archived code path without trying to connect (the workgroup no longer exists).
+- `build_copy_credentials()` is untouched and only used by the archived `ingestion/s3_to_redshift.py`.
+- **Unchanged:** the legacy Streamlit dashboard (`dashboard/app.py`) still opens its own Redshift connection directly and does **not** follow `WAREHOUSE`. It's an archived, AWS-only component (local-stack scope §4).
 
 ## Files
 

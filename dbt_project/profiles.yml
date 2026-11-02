@@ -1,0 +1,31 @@
+# dbt profiles for MetricPulse (docs/local-stack-scope.md §6.3). Committed on purpose: there are
+# no secrets here, and the archived Redshift target reads its connection from env vars.
+#
+# Always run dbt from this directory with --profiles-dir . so this file is used explicitly,
+# never silently shadowed by a personal ~/.dbt/profiles.yml:
+#
+#   cd dbt_project
+#   dbt build --target local --profiles-dir .      # active: local DuckDB (default target)
+#   dbt build --target redshift --profiles-dir .   # archived AWS backend (needs REDSHIFT_* env vars)
+
+dbt_project:
+  target: local
+  outputs:
+    local:
+      type: duckdb
+      # Same file config/settings.py's WAREHOUSE_PATH points at; ingestion/load_local.py fills raw_data.
+      path: "{{ env_var('WAREHOUSE_PATH', '../data/warehouse.duckdb') }}"
+      schema: staging
+      threads: 4
+
+    redshift:
+      # Archived: the original Redshift Serverless target (rule R1, kept intact). The workgroup was
+      # deleted on 2026-11-02, so this target can't connect any more.
+      type: redshift
+      host: "{{ env_var('REDSHIFT_HOST', 'redshift-deleted.invalid') }}"
+      port: "{{ env_var('REDSHIFT_PORT', '5439') | as_number }}"
+      dbname: "{{ env_var('REDSHIFT_DATABASE', 'dev') }}"
+      user: "{{ env_var('REDSHIFT_USER', 'unset') }}"
+      password: "{{ env_var('REDSHIFT_PASSWORD', 'unset') }}"
+      schema: staging
+      threads: 4
