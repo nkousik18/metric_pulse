@@ -27,7 +27,7 @@ binary it implements. Named as a scope boundary, not silently overclaimed.
 |------|---------|
 | `profiling.py` | Stage A: `ColumnProfile`, `ID_CARDINALITY_THRESHOLD`, `profile_column()`, `profile_columns()`. 100% deterministic, no LLM call. |
 | `schemas.py` | Stage B's structured-output types: `DimensionCandidate`, `RejectedColumn`, `SchemaClassification`. |
-| `llm.py` | `get_classification_llm()` — same provider/method as `investigation/llm.py`'s `get_synthesis_llm()`. |
+| `llm.py` | `get_classification_llm()` — same provider/method as `investigation/llm.py`'s `get_synthesis_llm()`, including `include_raw=True` (A3): both calls in `classify_columns_with_validation` go through `observability.llm.invoke_structured` (stage `classify`). |
 | `prompts.py` | `build_classification_prompt()` — formats profiles into the evidence bundle + system prompt. |
 | `classification.py` | `MIN_DATE_PARSE_RATE`, `MAX_DIMENSION_CARDINALITY_RATIO`, `validate_classification()`, `classify_columns_with_validation()` (the bounded-retry orchestrator). |
 | `codegen.py` | `sanitize_identifier()`, `load_and_aggregate()`, `write_fact_table()`, `write_dimension_tables()`, `generate_tables()`, `validate_generated_tables()` — turns a validated contract into real DuckDB tables. 100% deterministic, no LLM call. |

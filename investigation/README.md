@@ -36,7 +36,7 @@ still `grounding_pass_rate=1.00` across 3 real trials, no regression.
 | `routing.py` | The 3 conditional-edge routing functions, plus `MAX_ITERATIONS`. |
 | `tools.py` | Thin wrappers around `detection`/`decomposition`/`narrative` functions, plus `tool_drill_down`. |
 | `schemas.py` | Pydantic structured-output models: `EvidenceCitation`, `SynthesisOutput`. |
-| `llm.py` | `get_synthesis_llm()` — the one place the LLM provider/model is chosen. |
+| `llm.py` | `get_synthesis_llm()` — the one place the LLM provider/model is chosen. Built with `include_raw=True` since A3, so `_run_synthesis` can record each call through `observability.llm.invoke_structured` (stage `synthesize`, `logs/llm_calls.jsonl`). Behavior is unchanged: the same exceptions reach the same `fallback_exception` path. |
 | `prompts.py` | `build_synthesis_prompt()` — formats state into the evidence bundle + system prompt. |
 | `validation.py` | `validate_citation`, `validate_synthesis_output` — the grounding enforcement. |
 | `rendering.py` | `render_investigation_summary()` — template-only number injection, no model-authored numbers. |

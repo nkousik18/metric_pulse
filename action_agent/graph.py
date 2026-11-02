@@ -64,6 +64,7 @@ class ActionState(TypedDict, total=False):
     anomaly_id: str
     proposal: Optional[Dict]
     proposer: str
+    proposer_trail: Optional[Dict]   # LLM proposer only: attempts, escalation, tokens (A3)
     policy: Optional[Dict]
     dry_run: Optional[Dict]
     edited: bool
@@ -92,8 +93,9 @@ def build_action_graph(
     """Dependencies are injected (store, executors, clock, proposer) so tests use
     real SQLite on tmp_path and a RecordingExecutor. No mocks.
 
-    proposer_fn(state) -> (proposal dict or None, proposer name). It defaults to the
-    deterministic fallback. A3 passes the LLM proposer, which falls back to it."""
+    proposer_fn(state) -> (proposal dict or None, proposer name[, trail dict]). It defaults to the
+    deterministic fallback. The LLM proposer (llm_proposer.make_llm_proposer) also returns a trail
+    of its attempts, whose `summary` line is stored on the `proposed` log row."""
 
     def _ctx(state: ActionState) -> ActionContext:
         return ActionContext(state['dataset_id'], state['metric'], state['anomaly_date'],
@@ -113,10 +115,12 @@ def build_action_graph(
     make_proposal = proposer_fn or _default_proposer
 
     def propose(state: ActionState) -> Dict:
-        proposal, proposer = make_proposal(state)
+        out = make_proposal(state)
+        proposal, proposer = out[0], out[1]
+        trail = out[2] if len(out) > 2 else None
         if proposal is None:
-            return {'status': 'no_proposal', 'error': 'no top driver to act on'}
-        return {'proposal': proposal, 'proposer': proposer}
+            return {'status': 'no_proposal', 'error': 'no top driver to act on', 'proposer_trail': trail}
+        return {'proposal': proposal, 'proposer': proposer, 'proposer_trail': trail}
 
     def register(state: ActionState) -> Dict:
         now = now_fn()
@@ -133,6 +137,7 @@ def build_action_graph(
             return {'status': 'duplicate_anomaly', 'error': 'anomaly already has a proposal (D1)'}
         store.log(state['proposal_id'], 'proposed', state['proposer'],
                   action_type=state['proposal']['action_type'], params=state['proposal']['params'],
+                  detail=(state.get('proposer_trail') or {}).get('summary'),
                   trace_id=state.get('trace_id'), now=now)
         return {}
 

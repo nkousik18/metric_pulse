@@ -14,6 +14,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from config.logging_config import setup_logger  # noqa: E402
 from onboarding.llm import get_classification_llm  # noqa: E402
+from config.settings import GROQ_MODEL  # noqa: E402
+from observability.llm import invoke_structured  # noqa: E402
 from onboarding.profiling import ColumnProfile  # noqa: E402
 from onboarding.prompts import build_classification_prompt  # noqa: E402
 from onboarding.schemas import SchemaClassification  # noqa: E402
@@ -66,15 +68,20 @@ def validate_classification(clf: SchemaClassification, profiles: Dict[str, Colum
 
 def classify_columns_with_validation(profiles: Dict[str, ColumnProfile]) -> SchemaClassification:
     llm = get_classification_llm()
+    # Recorded by the shared telemetry wrapper (N1); not budgeted (the budget is the Action Agent's).
+    telemetry = {'stage': 'classify', 'model': GROQ_MODEL,
+                 'validate': lambda c: validate_classification(c, profiles),
+                 'metadata': {'columns': len(profiles)}}
 
-    clf = llm.invoke(build_classification_prompt(profiles))
-    errors = validate_classification(clf, profiles)
+    clf, record = invoke_structured(llm, build_classification_prompt(profiles), attempt=1, **telemetry)
+    errors = record.errors
     if not errors:
         return clf.model_copy(update={'requires_human_review': False, 'validation_errors': []})
 
     logger.info(f"classification: first attempt failed validation: {errors}")
-    clf = llm.invoke(build_classification_prompt(profiles, validation_errors=errors))
-    errors = validate_classification(clf, profiles)
+    clf, record = invoke_structured(llm, build_classification_prompt(profiles, validation_errors=errors),
+                                    attempt=2, **telemetry)
+    errors = record.errors
     if not errors:
         return clf.model_copy(update={'requires_human_review': False, 'validation_errors': []})
 
