@@ -20,6 +20,7 @@ from narrative.generator import generate_narrative
 from orchestration.run_pipeline import run_pipeline
 from investigation.graph import investigation_graph
 from investigation.state import build_initial_state
+from dashboard_api.throttling import ScopedThrottle
 
 
 class HealthCheckView(APIView):
@@ -137,6 +138,9 @@ class NarrativeView(APIView):
 class PipelineView(APIView):
     """Run full pipeline."""
 
+    throttle_classes = [ScopedThrottle]   # N4
+    throttle_scope = 'pipeline'
+
     def post(self, request):
         try:
             metric = request.data.get('metric', 'total_revenue')
@@ -178,6 +182,9 @@ class PipelineView(APIView):
 
 class InvestigationView(APIView):
     """Run the Phase 1 investigation agent standalone for a given date pair."""
+
+    throttle_classes = [ScopedThrottle]   # N4
+    throttle_scope = 'investigate'
 
     def post(self, request):
         try:

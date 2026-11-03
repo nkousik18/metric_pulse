@@ -4,6 +4,17 @@ What's shipped, in user-facing terms — built from actual commit history, not a
 version tags exist for this project yet, so entries are dated. See `docs/ROADMAP.md` for what's
 planned but not yet shipped, and `docs/project/SESSION_LOG.md` for session-by-session detail.
 
+## 2026-11-03
+
+### Added
+- **Approving actions from the dashboard.** A "Pending actions" tab shows each Action Agent
+  proposal with its exact dry run, and lets the approver approve, edit, reject or undo it, with
+  the full action log underneath. Behind it, `/api/actions/` endpoints (pending, approve, edit,
+  reject, log, undo) that need an approver token, `ACTION_APPROVER_TOKEN` in `.env`; without one
+  they are switched off.
+- Rate limits on the endpoints that cost money or change state: the AI investigation, the
+  pipeline run and the actions API.
+
 ## 2026-08-04
 
 ### Added

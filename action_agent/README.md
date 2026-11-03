@@ -13,6 +13,10 @@ approval to idempotent execution and an append-only log. Local-only (scope doc Â
 - **A3:** the LLM proposer (gpt-oss-20b drafts, one escalation to gpt-oss-120b, then the
   deterministic fallback, under a 10k-token budget), and `probe.py`, the live model test.
 
+- **A6:** the HTTP API and the dashboard's "Pending actions" tab (`dashboard_api/action_views.py`,
+  `templates/partials/actions.html`): pending, approve / edit / reject, log, undo, behind the
+  approver token `ACTION_APPROVER_TOKEN`, with DRF throttling. See `dashboard_api/README.md`.
+
 - **A4:** real executors (`notify_owner` through the notifier outbox, `open_incident` as a GitHub
   Issue behind `--live`), undo (F3), and the pipeline hooks: D3 suppression and D4 watch
   evaluation on local pipeline runs (`hooks.py`). `propose --dataset-id olist` works.
@@ -154,7 +158,8 @@ python -m action_agent.cli replay e275                 # exits 1 if today's code
 - **Undo (F3):** `python -m action_agent.cli undo <id> --reason "..." [--live]`. Only an
   `executed`, reversible action; a reason is required. It writes an `undone` row (a terminal
   status), and the effect tables are never edited: the active-effect queries exclude keys with
-  an `undone` row. A second undo is refused.
+  an `undone` row. A second undo is refused. Since A6 an undo is its own root run
+  (`action_agent.undo`), and its id is on the `undone` row's `trace_id`, as for a decide.
 
 ## Pipeline hooks: suppression and watches (A4, `hooks.py`)
 
@@ -244,4 +249,5 @@ on `tmp_path`, `RecordingExecutor`, injected clock and proposer), `tests/test_ll
 (the D2 routing and budget with injected models that return canned structured outputs, N3, and
 the graph wiring), `tests/test_action_executors.py` (the notifier outbox, and `open_incident`
 against a real local HTTP server speaking GitHub's REST calls), `tests/test_action_hooks.py` (undo,
-D3 and D4 end to end through a real `ActionAgent`). No mocks.
+D3 and D4 end to end through a real `ActionAgent`). `tests/test_action_api.py` (the A6
+API through Django's real routing and DRF). No mocks.
