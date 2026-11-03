@@ -111,6 +111,65 @@ An eval result is a short story, not a bare number. Every eval run writes one le
 4. **What changed:** git SHA, model, and prompt hash, against the baseline's.
 5. **Failing cases:** each with its expected vs. actual and a link to its LangSmith trace, so every failure is one click from its full reasoning.
 
+### 7.3 A7 design (added 2026-11-03)
+
+How §7.1's new rows get built. The mechanics are written down here before any code, per the
+working conventions; the choices are the agent's (as D8) and each is logged in §12's A7 entry.
+
+**Shared plumbing.** Every eval writes a §13.5 ledger row to `evals/ledger.jsonl` with its own
+`eval` name (`detection`, `investigation`, `onboarding`, `action`) and compares against its own
+`evals/baselines/<eval>.json`. The ledger, git SHA (with `-dirty`), rate/count shapes,
+baseline comparison and §7.2 report move out of `action_agent/eval.py` into one shared module,
+`observability/evals.py`, so the four evals can't drift apart. The action eval's behavior and
+output stay the same.
+
+**Detection eval** (`python -m detection.eval`). No LLM, so it's free and deterministic.
+- **What is graded is the production decision, replayed.** The pipeline judges the latest day
+  against the `LOOKBACK_DAYS` (30) days ending at it. For a labelled date D, the eval rebuilds that
+  window ending at D, runs the unchanged `detect_anomalies`, and reads D's flag: "would the
+  pipeline have alerted on D, on the day D was the latest?" It isn't the z-score of D within the
+  full history, which the pipeline never computes.
+- **Labels (D6 rule):** `evals/detection/labels.yaml`, ≥ 20 (dataset, metric, date) cases across
+  Olist and Superstore. The agent picks candidates; **Kousik labels** each `is_event`
+  (true: "I'd want an alert that day"; false: "an alert would be noise"). To keep recall honest,
+  the candidates aren't only what the detector flags: they mix the strongest replayed z-scores,
+  near-threshold dates (|z| 1.5–2.5, the hard ones), ordinary dates, and known calendar dates
+  (Black Friday, Christmas, New Year). The file shows each date's value against its prior week,
+  **never the detector's z or flag**, so the labels aren't anchored to it.
+- **Metrics:** `detection_precision`, `detection_recall` and F1 at the configured threshold
+  (`ANOMALY_THRESHOLD_ZSCORE`, 2.0), each with its n; a threshold sweep (1.5 to 3.5 in 0.25 steps)
+  reported as a table, not gated. Failing cases list the date, the label and the replayed z.
+
+**Investigation golden set** (≥ 10, `python -m investigation.eval`). Phase 1's grader is
+unchanged (`_run_synthesis` and its validators); only the cases grow.
+- **Cases are real, built from real evidence**, the same way the pipeline builds them: the
+  detector, `decompose_metric`, the ambiguity flags and the drill-downs, frozen into
+  `evals/investigation/golden.yaml`, so the eval doesn't depend on the warehouse later. The
+  existing illustrative Golden Case #1 stays as case 1.
+- **Coverage (§7.1):** at least two each of a clear driver, close contributors and offsetting
+  segments, chosen from the ambiguity rules' own output, and at least one onboarded-dataset case.
+- **Labels (D6 rule):** Kousik writes `expected_primary` (dimension and segment) and
+  `requires_uncertainty_note` for each. The file never shows the model's synthesis.
+
+**Onboarding eval** (≥ 3 datasets, `python -m onboarding.eval`). Grades `classify_columns` field by
+field against a confirmed classification, and reports `human_review_rate`:
+1. the synthetic SaaS Golden Case #2 (as now);
+2. Superstore Sales, against the classification Kousik confirmed in M6;
+3. the A5 adversarial CSV, against the classification he confirmed in A5.
+
+No new labelling: 2 and 3 were human-confirmed at onboarding time. Their caveat is recorded
+with the result: both were confirmed after seeing the model's proposal, so they are anchored in
+a way D6's labels aren't. The Superstore CSV is gitignored, so that case runs locally only and
+is reported as skipped where the file is absent. Its expected classification is committed.
+
+**Drift run** (`python -m observability.drift`). Runs every eval that's ready (labels complete,
+inputs present), writes their ledger rows, and prints one report: for each eval, every metric
+against its baseline, with the regressions first. It reports and pages nobody (§13.7). It reads
+only the committed ledger and baselines, never LangSmith (14-day retention, A2 log).
+**Scheduling** is local, because the real-data evals need the local warehouse, which CI doesn't
+have. It's a documented launchd job (macOS) that Kousik installs himself, since it changes his
+machine's configuration; the drift command itself doesn't need the schedule to run.
+
 ## 8. Milestones
 
 | # | Deliverable | Est. |
@@ -271,7 +330,24 @@ Filled in as the D8 choices are made during the build. One line each: choice —
 
 **Verified live (2026-11-03),** scratch databases, `runserver` with a generated token, the real Olist and Superstore warehouses, deterministic proposer (no LLM cost): no token and a wrong token → 401; the SPA tab listed both Olist proposals with their dry runs; approve from the UI executed `notify_owner` (a real outbox message to Payments Team) and logged `approved` with actor `kousik`; reject from the UI logged the typed reason; approving again → 409; undoing the irreversible `notify_owner` → 409; an edit to a segment not in the evidence came back from policy with the error shown on the card; 16 wrong-token approves then 429 (20/min, shared with the four earlier decision calls); `investigate` 429 on the sixth call. Undo of a reversible action is covered by tests through the real API and agent but wasn't run against the server, since the deterministic proposer only makes `notify_owner`.
 
-_Pending: Kousik's golden labels (A5 gate)._
+**A7 (2026-11-03, in progress: built, waiting on labels)**
+- **Shared plumbing:** `observability/evals.py` holds the metric shapes, ledger, per-eval baselines and the comparison; the action eval now uses it with unchanged output. Moving the comparison found BUG_LOG A7-1 (the adversarial escalation/fallback rates were compared the wrong way round; no baseline existed yet, so no past report was wrong).
+- **Detection, replay not hindsight:** a date is graded by the decision the pipeline would have made with that date as the latest (the `LOOKBACK_DAYS` rows ending at it), not by its z-score in the full history. Reason: that's the only decision the pipeline ever makes, and full-history z-scores would grade a detector that doesn't exist.
+- **Detection candidates:** 28 (dataset, metric, date): per source the strongest replayed |z|, a seeded sample of near-threshold (|z| 1.5–2.5) and ordinary (|z| < 1) dates, plus calendar dates (Black Friday, Christmas, New Year) and 2018-09-03 (Golden Case #1's date, always included as in the action golden set). Listed in dataset/metric/date order, so position doesn't reveal the reason for the pick. The file shows the value against the prior week, never z or the flag.
+- **Detection metrics:** precision and recall each with n; precision is n/a (not 0 or 1) when nothing is flagged. F1, false alarms and missed events are reported. The sweep is a table, not gated.
+- **Investigation cases are frozen states:** `evals/investigation/states.json` holds the exact pre-synthesis state (replayed detection, `decompose_all`, the ambiguity rules, a drill-down where routing takes one) with `dataset_config` removed, because synthesis reads only the state. So the eval no longer needs the warehouse, and a later warehouse change can't silently change a case. Chosen from flagged dates, 3 per kind (clear driver, close contributors, offsetting segments), round-robin over Olist revenue/orders and Superstore sales/profit: 9 cases, 4 onboarded. With Golden Case #1, 10. `expected_primary` may list several acceptable answers; a label naming a segment absent from the case's evidence is refused.
+- **Until labels are complete, the investigation eval runs Golden Case #1 alone** and says so, rather than grading partly labelled cases.
+- **Onboarding, 3 datasets × `--runs` (default 2):** one classification per dataset swung between runs (Superstore's `Customer Name` was a dimension in one run and rejected in the next), so one run is a coin flip. The Superstore and adversarial expectations are the confirmed classifications, marked anchored in every report.
+- **BUG_LOG A7-2, fixed:** `validate_classification` never checked rejected column names, so the hostile header "rejected" under a rewritten name passed as grounded. The design (scoping §5.4, "every claim ... is checked against Stage A's real, already-computed numbers") covers it. **Not changed, for Kousik:** requiring every real column to be classified. Seen again live (the hostile column dropped on retry, still grounded), and the confirmed Superstore classification itself omits `Ship Date`. It changes Phase 2 behaviour and the Superstore expectation, so it's his call.
+- **Drift:** `python -m observability.drift` runs whichever evals are ready (detection needs complete labels; investigation and action run reduced until labelled) and prints regressions first. It exits 1 on a regression or a failed eval, so a scheduler's log shows it. `--report` reads the ledger only and is free. Scheduling: `--print-launchd` prints a weekly (Monday 09:00) launchd job with this machine's paths, which Kousik installs; nothing on his machine is changed by the agent.
+
+**Verified live (2026-11-03, `--no-ledger`, on a dirty tree, so no ledger rows yet):**
+- **Onboarding** (3 datasets, twice): the SaaS case matches every field. Superstore and the adversarial CSV differ from their confirmed classifications, and the differences change between runs; that variance is why `--runs` exists. The first run is what found A7-2.
+- **Investigation:** Golden Case #1, grounded first attempt, golden match, uncertainty OK. A frozen real case (i09) also synthesized and grounded through the unchanged `_run_synthesis`; its answer isn't shown, to keep the labels unanchored.
+- **Detection:** candidates were generated from the real warehouses. Grading waits on labels.
+- **Drift:** `--report` reported the A5 action row, with no baselines yet. `--only detection` skipped detection, because it's unlabelled.
+
+_Pending: Kousik's labels — the action golden set (A5 gate), `evals/detection/labels.yaml` (28) and `evals/investigation/golden.yaml` (9); then the first ledger rows and baselines on a clean tree._
 
 ## 13. Observability, tracing and replay (added 2026-11-02)
 

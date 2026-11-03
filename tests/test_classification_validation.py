@@ -110,3 +110,16 @@ class TestValidateClassification:
         profiles = _profiles()
         clf = SchemaClassification(date_column=None, grain='other')
         assert validate_classification(clf, profiles) == []
+
+
+def test_a_rejected_column_must_be_a_real_column():
+    # BUG_LOG A7-2: the A7 onboarding eval caught the classifier rejecting the adversarial CSV's
+    # hostile header under a rewritten name ("Sales Team"), which passed validation.
+    profiles = _profiles()
+    clf = SchemaClassification(
+        date_column='event_date', grain='other', metric_columns=['mrr_amount'],
+        dimension_columns=[DimensionCandidate(column='region', cardinality=3, confidence=0.9, reasoning='r')],
+        rejected_columns=[RejectedColumn(column='notes', reason='free text'),
+                          RejectedColumn(column='Sales Team', reason='rewritten header')],
+    )
+    assert validate_classification(clf, profiles) == ["'Sales Team' listed as rejected but is not a real column"]

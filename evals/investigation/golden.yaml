@@ -1,0 +1,351 @@
+# Investigation golden set (docs/action-agent-scope.md §7.1, §7.3). Real anomalies from Olist and Superstore.
+#
+# FOR KOUSIK TO LABEL. For each case, fill in:
+#   expected_primary: the explanation a good analyst would lead with, as
+#       {dimension: <dimension>, segment: <segment>}
+#     The segment can be a top contributor, or a drill-down detail where one is shown
+#     (Golden Case #1's answer is geography / SP, from its drill-down). For more than one
+#     acceptable answer, give a list of them.
+#   requires_uncertainty_note: true if the honest summary has to say the cause is uncertain
+#     (e.g. close contributors or offsetting segments make the lead explanation debatable),
+#     false if one explanation is clearly right.
+#   notes: optional, why.
+#
+# The agent chose the cases and grouped them by what the ambiguity rules flagged ("kind"), but
+# didn't label them, and the model's own synthesis isn't shown. The full frozen state each case
+# is graded on is in states.json, under the same id.
+
+- id: i02
+  dataset_id: olist
+  metric: total_revenue
+  current_date: '2017-07-18'
+  previous_date: '2017-07-17'
+  kind: clear_driver
+  ambiguity:
+  - none
+  top_segments:
+    geography:
+    - 'Southeast: +94.3% of change (16,035.95 -> 22,467.37)'
+    - 'South: +12.5% of change (3,542.60 -> 4,392.77)'
+    - 'North: -7.9% of change (541.84 -> 0.00)'
+    product:
+    - 'Auto & Tools: +75.8% of change (2,250.65 -> 7,418.71)'
+    - 'Electronics: +21.1% of change (3,548.72 -> 4,985.82)'
+    - 'Kids & Toys: -18.4% of change (4,200.72 -> 2,942.74)'
+    payment:
+    - 'Boleto: +76.0% of change (2,762.15 -> 7,943.88)'
+    - 'Credit Card: +24.9% of change (22,145.78 -> 23,848.00)'
+    - 'Voucher: -2.0% of change (455.62 -> 321.11)'
+  drill_down: null
+  expected_primary: null
+  requires_uncertainty_note: null
+  notes: null
+- id: i03
+  dataset_id: superstore_sales
+  metric: sales
+  current_date: '2010-04-20'
+  previous_date: '2010-04-19'
+  kind: clear_driver
+  ambiguity:
+  - none
+  top_segments:
+    Order Priority:
+    - 'Medium: +61.4% of change (590.01 -> 30,307.22)'
+    - 'Low: +24.0% of change (3,991.53 -> 15,610.03)'
+    - 'Critical: +5.4% of change (0.00 -> 2,600.70)'
+    Ship Mode:
+    - 'Delivery Truck: +61.5% of change (3,662.16 -> 33,409.58)'
+    - 'Regular Air: +33.5% of change (590.01 -> 16,814.21)'
+    - 'Express Air: +5.0% of change (329.37 -> 2,729.62)'
+    Customer Name:
+    - 'Mitch Gastineau: +56.7% of change (0.00 -> 27,434.45)'
+    - 'Ken Dana: +16.6% of change (0.00 -> 8,027.29)'
+    - 'Jennifer Patt: +14.6% of change (0.00 -> 7,046.68)'
+    Province:
+    - 'Alberta: +82.6% of change (0.00 -> 39,951.99)'
+    - 'British Columbia: +14.6% of change (0.00 -> 7,046.68)'
+    - 'Ontario: +12.3% of change (0.00 -> 5,954.74)'
+    Region:
+    - 'West: +97.2% of change (0.00 -> 46,998.67)'
+    - 'Ontario: +12.3% of change (0.00 -> 5,954.74)'
+    - 'Prarie: -8.5% of change (4,118.40 -> 0.00)'
+    Customer Segment:
+    - 'Small Business: +54.0% of change (3,991.53 -> 30,089.94)'
+    - 'Corporate: +31.4% of change (126.87 -> 15,335.52)'
+    - 'Home Office: +15.6% of change (0.00 -> 7,527.95)'
+    Product Category:
+    - 'Furniture: +69.5% of change (3,662.16 -> 37,302.89)'
+    - 'Technology: +18.7% of change (126.87 -> 9,193.20)'
+    - 'Office Supplies: +11.7% of change (792.51 -> 6,457.32)'
+    Product Sub-Category:
+    - 'Chairs & Chairmats: +51.4% of change (0.00 -> 24,840.18)'
+    - 'Computer Peripherals: +14.9% of change (126.87 -> 7,319.85)'
+    - 'Tables: +13.9% of change (0.00 -> 6,717.78)'
+    Product Container:
+    - 'Jumbo Drum: +51.4% of change (0.00 -> 24,840.18)'
+    - 'Small Box: +27.9% of change (639.55 -> 14,141.18)'
+    - 'Jumbo Box: +10.1% of change (3,662.16 -> 8,569.40)'
+  drill_down: null
+  expected_primary: null
+  requires_uncertainty_note: null
+  notes: null
+- id: i04
+  dataset_id: olist
+  metric: order_count
+  current_date: '2017-02-07'
+  previous_date: '2017-02-06'
+  kind: clear_driver
+  ambiguity:
+  - none
+  top_segments:
+    geography:
+    - 'Southeast: +100.0% of change (56.00 -> 85.00)'
+    - 'Northeast: +13.8% of change (2.00 -> 6.00)'
+    - 'South: -10.3% of change (13.00 -> 10.00)'
+    product:
+    - 'Fashion & Sports: +51.6% of change (8.00 -> 24.00)'
+    - 'Home & Furniture: +22.6% of change (18.00 -> 25.00)'
+    - 'Other: +16.1% of change (15.00 -> 20.00)'
+    payment:
+    - 'Credit Card: +62.1% of change (59.00 -> 77.00)'
+    - 'Boleto: +27.6% of change (21.00 -> 29.00)'
+    - 'Voucher: +10.3% of change (0.00 -> 3.00)'
+  drill_down: null
+  expected_primary: null
+  requires_uncertainty_note: null
+  notes: null
+- id: i05
+  dataset_id: olist
+  metric: total_revenue
+  current_date: '2017-11-24'
+  previous_date: '2017-11-23'
+  kind: close_contributors
+  ambiguity:
+  - 'product: close_contributors'
+  top_segments:
+    geography:
+    - 'Southeast: +72.1% of change (31,090.51 -> 123,394.08)'
+    - 'South: +13.5% of change (8,440.03 -> 25,728.45)'
+    - 'Central-West: +8.3% of change (2,303.30 -> 12,915.14)'
+    product:
+    - 'Other: +25.3% of change (13,026.90 -> 45,421.48)'
+    - 'Home & Furniture: +24.6% of change (8,667.82 -> 40,155.61)'
+    - 'Electronics: +12.2% of change (6,584.52 -> 22,225.96)'
+    payment:
+    - 'Credit Card: +80.5% of change (42,362.88 -> 145,446.05)'
+    - 'Boleto: +18.9% of change (7,795.15 -> 31,929.92)'
+    - 'Debit Card: +0.5% of change (146.30 -> 759.26)'
+  drill_down:
+    product:
+    - 'watches_gifts: +43.3% of change (4,953.10 -> 18,992.86)'
+    - 'agro_industry_and_commerce: +17.4% of change (874.40 -> 6,503.19)'
+    - 'housewares: +15.1% of change (590.72 -> 5,473.88)'
+  expected_primary: null
+  requires_uncertainty_note: null
+  notes: null
+- id: i06
+  dataset_id: superstore_sales
+  metric: sales
+  current_date: '2012-08-07'
+  previous_date: '2012-08-06'
+  kind: close_contributors
+  ambiguity:
+  - 'Order Priority: close_contributors'
+  - 'Customer Name: close_contributors'
+  - 'Province: close_contributors'
+  top_segments:
+    Order Priority:
+    - 'High: +36.8% of change (190.59 -> 28,022.59)'
+    - 'Medium: +28.0% of change (157.40 -> 21,320.58)'
+    - 'Low: +26.9% of change (0.00 -> 20,353.98)'
+    Ship Mode:
+    - 'Delivery Truck: +92.0% of change (0.00 -> 69,481.76)'
+    - 'Regular Air: +8.1% of change (347.99 -> 6,431.99)'
+    Customer Name:
+    - 'Brooke Gillingham: +31.5% of change (0.00 -> 23,775.56)'
+    - 'Barry Weirich: +28.2% of change (0.00 -> 21,320.58)'
+    - 'Erica Bern: +26.9% of change (0.00 -> 20,333.82)'
+    Province:
+    - 'Alberta: +31.5% of change (0.00 -> 23,775.56)'
+    - 'British Columbia: +28.2% of change (0.00 -> 21,320.58)'
+    - 'Prince Edward Island: +26.9% of change (0.00 -> 20,333.82)'
+    Region:
+    - 'West: +59.7% of change (0.00 -> 45,096.14)'
+    - 'Atlantic: +26.9% of change (0.00 -> 20,333.82)'
+    - 'Prarie: +13.8% of change (0.00 -> 10,463.63)'
+    Customer Segment:
+    - 'Small Business: +58.4% of change (0.00 -> 44,109.38)'
+    - 'Corporate: +41.9% of change (157.40 -> 31,804.37)'
+    - 'Home Office: -0.2% of change (190.59 -> 0.00)'
+    Product Category:
+    - 'Technology: +59.7% of change (0.00 -> 45,096.14)'
+    - 'Furniture: +32.5% of change (0.00 -> 24,580.85)'
+    - 'Office Supplies: +7.8% of change (347.99 -> 6,236.76)'
+    Product Sub-Category:
+    - 'Office Machines: +59.7% of change (0.00 -> 45,096.14)'
+    - 'Tables: +32.3% of change (0.00 -> 24,385.62)'
+    - 'Storage & Organization: +8.2% of change (0.00 -> 6,216.60)'
+    Product Container:
+    - 'Jumbo Drum: +59.7% of change (0.00 -> 45,096.14)'
+    - 'Jumbo Box: +32.3% of change (0.00 -> 24,385.62)'
+    - 'Small Box: +8.2% of change (267.10 -> 6,431.99)'
+  drill_down:
+    Order Priority:
+    - 'High: +100.0% of change (190.59 -> 28,022.59)'
+    Customer Name:
+    - 'Brooke Gillingham: +100.0% of change (0.00 -> 23,775.56)'
+    Province:
+    - 'Alberta: +100.0% of change (0.00 -> 23,775.56)'
+  expected_primary: null
+  requires_uncertainty_note: null
+  notes: null
+- id: i07
+  dataset_id: olist
+  metric: order_count
+  current_date: '2017-11-24'
+  previous_date: '2017-11-23'
+  kind: close_contributors
+  ambiguity:
+  - 'product: close_contributors'
+  top_segments:
+    geography:
+    - 'Southeast: +71.7% of change (169.00 -> 808.00)'
+    - 'South: +15.2% of change (48.00 -> 183.00)'
+    - 'Northeast: +6.6% of change (34.00 -> 93.00)'
+    product:
+    - 'Home & Furniture: +23.1% of change (60.00 -> 267.00)'
+    - 'Other: +17.8% of change (55.00 -> 215.00)'
+    - 'Electronics: +15.9% of change (39.00 -> 182.00)'
+    payment:
+    - 'Credit Card: +81.8% of change (213.00 -> 942.00)'
+    - 'Boleto: +17.2% of change (60.00 -> 213.00)'
+    - 'Debit Card: +0.7% of change (1.00 -> 7.00)'
+  drill_down:
+    product:
+    - 'bed_bath_table: +60.9% of change (31.00 -> 157.00)'
+    - 'furniture_decor: +32.4% of change (22.00 -> 89.00)'
+    - 'furniture_living_room: +3.4% of change (1.00 -> 8.00)'
+  expected_primary: null
+  requires_uncertainty_note: null
+  notes: null
+- id: i08
+  dataset_id: olist
+  metric: total_revenue
+  current_date: '2017-08-29'
+  previous_date: '2017-08-28'
+  kind: offsetting_segments
+  ambiguity:
+  - 'product: offsetting_segments'
+  top_segments:
+    geography:
+    - 'Northeast: +69.7% of change (2,540.33 -> 10,579.57)'
+    - 'Southeast: +21.6% of change (17,625.48 -> 20,119.71)'
+    - 'Central-West: +6.5% of change (1,141.23 -> 1,895.52)'
+    product:
+    - 'Electronics: +114.8% of change (6,226.54 -> 19,457.85)'
+    - 'Other: -15.9% of change (6,434.16 -> 4,602.55)'
+    - 'Home & Furniture: +2.5% of change (4,354.95 -> 4,643.58)'
+    payment:
+    - 'Credit Card: +62.0% of change (22,106.00 -> 29,253.17)'
+    - 'Boleto: +34.0% of change (3,292.12 -> 7,206.17)'
+    - 'Voucher: +2.6% of change (98.95 -> 402.57)'
+  drill_down: null
+  expected_primary: null
+  requires_uncertainty_note: null
+  notes: null
+- id: i09
+  dataset_id: superstore_sales
+  metric: sales
+  current_date: '2009-03-21'
+  previous_date: '2009-03-20'
+  kind: offsetting_segments
+  ambiguity:
+  - 'Ship Mode: offsetting_segments'
+  top_segments:
+    Order Priority:
+    - 'Medium: +84.1% of change (9,795.05 -> 95,697.71)'
+    - 'High: +17.9% of change (0.00 -> 18,268.55)'
+    - 'Low: -4.0% of change (4,620.05 -> 522.62)'
+    Ship Mode:
+    - 'Regular Air: +104.5% of change (10,300.32 -> 117,076.41)'
+    - 'Delivery Truck: -4.5% of change (4,620.05 -> 0.00)'
+    Customer Name:
+    - 'Emily Phan: +93.7% of change (0.00 -> 95,697.71)'
+    - 'Harold Ryan: +17.7% of change (0.00 -> 18,081.76)'
+    - 'Barry Weirich: -9.6% of change (9,771.59 -> 0.00)'
+    Province:
+    - 'New Brunswick: +93.7% of change (0.00 -> 95,697.71)'
+    - 'Ontario: +17.2% of change (505.27 -> 18,081.76)'
+    - 'Nunavut: -9.4% of change (9,620.82 -> 0.00)'
+    Region:
+    - 'Atlantic: +93.5% of change (150.77 -> 95,697.71)'
+    - 'Ontario: +17.2% of change (505.27 -> 18,081.76)'
+    - 'Nunavut: -9.4% of change (9,620.82 -> 0.00)'
+    Customer Segment:
+    - 'Consumer: +91.7% of change (4,620.05 -> 98,285.24)'
+    - 'Home Office: +17.9% of change (505.27 -> 18,791.17)'
+    - 'Corporate: -9.6% of change (9,795.05 -> 0.00)'
+    Product Category:
+    - 'Technology: +96.1% of change (150.77 -> 98,285.24)'
+    - 'Office Supplies: +8.9% of change (9,744.64 -> 18,791.17)'
+    - 'Furniture: -4.9% of change (5,024.96 -> 0.00)'
+    Product Sub-Category:
+    - 'Office Machines: +87.2% of change (0.00 -> 89,061.05)'
+    - 'Binders and Binder Accessories: +17.7% of change (0.00 -> 18,081.76)'
+    - 'Scissors, Rulers and Trimmers: -9.4% of change (9,620.82 -> 0.00)'
+    Product Container:
+    - 'Large Box: +87.2% of change (0.00 -> 89,061.05)'
+    - 'Small Box: +27.2% of change (174.23 -> 28,015.36)'
+    - 'Medium Box: -9.4% of change (9,620.82 -> 0.00)'
+  drill_down: null
+  expected_primary: null
+  requires_uncertainty_note: null
+  notes: null
+- id: i10
+  dataset_id: superstore_sales
+  metric: profit
+  current_date: '2009-06-07'
+  previous_date: '2009-06-06'
+  kind: offsetting_segments
+  ambiguity:
+  - 'Order Priority: offsetting_segments'
+  - 'Ship Mode: offsetting_segments'
+  top_segments:
+    Order Priority:
+    - 'Low: +101.4% of change (0.00 -> 13,054.71)'
+    - 'Critical: -1.5% of change (43.41 -> -148.53)'
+    - 'High: +0.1% of change (0.00 -> 14.49)'
+    Ship Mode:
+    - 'Regular Air: +100.7% of change (43.41 -> 13,013.04)'
+    - 'Delivery Truck: -0.7% of change (0.00 -> -92.37)'
+    Customer Name:
+    - 'Grant Carroll: +85.0% of change (0.00 -> 10,951.31)'
+    - 'Chuck Sachs: +10.7% of change (0.00 -> 1,379.05)'
+    - 'Jim Epp: +5.6% of change (0.00 -> 724.35)'
+    Province:
+    - 'Northwest Territories: +85.0% of change (0.00 -> 10,951.31)'
+    - 'Quebec: +6.3% of change (0.00 -> 809.97)'
+    - 'New Brunswick: +5.6% of change (0.00 -> 724.35)'
+    Region:
+    - 'Northwest Territories: +85.0% of change (0.00 -> 10,951.31)'
+    - 'Atlantic: +10.0% of change (3.21 -> 1,293.43)'
+    - 'Quebec: +6.3% of change (0.00 -> 809.97)'
+    Customer Segment:
+    - 'Small Business: +90.7% of change (0.00 -> 11,675.66)'
+    - 'Consumer: +10.4% of change (43.41 -> 1,379.05)'
+    - 'Home Office: -1.1% of change (0.00 -> -148.53)'
+    Product Category:
+    - 'Office Supplies: +96.3% of change (43.41 -> 12,443.96)'
+    - 'Furniture: +3.7% of change (0.00 -> 476.71)'
+    Product Sub-Category:
+    - 'Binders and Binder Accessories: +85.0% of change (0.00 -> 10,951.31)'
+    - 'Paper: +12.7% of change (0.00 -> 1,641.18)'
+    - 'Office Furnishings: +4.4% of change (0.00 -> 569.08)'
+    Product Container:
+    - 'Small Box: +96.6% of change (0.00 -> 12,436.25)'
+    - 'Wrap Bag: +4.1% of change (43.41 -> 576.79)'
+    - 'Jumbo Drum: -0.7% of change (0.00 -> -92.37)'
+  drill_down: null
+  expected_primary: null
+  requires_uncertainty_note: null
+  notes: null

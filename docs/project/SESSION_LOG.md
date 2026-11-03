@@ -5,6 +5,48 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-03 — Built A7's evals and drift run; waiting on labels
+
+**What happened:** Kousik is labelling the A5 golden set, and asked for A7 meanwhile (branch
+`feat/system-evals`). Scoped first (action-agent scope §7.3), then built:
+- `observability/evals.py`: shared ledger, baselines and comparison; the action eval moved onto it.
+- `detection/eval.py`: replays the production decision for each labelled date. 28 candidates in
+  `evals/detection/labels.yaml` for Kousik (strongest, near-threshold, ordinary, calendar dates
+  and 2018-09-03), never showing z or the flag.
+- `investigation/golden.py`: 9 real anomalies frozen as pre-synthesis states (3 per ambiguity
+  kind, 4 on Superstore), plus Golden Case #1 = 10; labels for Kousik. `investigation/eval.py`
+  now loads them, accepts several acceptable answers, and writes a ledger row.
+- `onboarding/eval.py`: 3 datasets (SaaS, Superstore, adversarial) × `--runs`, field diffs.
+- `observability/drift.py`: runs what's ready, regressions first, `--report` free,
+  `--print-launchd` for a weekly job that Kousik installs himself.
+
+**Bugs (BUG_LOG A7-1, A7-2):** the action eval compared adversarial escalation/fallback the wrong
+way round (found moving it; no baseline existed, so no wrong report). Onboarding validation never
+checked rejected column names: the hostile header "rejected" as `Sales Team` passed (found by the
+first onboarding eval run). Both fixed with tests.
+
+**Verified live (`--no-ledger`, dirty tree):** onboarding eval twice (SaaS matches every field;
+Superstore and adversarial differ from their confirmed classifications, differently each run →
+`--runs` default 2); investigation Golden Case #1 grounded and matched; a frozen real case
+grounded through the unchanged synthesis; drift `--report` and `--only detection` (skipped,
+unlabelled). 27 new tests, suite 327.
+
+**For Kousik to decide:** (1) should validation require every real column to be classified? The
+open gap showed up again live, and the confirmed Superstore classification itself omits `Ship
+Date`, so the answer also changes that expectation. (2) whether to install the launchd job.
+
+**Next:** Kousik's three label files: `evals/action/golden.yaml`, `evals/detection/labels.yaml`,
+`evals/investigation/golden.yaml`. Then commit them; on a clean tree run each eval and
+`--set-baseline` (action, detection, investigation, onboarding), then one full
+`python -m observability.drift`, then check A5 and A7.
+
+**Spoiler, held back from Kousik until his detection labels are in (to avoid anchoring them):**
+the detector, replayed, does *not* flag Golden Case #1's date: Olist `total_revenue` on
+2018-09-03 has z = −1.85 in its 30-row window (threshold 2.0), because the late-August decline is
+already inside that window. Tell him once `detection.eval --check` passes.
+
+---
+
 ## 2026-11-03 — Built A6: the actions API, the "Pending actions" tab, throttling
 
 **What happened:** Started from the 2026-11-03 handoff. A5 is still blocked: `golden --check`

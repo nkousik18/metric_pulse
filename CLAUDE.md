@@ -66,8 +66,11 @@ python -m orchestration.run_pipeline --dry-run                    # full run, no
 python -m orchestration.run_pipeline --force-alert                # send alert regardless of anomaly state (-> outbox/)
 python -m orchestration.run_pipeline --metric order_count --threshold 2.5 --dry-run
 python -m orchestration.run_pipeline --dry-run --force-alert --run-investigation  # + agentic investigation (Phase 1)
-python -m investigation.eval --runs 5                               # Phase 1 eval suite (real LLM calls, real cost)
-python -m onboarding.eval                                           # Phase 2 Golden Case #2 (real LLM call, real cost)
+python -m investigation.eval --runs 5                               # investigation eval: Golden Case #1 (+ A7 real cases once labelled); real LLM calls
+python -m investigation.golden --check                              # are the investigation golden labels (Kousik's) complete?
+python -m onboarding.eval [--runs 2]                                # onboarding eval: SaaS + Superstore + adversarial CSV (real LLM calls)
+python -m detection.eval [--check]                                  # detection eval: replayed decisions vs. Kousik's labels (no LLM, free)
+python -m observability.drift [--report]                            # every ready eval vs. its baseline, regressions first (--report: ledger only)
 python -m action_agent.probe [--small-only]                         # Action Agent proposer on 12 real anomalies (real Groq calls, ~$0.005)
 python -m action_agent.eval [--sets golden,adversarial,safety]      # Action Agent eval suite -> evals/ledger.jsonl (real LLM calls; see evals/README.md)
 python -m action_agent.golden --check                               # are the golden labels (Kousik's) complete?

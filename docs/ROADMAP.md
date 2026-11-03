@@ -209,6 +209,16 @@ reachable from its action-log row.
       error from an edit shown on the card, and 429s from both throttles. 16 new tests, suite 300.
 - [ ] **A7** — Detection eval (≥20 labeled dates), investigation golden set ≥10 and onboarding
       ≥3 (§7.1), scheduled drift run against stored baselines.
+      **Built 2026-11-03; not checked — waiting on Kousik's labels** (design: scope §7.3, choices
+      in the A7 decision log). `python -m detection.eval` (replays the production decision; 28
+      candidate dates in `evals/detection/labels.yaml`), `python -m investigation.golden` (9 real
+      frozen cases + Golden Case #1 = 10, in `evals/investigation/golden.yaml`), `python -m
+      onboarding.eval` (3 datasets × 2 runs), `python -m observability.drift` (runs what's ready,
+      regressions first; `--print-launchd` for the weekly job Kousik installs). Shared plumbing in
+      `observability/evals.py`. Found and fixed: BUG_LOG A7-1 (the action eval compared adversarial
+      escalation the wrong way) and A7-2 (onboarding accepted a non-existent rejected column).
+      Remaining for the gate: labels → `detection.eval` and `investigation.eval` on a clean tree →
+      `--set-baseline` for all four evals → one full drift run.
 
 ---
 

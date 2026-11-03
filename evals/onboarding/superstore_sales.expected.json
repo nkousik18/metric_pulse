@@ -1,0 +1,88 @@
+{
+  "_source": "Copied from onboarding/generated/superstore_sales/classification.json: the classification Kousik confirmed in M6 (2026-08-17). Confirmed after seeing the model proposal, so it is anchored to it (scope 7.3).",
+  "classification": {
+    "date_column": "Order Date",
+    "grain": "other",
+    "metric_columns": [
+      "Order Quantity",
+      "Sales",
+      "Discount",
+      "Profit",
+      "Unit Price",
+      "Shipping Cost",
+      "Product Base Margin"
+    ],
+    "dimension_columns": [
+      {
+        "column": "Order Priority",
+        "cardinality": 5,
+        "confidence": 0.95,
+        "reasoning": "Very low cardinality (5 distinct values) and non‑numeric, suitable for grouping."
+      },
+      {
+        "column": "Ship Mode",
+        "cardinality": 3,
+        "confidence": 0.96,
+        "reasoning": "Extremely low cardinality (3) and categorical, ideal for dimension."
+      },
+      {
+        "column": "Customer Name",
+        "cardinality": 795,
+        "confidence": 0.65,
+        "reasoning": "Moderate cardinality (~9.5% of rows) and non‑numeric; can be used for grouping but may be high‑cardinality."
+      },
+      {
+        "column": "Province",
+        "cardinality": 13,
+        "confidence": 0.93,
+        "reasoning": "Low cardinality (13) and categorical, appropriate dimension."
+      },
+      {
+        "column": "Region",
+        "cardinality": 8,
+        "confidence": 0.94,
+        "reasoning": "Low cardinality (8) and categorical, suitable for grouping."
+      },
+      {
+        "column": "Customer Segment",
+        "cardinality": 4,
+        "confidence": 0.96,
+        "reasoning": "Very low cardinality (4) and categorical, clear dimension."
+      },
+      {
+        "column": "Product Category",
+        "cardinality": 3,
+        "confidence": 0.96,
+        "reasoning": "Very low cardinality (3) and categorical, ideal dimension."
+      },
+      {
+        "column": "Product Sub-Category",
+        "cardinality": 17,
+        "confidence": 0.88,
+        "reasoning": "Low‑moderate cardinality (17) and categorical, useful dimension."
+      },
+      {
+        "column": "Product Container",
+        "cardinality": 7,
+        "confidence": 0.95,
+        "reasoning": "Low cardinality (7) and categorical, appropriate dimension."
+      }
+    ],
+    "rejected_columns": [
+      {
+        "column": "Row ID",
+        "reason": "Identifier column (is_likely_id=True) with cardinality equal to row count."
+      },
+      {
+        "column": "Order ID",
+        "reason": "Likely identifier; high cardinality numeric column not suitable as metric or dimension."
+      },
+      {
+        "column": "Product Name",
+        "reason": "High‑cardinality free‑text column (cardinality 1263, 15% of rows) unsuitable for dimension."
+      }
+    ],
+    "requires_human_review": false,
+    "validation_errors": []
+  }
+}

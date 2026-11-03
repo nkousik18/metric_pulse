@@ -40,7 +40,8 @@ still `grounding_pass_rate=1.00` across 3 real trials, no regression.
 | `prompts.py` | `build_synthesis_prompt()` — formats state into the evidence bundle + system prompt. |
 | `validation.py` | `validate_citation`, `validate_synthesis_output` — the grounding enforcement. |
 | `rendering.py` | `render_investigation_summary()` — template-only number injection, no model-authored numbers. |
-| `eval.py` | The Phase 1 eval suite: `GOLDEN_CASE_1` (Section 3.8), `run_investigation_eval()`, and the pure `summarize_results()` — `python -m investigation.eval --runs N`. |
+| `eval.py` | The investigation eval: `GOLDEN_CASE_1` (Section 3.8) plus, once labelled, the A7 real cases; `run_investigation_eval()`, the pure `summarize_results()` / `metrics_of()` / `failing()`, a §7.2 report and an `investigation` ledger row — `python -m investigation.eval --runs N [--set-baseline]`. Until every real case is labelled it runs Golden Case #1 alone and says so. |
+| `golden.py` | The A7 golden set (action-agent scope §7.3): `python -m investigation.golden [--check]`. Picks real flagged anomalies (3 clear driver, 3 close contributors, 3 offsetting; 4 on Superstore), builds each pre-synthesis state with the graph's own nodes and detection replayed as of that date, and freezes it in `evals/investigation/states.json`; Kousik labels `expected_primary` and `requires_uncertainty_note` in `evals/investigation/golden.yaml`. The model's synthesis is never shown. |
 | `__init__.py` | Empty — makes the folder an importable package. |
 
 ## State schema

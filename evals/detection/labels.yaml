@@ -1,0 +1,601 @@
+# Detection eval labels (docs/action-agent-scope.md §7.1, §7.3). Real dates from Olist and Superstore.
+#
+# FOR KOUSIK TO LABEL. For each case, set:
+#   is_event: true   if you'd want MetricPulse to alert on this metric that day
+#             false  if an alert that day would be noise
+#   notes:    optional, why.
+#
+# Judge from the numbers shown: the day's value, the day before, and the 7 rows before it.
+# The agent chose the dates (strong moves, borderline ones, ordinary days and calendar dates)
+# but didn't label them, and this file deliberately doesn't show what the detector decided.
+# Rows are trading days present in the data, so "the day before" can be several calendar days
+# earlier where the data has a gap.
+
+- id: d01
+  dataset_id: olist
+  metric: order_count
+  date: '2017-01-26'
+  value: 84.0
+  previous_row:
+    date: '2017-01-25'
+    value: 62.0
+  change_vs_previous_pct: 35.5
+  median_prior_7: 30.0
+  change_vs_median_pct: 180.0
+  prior_7:
+  - 29.0
+  - 28.0
+  - 24.0
+  - 30.0
+  - 39.0
+  - 40.0
+  - 62.0
+  is_event: null
+  notes: null
+- id: d02
+  dataset_id: olist
+  metric: order_count
+  date: '2017-11-24'
+  value: 1166.0
+  previous_row:
+    date: '2017-11-23'
+    value: 275.0
+  change_vs_previous_pct: 324.0
+  median_prior_7: 197.0
+  change_vs_median_pct: 491.9
+  prior_7:
+  - 189.0
+  - 145.0
+  - 158.0
+  - 225.0
+  - 224.0
+  - 197.0
+  - 275.0
+  is_event: null
+  notes: null
+- id: d03
+  dataset_id: olist
+  metric: order_count
+  date: '2018-01-18'
+  value: 238.0
+  previous_row:
+    date: '2018-01-17'
+    value: 282.0
+  change_vs_previous_pct: -15.6
+  median_prior_7: 264.0
+  change_vs_median_pct: -9.8
+  prior_7:
+  - 264.0
+  - 239.0
+  - 216.0
+  - 232.0
+  - 305.0
+  - 301.0
+  - 282.0
+  is_event: null
+  notes: null
+- id: d04
+  dataset_id: olist
+  metric: order_count
+  date: '2018-08-25'
+  value: 69.0
+  previous_row:
+    date: '2018-08-24'
+    value: 97.0
+  change_vs_previous_pct: -28.9
+  median_prior_7: 196.0
+  change_vs_median_pct: -64.8
+  prior_7:
+  - 196.0
+  - 204.0
+  - 252.0
+  - 239.0
+  - 186.0
+  - 142.0
+  - 97.0
+  is_event: null
+  notes: null
+- id: d05
+  dataset_id: olist
+  metric: total_revenue
+  date: '2017-08-29'
+  value: 37025.69
+  previous_row:
+    date: '2017-08-28'
+    value: 25497.07
+  change_vs_previous_pct: 45.2
+  median_prior_7: 17277.28
+  change_vs_median_pct: 114.3
+  prior_7:
+  - 19749.47
+  - 18593.79
+  - 15982.51
+  - 17277.28
+  - 12054.65
+  - 16295.46
+  - 25497.07
+  is_event: null
+  notes: null
+- id: d06
+  dataset_id: olist
+  metric: total_revenue
+  date: '2017-11-20'
+  value: 50009.09
+  previous_row:
+    date: '2017-11-19'
+    value: 23312.61
+  change_vs_previous_pct: 114.5
+  median_prior_7: 29110.72
+  change_vs_median_pct: 71.8
+  prior_7:
+  - 29110.72
+  - 30922.17
+  - 26726.96
+  - 32918.09
+  - 34192.17
+  - 27185.15
+  - 23312.61
+  is_event: null
+  notes: null
+- id: d07
+  dataset_id: olist
+  metric: total_revenue
+  date: '2017-11-24'
+  value: 178377.63
+  previous_row:
+    date: '2017-11-23'
+    value: 50322.11
+  change_vs_previous_pct: 254.5
+  median_prior_7: 34192.17
+  change_vs_median_pct: 421.7
+  prior_7:
+  - 34192.17
+  - 27185.15
+  - 23312.61
+  - 50009.09
+  - 39152.17
+  - 29647.82
+  - 50322.11
+  is_event: null
+  notes: null
+- id: d08
+  dataset_id: olist
+  metric: total_revenue
+  date: '2017-12-17'
+  value: 22106.0
+  previous_row:
+    date: '2017-12-16'
+    value: 22907.06
+  change_vs_previous_pct: -3.5
+  median_prior_7: 31451.63
+  change_vs_median_pct: -29.7
+  prior_7:
+  - 28617.28
+  - 39071.53
+  - 38557.38
+  - 34124.77
+  - 29580.87
+  - 31451.63
+  - 22907.06
+  is_event: null
+  notes: null
+- id: d09
+  dataset_id: olist
+  metric: total_revenue
+  date: '2017-12-25'
+  value: 12662.23
+  previous_row:
+    date: '2017-12-24'
+    value: 6708.53
+  change_vs_previous_pct: 88.7
+  median_prior_7: 21233.95
+  change_vs_median_pct: -40.4
+  prior_7:
+  - 33810.61
+  - 24128.29
+  - 32004.67
+  - 21233.95
+  - 17208.04
+  - 15357.09
+  - 6708.53
+  is_event: null
+  notes: null
+- id: d10
+  dataset_id: olist
+  metric: total_revenue
+  date: '2018-01-01'
+  value: 8391.92
+  previous_row:
+    date: '2017-12-31'
+    value: 10131.2
+  change_vs_previous_pct: -17.2
+  median_prior_7: 17782.05
+  change_vs_median_pct: -52.8
+  prior_7:
+  - 12662.23
+  - 23787.74
+  - 21027.51
+  - 17782.05
+  - 18765.65
+  - 15189.49
+  - 10131.2
+  is_event: null
+  notes: null
+- id: d11
+  dataset_id: olist
+  metric: total_revenue
+  date: '2018-03-30'
+  value: 26275.08
+  previous_row:
+    date: '2018-03-29'
+    value: 33452.96
+  change_vs_previous_pct: -21.5
+  median_prior_7: 34348.62
+  change_vs_median_pct: -23.5
+  prior_7:
+  - 34638.16
+  - 27711.42
+  - 30192.79
+  - 41894.39
+  - 40615.28
+  - 34348.62
+  - 33452.96
+  is_event: null
+  notes: null
+- id: d12
+  dataset_id: olist
+  metric: total_revenue
+  date: '2018-06-20'
+  value: 34251.51
+  previous_row:
+    date: '2018-06-19'
+    value: 39826.33
+  change_vs_previous_pct: -14.0
+  median_prior_7: 32707.21
+  change_vs_median_pct: 4.7
+  prior_7:
+  - 41092.36
+  - 32707.21
+  - 31285.71
+  - 29000.08
+  - 20751.52
+  - 40733.81
+  - 39826.33
+  is_event: null
+  notes: null
+- id: d13
+  dataset_id: olist
+  metric: total_revenue
+  date: '2018-08-23'
+  value: 19540.56
+  previous_row:
+    date: '2018-08-22'
+    value: 24262.61
+  change_vs_previous_pct: -19.5
+  median_prior_7: 30830.69
+  change_vs_median_pct: -36.6
+  prior_7:
+  - 41691.66
+  - 37583.91
+  - 28698.1
+  - 29966.5
+  - 39851.87
+  - 30830.69
+  - 24262.61
+  is_event: null
+  notes: null
+- id: d14
+  dataset_id: olist
+  metric: total_revenue
+  date: '2018-09-03'
+  value: 166.46
+  previous_row:
+    date: '2018-08-29'
+    value: 1762.7
+  change_vs_previous_pct: -90.6
+  median_prior_7: 9333.16
+  change_vs_median_pct: -98.2
+  prior_7:
+  - 19540.56
+  - 11256.99
+  - 11737.76
+  - 9333.16
+  - 6111.61
+  - 4121.22
+  - 1762.7
+  is_event: null
+  notes: null
+- id: d15
+  dataset_id: superstore_sales
+  metric: profit
+  date: '2009-03-21'
+  value: 38014.44
+  previous_row:
+    date: '2009-03-20'
+    value: -1972.87
+  change_vs_previous_pct: 2026.9
+  median_prior_7: -247.93
+  change_vs_median_pct: 15432.7
+  prior_7:
+  - -44.48
+  - -1141.1
+  - -505.57
+  - -115.77
+  - 893.76
+  - -247.93
+  - -1972.87
+  is_event: null
+  notes: null
+- id: d16
+  dataset_id: superstore_sales
+  metric: profit
+  date: '2009-06-07'
+  value: 12920.67
+  previous_row:
+    date: '2009-06-06'
+    value: 43.41
+  change_vs_previous_pct: 29664.3
+  median_prior_7: 531.83
+  change_vs_median_pct: 2329.5
+  prior_7:
+  - 1675.79
+  - -266.65
+  - 531.83
+  - 1824.27
+  - -2453.37
+  - 1092.94
+  - 43.41
+  is_event: null
+  notes: null
+- id: d17
+  dataset_id: superstore_sales
+  metric: profit
+  date: '2011-07-14'
+  value: -294.58
+  previous_row:
+    date: '2011-07-13'
+    value: 480.9
+  change_vs_previous_pct: -161.3
+  median_prior_7: 209.25
+  change_vs_median_pct: -240.8
+  prior_7:
+  - 11732.45
+  - -8111.07
+  - -74.17
+  - 3549.64
+  - 147.45
+  - 209.25
+  - 480.9
+  is_event: null
+  notes: null
+- id: d18
+  dataset_id: superstore_sales
+  metric: profit
+  date: '2012-10-18'
+  value: 4894.26
+  previous_row:
+    date: '2012-10-17'
+    value: 444.2
+  change_vs_previous_pct: 1001.8
+  median_prior_7: 622.91
+  change_vs_median_pct: 685.7
+  prior_7:
+  - -895.31
+  - 321.2
+  - 828.91
+  - 8117.61
+  - 622.91
+  - 1241.22
+  - 444.2
+  is_event: null
+  notes: null
+- id: d19
+  dataset_id: superstore_sales
+  metric: sales
+  date: '2009-03-21'
+  value: 117076.41
+  previous_row:
+    date: '2009-03-20'
+    value: 14920.37
+  change_vs_previous_pct: 684.7
+  median_prior_7: 8290.53
+  change_vs_median_pct: 1312.2
+  prior_7:
+  - 26845.95
+  - 8290.53
+  - 2003.64
+  - 642.7
+  - 19335.27
+  - 5389.69
+  - 14920.37
+  is_event: null
+  notes: null
+- id: d20
+  dataset_id: superstore_sales
+  metric: sales
+  date: '2011-05-20'
+  value: 13112.54
+  previous_row:
+    date: '2011-05-19'
+    value: 3254.62
+  change_vs_previous_pct: 302.9
+  median_prior_7: 2199.72
+  change_vs_median_pct: 496.1
+  prior_7:
+  - 305.51
+  - 11880.16
+  - 1905.12
+  - 2199.72
+  - 7388.44
+  - 872.66
+  - 3254.62
+  is_event: null
+  notes: null
+- id: d21
+  dataset_id: superstore_sales
+  metric: sales
+  date: '2011-10-15'
+  value: 22613.7
+  previous_row:
+    date: '2011-10-14'
+    value: 212.25
+  change_vs_previous_pct: 10554.3
+  median_prior_7: 3010.88
+  change_vs_median_pct: 651.1
+  prior_7:
+  - 2123.39
+  - 7522.0
+  - 3145.77
+  - 11665.19
+  - 3010.88
+  - 630.63
+  - 212.25
+  is_event: null
+  notes: null
+- id: d22
+  dataset_id: superstore_sales
+  metric: sales
+  date: '2011-11-19'
+  value: 62714.12
+  previous_row:
+    date: '2011-11-18'
+    value: 17387.97
+  change_vs_previous_pct: 260.7
+  median_prior_7: 16166.64
+  change_vs_median_pct: 287.9
+  prior_7:
+  - 16166.64
+  - 15413.74
+  - 247.91
+  - 16812.33
+  - 22281.59
+  - 6253.42
+  - 17387.97
+  is_event: null
+  notes: null
+- id: d23
+  dataset_id: superstore_sales
+  metric: sales
+  date: '2011-11-25'
+  value: 27902.32
+  previous_row:
+    date: '2011-11-24'
+    value: 1584.42
+  change_vs_previous_pct: 1661.0
+  median_prior_7: 2206.97
+  change_vs_median_pct: 1164.3
+  prior_7:
+  - 17387.97
+  - 62714.12
+  - 2206.97
+  - 1525.84
+  - 20227.87
+  - 68.66
+  - 1584.42
+  is_event: null
+  notes: null
+- id: d24
+  dataset_id: superstore_sales
+  metric: sales
+  date: '2011-12-25'
+  value: 11630.98
+  previous_row:
+    date: '2011-12-24'
+    value: 8827.35
+  change_vs_previous_pct: 31.8
+  median_prior_7: 9667.34
+  change_vs_median_pct: 20.3
+  prior_7:
+  - 13667.22
+  - 21694.94
+  - 9667.34
+  - 8448.69
+  - 30228.17
+  - 7339.69
+  - 8827.35
+  is_event: null
+  notes: null
+- id: d25
+  dataset_id: superstore_sales
+  metric: sales
+  date: '2012-01-01'
+  value: 2542.68
+  previous_row:
+    date: '2011-12-31'
+    value: 13382.62
+  change_vs_previous_pct: -81.0
+  median_prior_7: 7482.65
+  change_vs_median_pct: -66.0
+  prior_7:
+  - 11630.98
+  - 682.57
+  - 2223.31
+  - 980.07
+  - 7482.65
+  - 21490.97
+  - 13382.62
+  is_event: null
+  notes: null
+- id: d26
+  dataset_id: superstore_sales
+  metric: sales
+  date: '2012-08-04'
+  value: 3238.39
+  previous_row:
+    date: '2012-08-03'
+    value: 462.1
+  change_vs_previous_pct: 600.8
+  median_prior_7: 9529.42
+  change_vs_median_pct: -66.0
+  prior_7:
+  - 9529.42
+  - 11170.14
+  - 8483.89
+  - 7508.48
+  - 28285.6
+  - 10407.98
+  - 462.1
+  is_event: null
+  notes: null
+- id: d27
+  dataset_id: superstore_sales
+  metric: sales
+  date: '2012-08-07'
+  value: 75913.75
+  previous_row:
+    date: '2012-08-06'
+    value: 347.99
+  change_vs_previous_pct: 21714.9
+  median_prior_7: 5093.45
+  change_vs_median_pct: 1390.4
+  prior_7:
+  - 7508.48
+  - 28285.6
+  - 10407.98
+  - 462.1
+  - 3238.39
+  - 5093.45
+  - 347.99
+  is_event: null
+  notes: null
+- id: d28
+  dataset_id: superstore_sales
+  metric: sales
+  date: '2012-10-16'
+  value: 24824.53
+  previous_row:
+    date: '2012-10-15'
+    value: 2793.64
+  change_vs_previous_pct: 788.6
+  median_prior_7: 4321.59
+  change_vs_median_pct: 474.4
+  prior_7:
+  - 2225.91
+  - 6393.77
+  - 5320.82
+  - 4321.59
+  - 3739.16
+  - 26644.18
+  - 2793.64
+  is_event: null
+  notes: null
