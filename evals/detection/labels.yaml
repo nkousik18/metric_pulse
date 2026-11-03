@@ -30,8 +30,8 @@
   - 39.0
   - 40.0
   - 62.0
-  is_event: null
-  notes: null
+  is_event: true
+  notes: "Volume went 62 -> 84 after a week near 30: a real step up during the early-2017 ramp. Borderline (it is a trend), but a 2.8x jump in a week is worth knowing."
 - id: d02
   dataset_id: olist
   metric: order_count
@@ -51,8 +51,8 @@
   - 224.0
   - 197.0
   - 275.0
-  is_event: null
-  notes: null
+  is_event: true
+  notes: "Black Friday 2017, 4x orders. Expected cause, but clearly an event."
 - id: d03
   dataset_id: olist
   metric: order_count
@@ -72,8 +72,8 @@
   - 305.0
   - 301.0
   - 282.0
-  is_event: null
-  notes: null
+  is_event: false
+  notes: "-10% vs the week median, inside normal day-to-day range."
 - id: d04
   dataset_id: olist
   metric: order_count
@@ -93,8 +93,8 @@
   - 186.0
   - 142.0
   - 97.0
-  is_event: null
-  notes: null
+  is_event: true
+  notes: "Orders fell for six straight days to a third of the median: the data tail going stale (end of the Olist extract). A data-freshness problem worth an alert."
 - id: d05
   dataset_id: olist
   metric: total_revenue
@@ -114,8 +114,8 @@
   - 12054.65
   - 16295.46
   - 25497.07
-  is_event: null
-  notes: null
+  is_event: true
+  notes: "Revenue 2.1x the week median with no calendar reason."
 - id: d06
   dataset_id: olist
   metric: total_revenue
@@ -135,8 +135,8 @@
   - 34192.17
   - 27185.15
   - 23312.61
-  is_event: null
-  notes: null
+  is_event: true
+  notes: "Monday 1.7x the previous Monday: the Black Friday week ramp starting. Worth knowing."
 - id: d07
   dataset_id: olist
   metric: total_revenue
@@ -156,8 +156,8 @@
   - 39152.17
   - 29647.82
   - 50322.11
-  is_event: null
-  notes: null
+  is_event: true
+  notes: "Black Friday 2017 revenue, 5x the median."
 - id: d08
   dataset_id: olist
   metric: total_revenue
@@ -177,8 +177,8 @@
   - 29580.87
   - 31451.63
   - 22907.06
-  is_event: null
-  notes: null
+  is_event: false
+  notes: "Sunday dip (Saturday was the same level). Weekly pattern."
 - id: d09
   dataset_id: olist
   metric: total_revenue
@@ -198,8 +198,8 @@
   - 17208.04
   - 15357.09
   - 6708.53
-  is_event: null
-  notes: null
+  is_event: false
+  notes: "Christmas Day: an expected holiday dip, and up from Christmas Eve. Noise."
 - id: d10
   dataset_id: olist
   metric: total_revenue
@@ -219,8 +219,8 @@
   - 18765.65
   - 15189.49
   - 10131.2
-  is_event: null
-  notes: null
+  is_event: false
+  notes: "New Year's Day: expected holiday dip."
 - id: d11
   dataset_id: olist
   metric: total_revenue
@@ -240,8 +240,8 @@
   - 40615.28
   - 34348.62
   - 33452.96
-  is_event: null
-  notes: null
+  is_event: false
+  notes: "Good Friday 2018 (a Brazil holiday), -23%: expected."
 - id: d12
   dataset_id: olist
   metric: total_revenue
@@ -261,8 +261,8 @@
   - 20751.52
   - 40733.81
   - 39826.33
-  is_event: null
-  notes: null
+  is_event: false
+  notes: "Ordinary day, +5% vs median."
 - id: d13
   dataset_id: olist
   metric: total_revenue
@@ -282,8 +282,8 @@
   - 39851.87
   - 30830.69
   - 24262.61
-  is_event: null
-  notes: null
+  is_event: false
+  notes: "-37% vs median, but values ~20k occur within normal weekly swings. In hindsight it starts the data-tail decline, but judged on the numbers alone it is borderline noise."
 - id: d14
   dataset_id: olist
   metric: total_revenue
@@ -303,8 +303,8 @@
   - 6111.61
   - 4121.22
   - 1762.7
-  is_event: null
-  notes: null
+  is_event: true
+  notes: "Revenue collapses to $166 (-98% vs median): Golden Case #1, the stale data tail."
 - id: d15
   dataset_id: superstore_sales
   metric: profit
@@ -324,8 +324,8 @@
   - 893.76
   - -247.93
   - -1972.87
-  is_event: null
-  notes: null
+  is_event: true
+  notes: "Profit $38k vs a typical ~-$250: top 0.1% of all days (one large order)."
 - id: d16
   dataset_id: superstore_sales
   metric: profit
@@ -345,8 +345,8 @@
   - -2453.37
   - 1092.94
   - 43.41
-  is_event: null
-  notes: null
+  is_event: true
+  notes: "Profit $12.9k: 99th percentile of all Superstore days (one large order)."
 - id: d17
   dataset_id: superstore_sales
   metric: profit
@@ -366,8 +366,8 @@
   - 147.45
   - 209.25
   - 480.9
-  is_event: null
-  notes: null
+  is_event: false
+  notes: "A -$295 day; the prior week swung from -$8k to +$12k. Noise."
 - id: d18
   dataset_id: superstore_sales
   metric: profit
@@ -387,8 +387,8 @@
   - 622.91
   - 1241.22
   - 444.2
-  is_event: null
-  notes: null
+  is_event: false
+  notes: "Profit $4.9k is the 92nd percentile, and $8.1k happened 3 days earlier. Normal lumpiness."
 - id: d19
   dataset_id: superstore_sales
   metric: sales
@@ -408,8 +408,8 @@
   - 19335.27
   - 5389.69
   - 14920.37
-  is_event: null
-  notes: null
+  is_event: true
+  notes: "Sales $117k: the top 0.1% of days (one ~$96k order)."
 - id: d20
   dataset_id: superstore_sales
   metric: sales
@@ -429,8 +429,8 @@
   - 7388.44
   - 872.66
   - 3254.62
-  is_event: null
-  notes: null
+  is_event: false
+  notes: "Sales $13.1k is the 72nd percentile; $11.9k happened that same week."
 - id: d21
   dataset_id: superstore_sales
   metric: sales
@@ -450,8 +450,8 @@
   - 3010.88
   - 630.63
   - 212.25
-  is_event: null
-  notes: null
+  is_event: false
+  notes: "Sales $22.6k is the 89th percentile. Huge % only because the previous day was $212."
 - id: d22
   dataset_id: superstore_sales
   metric: sales
@@ -471,8 +471,8 @@
   - 22281.59
   - 6253.42
   - 17387.97
-  is_event: null
-  notes: null
+  is_event: true
+  notes: "Sales $62.7k: 99.7th percentile, 2.8x the week's max."
 - id: d23
   dataset_id: superstore_sales
   metric: sales
@@ -492,8 +492,8 @@
   - 20227.87
   - 68.66
   - 1584.42
-  is_event: null
-  notes: null
+  is_event: false
+  notes: "Sales $27.9k is the 93rd percentile, below the $62.7k six days earlier."
 - id: d24
   dataset_id: superstore_sales
   metric: sales
@@ -513,8 +513,8 @@
   - 30228.17
   - 7339.69
   - 8827.35
-  is_event: null
-  notes: null
+  is_event: false
+  notes: "Christmas Day, +20% vs median: ordinary."
 - id: d25
   dataset_id: superstore_sales
   metric: sales
@@ -534,8 +534,8 @@
   - 7482.65
   - 21490.97
   - 13382.62
-  is_event: null
-  notes: null
+  is_event: false
+  notes: "New Year's Day, $2.5k: low days like this happen every week in this series."
 - id: d26
   dataset_id: superstore_sales
   metric: sales
@@ -555,8 +555,8 @@
   - 28285.6
   - 10407.98
   - 462.1
-  is_event: null
-  notes: null
+  is_event: false
+  notes: "$3.2k: a normal low day; the % jump is off a $462 base."
 - id: d27
   dataset_id: superstore_sales
   metric: sales
@@ -576,8 +576,8 @@
   - 3238.39
   - 5093.45
   - 347.99
-  is_event: null
-  notes: null
+  is_event: true
+  notes: "Sales $75.9k: 99.9th percentile (three large orders)."
 - id: d28
   dataset_id: superstore_sales
   metric: sales
@@ -597,5 +597,5 @@
   - 3739.16
   - 26644.18
   - 2793.64
-  is_event: null
-  notes: null
+  is_event: false
+  notes: "Sales $24.8k is the 91st percentile, and $26.6k occurred two days earlier."

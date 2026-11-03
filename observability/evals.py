@@ -22,6 +22,7 @@ from config import settings
 EVALS_DIR = settings.PROJECT_ROOT / 'evals'
 LEDGER_PATH = EVALS_DIR / 'ledger.jsonl'
 BASELINES_DIR = EVALS_DIR / 'baselines'
+OUTPUT_PATHS = ('evals/ledger.jsonl', 'evals/baselines')
 RATE_REGRESSION = 0.1   # a rate moving the wrong way by more than this vs. baseline is flagged
 
 
@@ -29,14 +30,20 @@ def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat(timespec='seconds')
 
 
-def git_sha_dirty() -> str:
+def git_sha_dirty(root: Optional[Path] = None) -> str:
     """HEAD's short SHA, with `-dirty` when tracked files have uncommitted changes, so a ledger row
-    never claims a commit the run didn't actually use."""
+    never claims a commit the run didn't actually use.
+
+    The eval outputs (the ledger and the baselines) don't count: they're tracked, so otherwise the
+    first eval's own ledger row would mark every later eval in the same session (or drift run)
+    dirty (BUG_LOG A7-3). Labels and code still count."""
     from observability.tracing import git_sha
     sha = git_sha()
     try:
-        dirty = subprocess.run(['git', 'status', '--porcelain', '--untracked-files=no'], cwd=settings.PROJECT_ROOT,
-                               capture_output=True, text=True, timeout=5).stdout.strip()
+        dirty = subprocess.run(['git', 'status', '--porcelain', '--untracked-files=no', '--', '.']
+                               + [f':(exclude){p}' for p in OUTPUT_PATHS],
+                               cwd=root or settings.PROJECT_ROOT, capture_output=True, text=True,
+                               timeout=5).stdout.strip()
     except Exception:
         dirty = ''
     return f'{sha}-dirty' if dirty else sha

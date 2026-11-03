@@ -347,7 +347,11 @@ Filled in as the D8 choices are made during the build. One line each: choice —
 - **Detection:** candidates were generated from the real warehouses. Grading waits on labels.
 - **Drift:** `--report` reported the A5 action row, with no baselines yet. `--only detection` skipped detection, because it's unlabelled.
 
-_Pending: Kousik's labels — the action golden set (A5 gate), `evals/detection/labels.yaml` (28) and `evals/investigation/golden.yaml` (9); then the first ledger rows and baselines on a clean tree._
+**Kousik's decisions (2026-11-03):**
+- **Onboarding validation does not require every real column to be classified.** A classification that omits a column still passes; the onboarding eval still counts the omission as a field miss. Superstore's confirmed expectation stays as confirmed (without `Ship Date`).
+- **No weekly drift job is installed.** `python -m observability.drift` is run by hand; `--print-launchd` stays available.
+- Labels for all three sets are his: the action golden set (15), detection (28), investigation (9).
+- **BUG_LOG A7-3:** the dirty-tree check counted the tracked ledger, so every eval after the first in a session or drift run would have been recorded `-dirty`. The ledger and baselines are now excluded from it; labels and code still count.
 
 ## 13. Observability, tracing and replay (added 2026-11-02)
 

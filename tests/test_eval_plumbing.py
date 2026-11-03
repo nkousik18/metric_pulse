@@ -291,3 +291,24 @@ def test_drift_report_with_no_baselines_flags_nothing():
 def test_launchd_job_is_a_template_for_this_machine():
     plist = LAUNCHD.format(python='/x/python', root='/repo')
     assert '<string>/x/python</string>' in plist and '/repo/logs/drift.log' in plist
+
+
+def test_the_eval_outputs_do_not_make_a_run_dirty(tmp_path):
+    # BUG_LOG A7-3. A real git repo on tmp_path: an appended ledger row or a new baseline must not
+    # mark the next eval's row -dirty; an edited label file must.
+    import subprocess
+
+    def git(*args):
+        subprocess.run(['git', *args], cwd=tmp_path, check=True, capture_output=True)
+    git('init', '-q')
+    git('-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-q', '--allow-empty', '-m', 'init')
+    (tmp_path / 'evals' / 'baselines').mkdir(parents=True)
+    for rel in ('evals/ledger.jsonl', 'evals/baselines/detection.json', 'evals/labels.yaml'):
+        (tmp_path / rel).write_text('x\n')
+    git('add', '.')
+    git('-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-q', '-m', 'files')
+    (tmp_path / 'evals' / 'ledger.jsonl').write_text('x\ny\n')
+    (tmp_path / 'evals' / 'baselines' / 'detection.json').write_text('changed\n')
+    assert not shared.git_sha_dirty(tmp_path).endswith('-dirty')
+    (tmp_path / 'evals' / 'labels.yaml').write_text('relabelled\n')
+    assert shared.git_sha_dirty(tmp_path).endswith('-dirty')

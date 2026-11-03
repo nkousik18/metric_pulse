@@ -37,9 +37,9 @@
     - 'Credit Card: +24.9% of change (22,145.78 -> 23,848.00)'
     - 'Voucher: -2.0% of change (455.62 -> 321.11)'
   drill_down: null
-  expected_primary: null
-  requires_uncertainty_note: null
-  notes: null
+  expected_primary: [{dimension: "product", segment: "Auto & Tools"}, {dimension: "payment", segment: "Boleto"}]
+  requires_uncertainty_note: false
+  notes: "Auto & Tools (3.3x) and Boleto (2.9x) both added ~$5.2k: very likely the same boleto-paid order(s). Southeast's 94% is mostly its share of revenue."
 - id: i03
   dataset_id: superstore_sales
   metric: sales
@@ -86,9 +86,9 @@
     - 'Small Box: +27.9% of change (639.55 -> 14,141.18)'
     - 'Jumbo Box: +10.1% of change (3,662.16 -> 8,569.40)'
   drill_down: null
-  expected_primary: null
-  requires_uncertainty_note: null
-  notes: null
+  expected_primary: [{dimension: "Region", segment: "West"}, {dimension: "Province", segment: "Alberta"}]
+  requires_uncertainty_note: false
+  notes: "West explains 97% from a zero base, mostly Alberta (Mitch Gastineau's ~$27k chairs order)."
 - id: i04
   dataset_id: olist
   metric: order_count
@@ -111,9 +111,9 @@
     - 'Boleto: +27.6% of change (21.00 -> 29.00)'
     - 'Voucher: +10.3% of change (0.00 -> 3.00)'
   drill_down: null
-  expected_primary: null
-  requires_uncertainty_note: null
-  notes: null
+  expected_primary: [{dimension: "geography", segment: "Southeast"}, {dimension: "product", segment: "Fashion & Sports"}]
+  requires_uncertainty_note: false
+  notes: "Small counts (+29 orders). Southeast carries the whole change; Fashion & Sports tripled."
 - id: i05
   dataset_id: olist
   metric: total_revenue
@@ -140,9 +140,9 @@
     - 'watches_gifts: +43.3% of change (4,953.10 -> 18,992.86)'
     - 'agro_industry_and_commerce: +17.4% of change (874.40 -> 6,503.19)'
     - 'housewares: +15.1% of change (590.72 -> 5,473.88)'
-  expected_primary: null
-  requires_uncertainty_note: null
-  notes: null
+  expected_primary: [{dimension: "geography", segment: "Southeast"}, {dimension: "payment", segment: "Credit Card"}]
+  requires_uncertainty_note: true
+  notes: "Black Friday: broad-based surge. The top segments are the biggest shares, not the cause, and product is split. The honest summary has to say no single segment drove it."
 - id: i06
   dataset_id: superstore_sales
   metric: sales
@@ -196,9 +196,9 @@
     - 'Brooke Gillingham: +100.0% of change (0.00 -> 23,775.56)'
     Province:
     - 'Alberta: +100.0% of change (0.00 -> 23,775.56)'
-  expected_primary: null
-  requires_uncertainty_note: null
-  notes: null
+  expected_primary: [{dimension: "Region", segment: "West"}, {dimension: "Ship Mode", segment: "Delivery Truck"}]
+  requires_uncertainty_note: true
+  notes: "Three similar-sized orders from three customers/provinces (Alberta, BC, PEI) on a ~$0 previous day. West covers two of them; which one \"leads\" is debatable."
 - id: i07
   dataset_id: olist
   metric: order_count
@@ -225,9 +225,9 @@
     - 'bed_bath_table: +60.9% of change (31.00 -> 157.00)'
     - 'furniture_decor: +32.4% of change (22.00 -> 89.00)'
     - 'furniture_living_room: +3.4% of change (1.00 -> 8.00)'
-  expected_primary: null
-  requires_uncertainty_note: null
-  notes: null
+  expected_primary: [{dimension: "geography", segment: "Southeast"}, {dimension: "payment", segment: "Credit Card"}]
+  requires_uncertainty_note: true
+  notes: "Black Friday order_count, same as i05: broad-based, product split."
 - id: i08
   dataset_id: olist
   metric: total_revenue
@@ -250,9 +250,9 @@
     - 'Boleto: +34.0% of change (3,292.12 -> 7,206.17)'
     - 'Voucher: +2.6% of change (98.95 -> 402.57)'
   drill_down: null
-  expected_primary: null
-  requires_uncertainty_note: null
-  notes: null
+  expected_primary: [{dimension: "product", segment: "Electronics"}, {dimension: "geography", segment: "Northeast"}]
+  requires_uncertainty_note: false
+  notes: "Electronics tripled and explains >100%; the \"Other\" offset is small. Northeast's jump is likely the same orders."
 - id: i09
   dataset_id: superstore_sales
   metric: sales
@@ -298,9 +298,9 @@
     - 'Small Box: +27.2% of change (174.23 -> 28,015.36)'
     - 'Medium Box: -9.4% of change (9,620.82 -> 0.00)'
   drill_down: null
-  expected_primary: null
-  requires_uncertainty_note: null
-  notes: null
+  expected_primary: [{dimension: "Customer Name", segment: "Emily Phan"}, {dimension: "Province", segment: "New Brunswick"}, {dimension: "Region", segment: "Atlantic"}]
+  requires_uncertainty_note: false
+  notes: "One ~$96k order by Emily Phan (New Brunswick). Ship Mode Regular Air >100% is incidental (how it shipped), not an explanation."
 - id: i10
   dataset_id: superstore_sales
   metric: profit
@@ -346,6 +346,6 @@
     - 'Wrap Bag: +4.1% of change (43.41 -> 576.79)'
     - 'Jumbo Drum: -0.7% of change (0.00 -> -92.37)'
   drill_down: null
-  expected_primary: null
-  requires_uncertainty_note: null
-  notes: null
+  expected_primary: [{dimension: "Customer Name", segment: "Grant Carroll"}, {dimension: "Province", segment: "Northwest Territories"}, {dimension: "Region", segment: "Northwest Territories"}]
+  requires_uncertainty_note: false
+  notes: "One ~$11k-profit Binders order by Grant Carroll (NWT). Low priority / Regular Air >100% are incidental."

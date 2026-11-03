@@ -36,8 +36,8 @@
     - 'Credit Card: +106.6% of change (1,701.41 -> 0.00)'
     - 'Voucher: -6.6% of change (61.29 -> 166.46)'
   owner_if_top_driver: payments-team (payment / Credit Card)
-  expected_action: null
-  expected_owner: null
+  expected_action: notify_owner
+  expected_owner: regional-sales
   notes: null
 - id: g02
   dataset_id: olist
@@ -61,9 +61,9 @@
     - 'Boleto: +18.9% of change (7,795.15 -> 31,929.92)'
     - 'Debit Card: +0.5% of change (146.30 -> 759.26)'
   owner_if_top_driver: payments-team (payment / Credit Card)
-  expected_action: null
+  expected_action: annotate_anomaly
   expected_owner: null
-  notes: null
+  notes: "Black Friday 2017. Known holiday/promotion cause, broad-based across every dimension; Credit Card leads only because it is ~80% of revenue. Tag it, nobody needs paging."
 - id: g03
   dataset_id: olist
   metric: total_revenue
@@ -86,9 +86,9 @@
     - 'Boleto: +22.3% of change (31,929.92 -> 8,171.56)'
     - 'Debit Card: +0.7% of change (759.26 -> 46.31)'
   owner_if_top_driver: payments-team (payment / Credit Card)
-  expected_action: null
+  expected_action: [annotate_anomaly, suppress_alerts]
   expected_owner: null
-  notes: null
+  notes: "Day after Black Friday: reversion to normal, same cause as g02. Tag it, or silence the repeat alert. Notifying payments would be noise."
 - id: g04
   dataset_id: olist
   metric: total_revenue
@@ -111,9 +111,9 @@
     - 'Voucher: -6.5% of change (1,074.46 -> 92.06)'
     - 'Boleto: +4.5% of change (8,888.21 -> 9,567.15)'
   owner_if_top_driver: payments-team (payment / Credit Card)
-  expected_action: null
-  expected_owner: null
-  notes: null
+  expected_action: [notify_owner, create_control]
+  expected_owner: payments-team
+  notes: "No calendar cause (a Wednesday). Credit Card grew ~40% while Boleto barely moved and Voucher fell, so this is a real payment-mix shift, not just share. Tell payments, or watch Credit Card."
 - id: g05
   dataset_id: olist
   metric: total_revenue
@@ -136,9 +136,9 @@
     - 'Boleto: +17.7% of change (6,203.79 -> 9,935.75)'
     - 'Debit Card: -5.3% of change (1,968.77 -> 846.18)'
   owner_if_top_driver: payments-team (payment / Credit Card)
-  expected_action: null
+  expected_action: annotate_anomaly
   expected_owner: null
-  notes: null
+  notes: "Monday after a Sunday (2018-08-05): weekly seasonality. The change is spread across regions/products in proportion to share. Tag as seasonal."
 - id: g06
   dataset_id: olist
   metric: total_revenue
@@ -161,9 +161,9 @@
     - 'Boleto: +23.1% of change (6,739.37 -> 12,697.94)'
     - 'Voucher: +0.5% of change (78.87 -> 205.38)'
   owner_if_top_driver: payments-team (payment / Credit Card)
-  expected_action: null
+  expected_action: annotate_anomaly
   expected_owner: null
-  notes: null
+  notes: "Monday after a Sunday that was also Mother's Day in Brazil (2018-05-13): weekly rebound plus holiday. Broad-based; tag as seasonal/holiday."
 - id: g07
   dataset_id: olist
   metric: order_count
@@ -186,9 +186,9 @@
     - 'Boleto: +17.2% of change (60.00 -> 213.00)'
     - 'Debit Card: +0.7% of change (1.00 -> 7.00)'
   owner_if_top_driver: payments-team (payment / Credit Card)
-  expected_action: null
+  expected_action: annotate_anomaly
   expected_owner: null
-  notes: null
+  notes: "Black Friday 2017, order_count twin of g02. Same reasoning."
 - id: g08
   dataset_id: olist
   metric: order_count
@@ -211,9 +211,9 @@
     - 'Boleto: +21.4% of change (213.00 -> 70.00)'
     - 'Voucher: -1.1% of change (4.00 -> 11.00)'
   owner_if_top_driver: payments-team (payment / Credit Card)
-  expected_action: null
+  expected_action: [annotate_anomaly, suppress_alerts]
   expected_owner: null
-  notes: null
+  notes: "Day after Black Friday, order_count twin of g03."
 - id: g09
   dataset_id: olist
   metric: order_count
@@ -236,9 +236,9 @@
     - 'Credit Card: -23.1% of change (330.00 -> 327.00)'
     - 'Voucher: +23.1% of change (2.00 -> 5.00)'
   owner_if_top_driver: regional-sales (geography / South)
-  expected_action: null
+  expected_action: [suppress_alerts, annotate_anomaly]
   expected_owner: null
-  notes: null
+  notes: "+3.4% total with offsetting regions: nothing happened. Flagged only because the Black Friday spike distorts the window. Silence or tag; notifying anyone is wrong."
 - id: g10
   dataset_id: superstore_sales
   metric: sales
@@ -284,9 +284,9 @@
     - 'Small Box: +27.2% of change (174.23 -> 28,015.36)'
     - 'Medium Box: -9.4% of change (9,620.82 -> 0.00)'
   owner_if_top_driver: analytics-oncall (Ship Mode / Regular Air)
-  expected_action: null
+  expected_action: [annotate_anomaly, notify_owner]
   expected_owner: null
-  notes: null
+  notes: "One customer (Emily Phan, New Brunswick) placed a ~$96k Office Machines order: a single large order, not a system problem. Tag it (category other), or tell the owner (every Superstore segment resolves to analytics-oncall). Not an incident."
 - id: g11
   dataset_id: superstore_sales
   metric: sales
@@ -332,9 +332,9 @@
     - 'Jumbo Box: +32.3% of change (0.00 -> 24,385.62)'
     - 'Small Box: +8.2% of change (267.10 -> 6,431.99)'
   owner_if_top_driver: analytics-oncall (Ship Mode / Delivery Truck)
-  expected_action: null
+  expected_action: [annotate_anomaly, notify_owner]
   expected_owner: null
-  notes: null
+  notes: "Three large orders (~$20-24k each) on top of a near-zero previous day ($348), hence the 21,715%. Real but explained by a few orders; tag or notify, not an incident."
 - id: g12
   dataset_id: superstore_sales
   metric: sales
@@ -380,9 +380,9 @@
     - 'Jumbo Drum: +98.5% of change (3,731.59 -> 35,877.25)'
     - 'Jumbo Box: +91.5% of change (0.00 -> 29,851.98)'
   owner_if_top_driver: analytics-oncall (Ship Mode / Delivery Truck)
-  expected_action: null
+  expected_action: [annotate_anomaly, notify_owner]
   expected_owner: null
-  notes: null
+  notes: "Mix shift between big orders: a ~$38k Quebec order the day before, ~$37k Ontario and ~$18k Saskatchewan orders today. Lumpy order timing; tag or notify."
 - id: g13
   dataset_id: superstore_sales
   metric: profit
@@ -428,9 +428,9 @@
     - 'Small Box: +27.2% of change (-67.65 -> 10,793.75)'
     - 'Medium Box: +4.4% of change (-1,759.58 -> 0.00)'
   owner_if_top_driver: analytics-oncall (Ship Mode / Regular Air)
-  expected_action: null
+  expected_action: [annotate_anomaly, notify_owner]
   expected_owner: null
-  notes: null
+  notes: "Profit view of g10, the same Emily Phan order. Tag or notify; a second incident for the same order would be noise."
 - id: g14
   dataset_id: superstore_sales
   metric: profit
@@ -477,9 +477,9 @@
     - 'Small Box: +18.2% of change (2,693.26 -> 6,373.85)'
     - 'Jumbo Box: +1.2% of change (0.00 -> 248.19)'
   owner_if_top_driver: analytics-oncall (Ship Mode / Regular Air)
-  expected_action: null
+  expected_action: [annotate_anomaly, notify_owner]
   expected_owner: null
-  notes: null
+  notes: "Several new orders (Dean Percer, William Brown, Magdelene Morse) from a ~$2.8k base. Real, explained by individual orders; tag or notify."
 - id: g15
   dataset_id: superstore_sales
   metric: order_quantity
@@ -526,6 +526,6 @@
     - 'Small Box: +29.4% of change (90.00 -> 232.00)'
     - 'Small Pack: +19.1% of change (0.00 -> 92.00)'
   owner_if_top_driver: analytics-oncall (Ship Mode / Regular Air)
-  expected_action: null
+  expected_action: [annotate_anomaly, notify_owner]
   expected_owner: null
-  notes: null
+  notes: "Low base (127 units) and many new customers/products: broad, not one segment. Tag or notify, not an incident or a watch."
