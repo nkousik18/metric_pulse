@@ -63,6 +63,12 @@ def validate_classification(clf: SchemaClassification, profiles: Dict[str, Colum
                 f"{profile.cardinality_ratio:.2f} suggests an identifier, not a category"
             )
 
+    # A rejection is a claim about a column too, so it must name a real one (BUG_LOG A7-2: the
+    # classifier "rejected" the A5 hostile header under a rewritten name, and it passed).
+    for r in clf.rejected_columns:
+        if r.column not in profiles:
+            errors.append(f"'{r.column}' listed as rejected but is not a real column")
+
     return errors
 
 

@@ -34,7 +34,7 @@ binary it implements. Named as a scope boundary, not silently overclaimed.
 | `fingerprint.py` | `schema_fingerprint()` — the schema-change detector behind the confirmation cache. |
 | `onboard.py` | The CLI entry point — `python -m onboarding.onboard --file <path>`. |
 | `investigate.py` | The bridge to the rest of the pipeline — `python -m onboarding.investigate --dataset-id <id> --metric <col> [--run-investigation]` (M6). |
-| `eval.py` | `GOLDEN_CASE_2` (§5.6, the SaaS fixture) — `python -m onboarding.eval`, run manually. |
+| `eval.py` | The onboarding eval (A7): `GOLDEN_CASE_2` (§5.6, the SaaS fixture) plus Superstore and the A5 adversarial CSV graded against their confirmed classifications — `python -m onboarding.eval [--runs 2]`, run manually. |
 | `__init__.py` | Empty — makes the folder an importable package. |
 
 ## Stage A: `ColumnProfile` (`profiling.py`)
@@ -120,6 +120,11 @@ Three checks, per §5.4:
 2. Every `metric_columns` entry is `is_numeric`.
 3. Every `dimension_columns` entry's `cardinality_ratio <= MAX_DIMENSION_CARDINALITY_RATIO`.
 
+Every named column must also be a real column: date, metrics, dimensions and, since A7, rejected
+columns (BUG_LOG A7-2: a rewritten hostile header was "rejected" and passed). **Not checked:**
+that every real column is classified somewhere; a classification that silently omits one still
+passes (open, Kousik's decision).
+
 **`MAX_DIMENSION_CARDINALITY_RATIO = 0.1`** — §5.3 doesn't pin an exact number ("low-to-moderate...
 bounded, not near-unique"), but §5.6's own worked example does, implicitly: it rejects
 `customer_id` (cardinality ratio 0.164) as "too high to be a useful grouping dimension" while
@@ -129,11 +134,27 @@ earlier draft used `0.5` (a plain midpoint against `ID_CARDINALITY_THRESHOLD`'s 
 have incorrectly accepted `customer_id` as a valid dimension; caught by re-checking the constant
 against §5.6's numbers before running the real eval, not after.
 
-## Golden Case #2 (`eval.py`)
+## The onboarding eval (`eval.py`)
 
 ```bash
-python -m onboarding.eval
+python -m onboarding.eval [--runs 2] [--set-baseline] [--no-ledger]
 ```
+
+**Since A7 (action-agent scope §7.3) it grades three datasets**, each `--runs` times (default 2;
+one classification per dataset swung between runs in the first live eval), and writes a §7.2
+report and an `onboarding` ledger row: per-field match rates, `all_fields_match_rate`,
+`grounded_rate`, `human_review_rate`, and a missing/extra diff per failing field.
+1. `saas_subscriptions`: Golden Case #2 below, expectations in code.
+2. `superstore_sales`: `data/samples/superstore_sales.csv` (gitignored: local only, skipped when
+   absent) against `evals/onboarding/superstore_sales.expected.json`, the classification Kousik
+   confirmed in M6.
+3. `adversarial_injection`: the A5 hostile CSV against `evals/action/adversarial/classification.json`.
+
+2 and 3 were confirmed after seeing the model's proposal, so they're anchored to it; the report
+says so on every run. Superstore's confirmed classification itself omits `Ship Date` (the open
+"omitted column" gap), so a run that rejects it explicitly counts as a miss until that's decided.
+
+### Golden Case #2
 
 `GOLDEN_CASE_2` is a synthetic SaaS-subscription dataset (fixed `np.random.default_rng(42)` seed,
 500 rows) reproducing §5.6's worked example's *qualitative* profile shape per column — not

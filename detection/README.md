@@ -7,6 +7,7 @@ Anomaly detection on daily business metrics using a whole-window z-score. This i
 | File | Purpose |
 |------|---------|
 | `anomaly_detector.py` | Everything — fetch, score, flag, summarize. Single-file module. |
+| `eval.py` | The detection eval (A7, action-agent scope §7.3): `python -m detection.eval [--candidates \| --check \| --set-baseline]`. Grades the production decision **replayed** for each labelled date (the `LOOKBACK_DAYS` rows ending at it, through the unchanged `detect_anomalies`), against Kousik's `is_event` labels in `evals/detection/labels.yaml`: precision, recall, F1, false alarms, missed events, and a 1.5–3.5 threshold sweep. No LLM, free. The candidates file never shows the detector's z or flag. |
 | `__init__.py` | Empty — makes the folder an importable package. |
 
 ## Functions (`anomaly_detector.py`)

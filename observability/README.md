@@ -8,6 +8,8 @@ LangSmith tracing helpers shared by every agent (`docs/action-agent-scope.md` §
 |------|---------|
 | `tracing.py` | `tracing_enabled()`, `run_config()` (root run id + §13.2 metadata/tags + thread), `post_feedback()`, `trace_url()`, `flush()`, `git_sha()`. |
 
+| `evals.py` | Plumbing shared by every eval (A7): `rate`/`count`/`value` metric shapes, `compare()` (per-eval regression directions), the committed ledger (`append_ledger`, `read_ledger`), per-eval baselines (`evals/baselines/<eval>.json`), `git_sha_dirty()`. |
+| `drift.py` | `python -m observability.drift [--report] [--only ...] [--print-launchd]`: runs every ready eval, then each eval's newest ledger row against its baseline, regressions first; exits 1 on a regression or a failed eval. Reads only the ledger, never LangSmith. `--print-launchd` prints a weekly launchd job with this machine's paths for Kousik to install. |
 | `llm.py` | `invoke_structured()`: the shared LLM telemetry wrapper (§13.3, N1), `TokenBudget`, `cost_usd()`, `estimate_tokens()`, `prompt_hash()`. |
 
 ## LLM telemetry (`llm.py`, A3)

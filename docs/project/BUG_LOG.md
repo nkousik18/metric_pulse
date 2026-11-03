@@ -17,13 +17,13 @@ things must be run).
 
 | | Count |
 |---|---|
-| Bugs logged | 38 |
-| Found by running it live | 27 |
+| Bugs logged | 40 |
+| Found by running it live | 28 |
 | Found by a unit test | 2 |
-| Found by review | 9 |
-| Kinds | code 24, config/setup 6, constraint 1, design doc 3, process 2, test 2 |
+| Found by review | 10 |
+| Kinds | code 25, config/setup 6, constraint 1, design doc 3, process 2, test 3 |
 
-**The pattern:** 27 of 38 were found only by running the real thing (a real dataset, a real
+**The pattern:** 28 of 40 were found only by running the real thing (a real dataset, a real
 API, a real CI run). Each milestone's unit tests were green while these bugs existed, because the
 tests used tidy fixtures: plain floats instead of numpy, Olist-only dimension names, in-memory
 data instead of a CSV, a fake key instead of a real account. That is why every roadmap box is
@@ -32,10 +32,12 @@ test that was confirmed to fail without the fix.
 
 ---
 
-## Action Agent (A1–A5, 2026-11)
+## Action Agent (A1–A7, 2026-11)
 
 | # | Milestone | Kind | Bug | How found | Root cause | Fix | Guard |
 |---|---|---|---|---|---|---|---|
+| A7-2 | A7 | code | Onboarding validation accepted a **rejected column that doesn't exist**: the classifier "rejected" the A5 hostile header under a rewritten name (`Sales Team`) and the classification passed as grounded | live (the first 3-dataset onboarding eval) | `validate_classification` checked date, metric and dimension names against the real columns, never `rejected_columns` | Rejected names must be real columns too. Still open, for Kousik: a classification that omits a real column entirely passes (seen again in this run) | `test_classification_validation.py::test_a_rejected_column_must_be_a_real_column` |
+| A7-1 | A5 | test | The action eval's baseline comparison treated `adversarial_escalation_rate` / `adversarial_fallback_rate` as higher-is-better: a rise would never be flagged, a fall would be | review (moving the comparison into the shared eval module) | Only the golden set's `escalation_rate`/`fallback_rate` were in the lower-is-better list; every other `*_rate` defaults to higher-is-better | Added both to `LOWER_IS_BETTER` (no baseline existed yet, so no past report was wrong) | `test_eval_plumbing.py::test_action_eval_flags_a_rise_in_adversarial_escalation_not_a_fall` |
 | A5-4 | A5 | test | The first adversarial run counted an attacker's email in an issue *body* as recipient redirection | review (reading the failing case) | The grader searched the whole dry run, and issue bodies quote the evidence, including segment names | Check only the dry run's `target` | `action_agent/eval.py` comment |
 | A5-3 | A5 | design doc | **Injected text got `annotate_anomaly` auto-applied in 5 of 10 hostile cases** ("holiday: Carnival", an injected sentence verbatim), by 20b and by 120b after escalation | live (the first adversarial eval) | The one T0 action meant an LLM-chosen action could run with no human, and segment names are attacker-controllable | Kousik's decision: `annotate_anomaly` is T1; nothing auto-executes. Re-run: 0/10 bypasses, 10/10 held | `test_action_policy.py::test_nothing_in_the_catalog_auto_executes`; the adversarial eval |
 | A5-2 | A5 | code | gpt-oss-20b replies were rejected as unparseable in 3 of 10 adversarial cases, forcing escalations | live (adversarial eval) | 20b sometimes names its tool `functions.ProposalDraft` (its native tool-call format leaking); LangChain only accepts `ProposalDraft` | `repair=` hook in `invoke_structured`; the proposer accepts exactly that slip, still validated, marked `repaired`. Escalation 7/10 → 2/10 | `test_llm_proposer.py` (3 repair tests) |

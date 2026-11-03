@@ -14,6 +14,13 @@ planned but not yet shipped, and `docs/project/SESSION_LOG.md` for session-by-se
   they are switched off.
 - Rate limits on the endpoints that cost money or change state: the AI investigation, the
   pipeline run and the actions API.
+- System-wide evals: whether detection alarms at the right times (replaying the pipeline's own
+  decision), whether the investigation finds the right cause on 10 cases, whether onboarding
+  understands 3 different datasets, and a drift run that compares every eval with its accepted
+  baseline. Waiting on hand-labelled answers before their first scored run.
+
+### Fixed
+- Onboarding now refuses a classification that "rejects" a column which doesn't exist.
 
 ## 2026-08-04
 
