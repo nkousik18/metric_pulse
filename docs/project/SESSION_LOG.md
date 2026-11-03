@@ -5,6 +5,37 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-03 — Built A6: the actions API, the "Pending actions" tab, throttling
+
+**What happened:** Started from the 2026-11-03 handoff. A5 is still blocked: `golden --check`
+shows all 15 golden cases unlabelled. Kousik said to go ahead with A6 (branch `feat/actions-api`).
+- `dashboard_api/action_views.py`: F5's endpoints over the same `ActionAgent` the CLI uses
+  (pending, approve / edit / reject, log, undo). `dashboard_api/throttling.py`: scoped throttles
+  read from settings at request time, and a mixin that checks the throttle before the token.
+- `templates/partials/actions.html` + `scripts.html`: the tab. It shows the dry run, citations
+  and a readable target; params are editable; reasons and `live` are typed into the card (no
+  browser dialogs); every server value is HTML-escaped (N3).
+- Undo now gets its own LangSmith root run, and its id is on the `undone` row (an A4 loose end).
+
+**Decisions (scope A6 log):** approver identity = a bearer secret `ACTION_APPROVER_TOKEN` on every
+actions endpoint, reads included; 503 when unset, so nothing is exposed by default. Rates:
+investigate and pipeline 5/min, decisions 20/min, reads 60/min. Wrong tokens are counted
+because DRF's default order (auth, then throttle) would never count them; a test fails without
+the reordering. The API never creates `actions.db`. Proposals still come from the CLI.
+
+**Verified live:** `runserver` on scratch databases with a generated token, using the
+deterministic proposer (no LLM cost). 401s; approving and rejecting in the tab, with actor
+`kousik`, a real outbox message, and the typed reason logged; 409 on a second decision and on
+undoing `notify_owner`; an edit to a non-evidence segment came back with the policy error on the
+card; both throttles returned 429. 16 new tests, suite 300, lint clean.
+Not exercised against the server: undoing a reversible action (covered by tests).
+
+**Next:** A5 when Kousik's labels are in (see the handoff steps). Then A7.
+**For Kousik:** add `ACTION_APPROVER_TOKEN` to `.env` to use the tab
+(`python -c "import secrets; print(secrets.token_urlsafe(32))"`).
+
+---
+
 ## 2026-11-02 — Built A5's eval suite; it found a design flaw; golden labels pending
 
 **What happened:** Built the Action Agent eval suite (branch `feat/action-evals`).

@@ -36,6 +36,7 @@
                 <div class="flex space-x-6">
                     <button onclick="showTab('hero')" id="tab-hero" class="tab-btn py-2 px-1 font-medium tab-active">Home</button>
                     <button onclick="showTab('dashboard')" id="tab-dashboard" class="tab-btn py-2 px-1 font-medium opacity-80 hover:opacity-100 transition">Dashboard</button>
+                    <button onclick="showTab('actions')" id="tab-actions" class="tab-btn py-2 px-1 font-medium opacity-80 hover:opacity-100 transition">Pending actions</button>
                     <button onclick="showTab('architecture')" id="tab-architecture" class="tab-btn py-2 px-1 font-medium opacity-80 hover:opacity-100 transition">Architecture</button>
                     <button onclick="showTab('about')" id="tab-about" class="tab-btn py-2 px-1 font-medium opacity-80 hover:opacity-100 transition">About</button>
                 </div>
@@ -45,6 +46,7 @@
 
     {% include 'partials/hero.html' %}
     {% include 'partials/dashboard.html' %}
+    {% include 'partials/actions.html' %}
     {% include 'partials/architecture.html' %}
     {% include 'partials/about.html' %}
 

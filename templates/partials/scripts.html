@@ -22,6 +22,11 @@
             loadNarrative();
         }
         
+        // The actions tab reloads every time it opens: proposals expire and change state.
+        if (tabName === 'actions') {
+            loadActions();
+        }
+
         // Scroll to top
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -458,5 +463,221 @@
         } catch (error) {
             statusEl.innerHTML = `<i class="fas fa-exclamation-circle mr-2"></i> Failed: ${error.message}`;
         }
+    }
+
+    // ---------------------------------------------------------------------------------
+    // Pending actions (Action Agent API, docs/action-agent-scope.md F5, D8).
+    // Every value from the server is escaped: segment names and narratives are untrusted
+    // data (N3) and could carry markup. No alert()/confirm()/prompt(): decisions need a
+    // reason typed into the card, and results show inline.
+    // ---------------------------------------------------------------------------------
+    const APPROVER_TOKEN_KEY = 'metricpulse.approverToken';
+
+    function escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>"']/g, c => (
+            {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+    }
+
+    function getApproverToken() {
+        try { return sessionStorage.getItem(APPROVER_TOKEN_KEY) || ''; } catch (e) { return ''; }
+    }
+
+    function saveApproverToken() {
+        const value = document.getElementById('approver-token').value.trim();
+        try { sessionStorage.setItem(APPROVER_TOKEN_KEY, value); } catch (e) { /* private mode */ }
+        document.getElementById('approver-token').value = '';
+        loadActions();
+    }
+
+    function clearApproverToken() {
+        try { sessionStorage.removeItem(APPROVER_TOKEN_KEY); } catch (e) { /* ignore */ }
+        loadActions();
+    }
+
+    async function actionsApi(path, options = {}) {
+        const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+        const token = getApproverToken();
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        const response = await fetch(`/api/actions/${path}`, { ...options, headers });
+        let body = {};
+        try { body = await response.json(); } catch (e) { /* non-JSON error page */ }
+        if (!response.ok || body.status === 'error') {
+            const message = body.message || body.detail || `HTTP ${response.status}`;
+            throw new Error(message);
+        }
+        return body.data;
+    }
+
+    function setActionsStatus(text, isError) {
+        const el = document.getElementById('actions-status');
+        el.textContent = text;
+        el.className = `text-sm mt-2 ${isError ? 'text-red-600' : 'text-gray-500'}`;
+    }
+
+    async function loadActions() {
+        const pendingEl = document.getElementById('pending-actions');
+        const undoEl = document.getElementById('undoable-actions');
+        const logEl = document.getElementById('action-log-rows');
+        if (!getApproverToken()) {
+            setActionsStatus('Enter the approver token to see and decide proposals.', false);
+            pendingEl.innerHTML = undoEl.innerHTML = logEl.innerHTML = '';
+            return;
+        }
+        setActionsStatus('Loading...', false);
+        try {
+            const [pending, log] = await Promise.all([actionsApi('pending/'), actionsApi('log/?limit=100')]);
+            renderPendingActions(pending);
+            renderUndoable(log.proposals.filter(p => p.undoable));
+            renderActionLog(log.events);
+            setActionsStatus(`${pending.length} awaiting a decision. Token accepted.`, false);
+        } catch (error) {
+            setActionsStatus(error.message, true);
+            pendingEl.innerHTML = undoEl.innerHTML = logEl.innerHTML = '';
+        }
+    }
+
+    function describeTarget(target) {
+        if (!target) return 'unknown';
+        const owner = target.owner ? `${target.owner.name} <${target.owner.email}>` : '';
+        switch (target.kind) {
+            case 'notifier': return `message to ${owner} via ${target.channel || 'unconfigured channel'}`;
+            case 'github_issue': return `GitHub issue in ${target.repo || 'ACTION_GITHUB_REPO (not set)'}`;
+            default: return `${target.kind} (${target.store || ''})${owner ? ', owner ' + owner : ''}`;
+        }
+    }
+
+    function renderPayload(payload) {
+        return Object.entries(payload || {}).map(([key, value]) => {
+            const text = typeof value === 'string' ? value : JSON.stringify(value, null, 2);
+            return `<div class="mb-2"><div class="text-xs font-semibold text-gray-500 uppercase">${escapeHtml(key)}</div>
+                    <pre class="whitespace-pre-wrap break-words text-sm text-gray-800 bg-gray-50 rounded p-2">${escapeHtml(text)}</pre></div>`;
+        }).join('');
+    }
+
+    function renderPendingActions(items) {
+        const el = document.getElementById('pending-actions');
+        if (!items.length) {
+            el.innerHTML = '<div class="bg-white rounded-2xl border border-gray-100 p-6 text-gray-500 text-sm">No proposals are waiting. New ones come from <code>python -m action_agent.cli propose</code>.</div>';
+            return;
+        }
+        el.innerHTML = items.map(item => {
+            const w = item.waiting_on || {};
+            const dry = w.dry_run || {};
+            const id = escapeHtml(item.proposal_id);
+            const errors = (w.policy_errors || []).map(e => `<li>${escapeHtml(e)}</li>`).join('');
+            const citations = (item.rationale_citations || []).map(c => `<li>${escapeHtml(typeof c === 'string' ? c : (c.claim || JSON.stringify(c)))}</li>`).join('');
+            return `
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5" data-proposal="${id}">
+                <div class="flex flex-wrap items-center gap-2 mb-2">
+                    <span class="text-xs font-semibold bg-indigo-50 text-indigo-700 px-2 py-1 rounded">${escapeHtml(dry.action_type || item.action_type)}</span>
+                    <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">${escapeHtml(dry.tier)} · ${dry.reversible ? 'reversible' : 'not reversible'}</span>
+                    <span class="text-sm text-gray-700">${escapeHtml(item.dataset_id)} / ${escapeHtml(item.metric)} / ${escapeHtml(item.anomaly_date)}</span>
+                </div>
+                <p class="text-xs text-gray-500 mb-3">Proposed by ${escapeHtml(item.proposer)} · expires ${escapeHtml(w.expires_at || item.expires_at)} · ${escapeHtml(item.proposal_id)}</p>
+                ${errors ? `<div class="bg-red-50 text-red-700 text-sm rounded p-3 mb-3"><strong>Your last edit was rejected by policy:</strong><ul class="list-disc ml-5">${errors}</ul></div>` : ''}
+                <p class="text-sm text-gray-700 mb-3">${escapeHtml(item.narrative)}</p>
+                ${citations ? `<div class="text-sm text-gray-600 mb-3"><strong>Cited evidence</strong><ul class="list-disc ml-5">${citations}</ul></div>` : ''}
+                <div class="text-sm mb-1"><strong>Target:</strong> ${escapeHtml(describeTarget(dry.target))}</div>
+                <details class="mb-3"><summary class="cursor-pointer text-sm text-indigo-600">Exact payload (what will run)</summary><div class="mt-2">${renderPayload(dry.payload)}</div></details>
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="params-${id}">Params (edit to change what runs)</label>
+                <textarea id="params-${id}" rows="3" class="w-full font-mono text-xs border border-gray-200 rounded-lg p-2 bg-gray-50 mb-2">${escapeHtml(JSON.stringify(dry.params || {}, null, 2))}</textarea>
+                <label class="block text-sm font-medium text-gray-700 mb-1" for="reason-${id}">Reason (required to reject)</label>
+                <input id="reason-${id}" type="text" class="w-full border border-gray-200 rounded-lg p-2 text-sm bg-gray-50 mb-2">
+                <label class="flex items-center gap-2 text-sm text-gray-700 mb-3"><input id="live-${id}" type="checkbox"> Allow effects outside this machine (a real GitHub issue)</label>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="decideAction('${id}', 'approve')" class="gradient-bg text-white px-4 py-2 rounded-lg hover:opacity-90 text-sm font-medium">Approve</button>
+                    <button onclick="decideAction('${id}', 'edit')" class="bg-white border border-indigo-300 text-indigo-700 px-4 py-2 rounded-lg hover:bg-indigo-50 text-sm font-medium">Approve edited params</button>
+                    <button onclick="decideAction('${id}', 'reject')" class="bg-white border border-red-300 text-red-700 px-4 py-2 rounded-lg hover:bg-red-50 text-sm font-medium">Reject</button>
+                </div>
+                <p id="result-${id}" class="text-sm mt-2"></p>
+            </div>`;
+        }).join('');
+    }
+
+    async function decideAction(proposalId, decision) {
+        const resultEl = document.getElementById(`result-${proposalId}`);
+        const body = {
+            reason: document.getElementById(`reason-${proposalId}`).value,
+            live: document.getElementById(`live-${proposalId}`).checked,
+        };
+        if (decision === 'edit') {
+            try {
+                body.params = JSON.parse(document.getElementById(`params-${proposalId}`).value);
+            } catch (e) {
+                resultEl.className = 'text-sm mt-2 text-red-600';
+                resultEl.textContent = 'Params must be valid JSON.';
+                return;
+            }
+        }
+        resultEl.className = 'text-sm mt-2 text-gray-500';
+        resultEl.textContent = 'Sending...';
+        try {
+            const data = await actionsApi(`${proposalId}/${decision}/`, { method: 'POST', body: JSON.stringify(body) });
+            if (data.status === 'awaiting_approval') {
+                await loadActions();   // re-render with the policy errors from the edit
+                return;
+            }
+            resultEl.className = 'text-sm mt-2 text-green-700';
+            resultEl.textContent = `Done: ${data.status}${data.execution ? ` (${JSON.stringify(data.execution)})` : ''}`;
+            setTimeout(loadActions, 1200);
+        } catch (error) {
+            resultEl.className = 'text-sm mt-2 text-red-600';
+            resultEl.textContent = error.message;
+        }
+    }
+
+    function renderUndoable(items) {
+        const el = document.getElementById('undoable-actions');
+        if (!items.length) {
+            el.innerHTML = '<p class="text-sm text-gray-500">None in the recent log.</p>';
+            return;
+        }
+        el.innerHTML = items.map(item => {
+            const id = escapeHtml(item.proposal_id);
+            return `
+            <div class="bg-white rounded-xl border border-gray-100 p-4 flex flex-col md:flex-row md:items-center gap-2">
+                <div class="flex-1 text-sm"><strong>${escapeHtml(item.executed_action_type)}</strong> on ${escapeHtml(item.dataset_id)} / ${escapeHtml(item.metric)} / ${escapeHtml(item.anomaly_date)}
+                    <span class="text-xs text-gray-500 block">${id}</span></div>
+                <input id="undo-reason-${id}" type="text" placeholder="Reason for undo" class="border border-gray-200 rounded-lg p-2 text-sm bg-gray-50">
+                <label class="flex items-center gap-1 text-xs text-gray-600"><input id="undo-live-${id}" type="checkbox"> live</label>
+                <button onclick="undoAction('${id}')" class="bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-50 text-sm">Undo</button>
+                <span id="undo-result-${id}" class="text-sm"></span>
+            </div>`;
+        }).join('');
+    }
+
+    async function undoAction(proposalId) {
+        const resultEl = document.getElementById(`undo-result-${proposalId}`);
+        const body = {
+            reason: document.getElementById(`undo-reason-${proposalId}`).value,
+            live: document.getElementById(`undo-live-${proposalId}`).checked,
+        };
+        try {
+            const data = await actionsApi(`${proposalId}/undo/`, { method: 'POST', body: JSON.stringify(body) });
+            resultEl.className = 'text-sm text-green-700';
+            resultEl.textContent = `Undone (${data.outcome})`;
+            setTimeout(loadActions, 1200);
+        } catch (error) {
+            resultEl.className = 'text-sm text-red-600';
+            resultEl.textContent = error.message;
+        }
+    }
+
+    function renderActionLog(events) {
+        const el = document.getElementById('action-log-rows');
+        if (!events.length) {
+            el.innerHTML = '<tr><td colspan="7" class="px-4 py-3 text-gray-500">The log is empty.</td></tr>';
+            return;
+        }
+        el.innerHTML = events.map(e => `
+            <tr class="border-t border-gray-100 align-top">
+                <td class="px-4 py-2 text-gray-500">${escapeHtml(e.log_id)}</td>
+                <td class="px-4 py-2 whitespace-nowrap">${escapeHtml((e.created_at || '').slice(0, 19).replace('T', ' '))}</td>
+                <td class="px-4 py-2 font-mono text-xs">${escapeHtml((e.proposal_id || '').slice(0, 8))}</td>
+                <td class="px-4 py-2">${escapeHtml(e.event)}</td>
+                <td class="px-4 py-2">${escapeHtml(e.actor)}</td>
+                <td class="px-4 py-2">${escapeHtml(e.action_type)}</td>
+                <td class="px-4 py-2 text-gray-600 break-words">${escapeHtml(e.detail || e.external_id || '')}</td>
+            </tr>`).join('');
     }
 </script>

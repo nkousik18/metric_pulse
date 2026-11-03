@@ -199,7 +199,14 @@ reachable from its action-log row.
       7/10 → 2/10), and two onboarding confirm/edit bugs. LangSmith experiments recorded; ledger at
       `evals/ledger.jsonl`. Remaining for the gate: the golden run (`action_match_rate` ≥ 0.8,
       idempotency 0) and `--set-baseline`.
-- [ ] **A6** — `/actions/*` API endpoints, SPA "Pending actions" tab, DRF throttling.
+- [x] **A6** — `/actions/*` API endpoints, SPA "Pending actions" tab, DRF throttling.
+      **Done 2026-11-03.** `dashboard_api/action_views.py`: pending, approve / edit / reject, log,
+      undo (F5) over the same `ActionAgent` as the CLI; approver identity is a bearer secret,
+      `ACTION_APPROVER_TOKEN` (D8, 503 when unset); scoped throttles on the actions, investigate
+      and pipeline endpoints, checked before the token so guesses are counted (N4). Undo now
+      records a LangSmith trace id. Verified live on `runserver` with scratch databases: 401s, the
+      tab's approve and reject, 409 on a second decision and on undoing `notify_owner`, a policy
+      error from an edit shown on the card, and 429s from both throttles. 16 new tests, suite 300.
 - [ ] **A7** — Detection eval (≥20 labeled dates), investigation golden set ≥10 and onboarding
       ≥3 (§7.1), scheduled drift run against stored baselines.
 

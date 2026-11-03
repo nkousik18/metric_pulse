@@ -90,8 +90,24 @@ REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
-    ]
+    ],
+    # N4 (docs/action-agent-scope.md): per-scope request limits, keyed by client IP. Applied by
+    # dashboard_api.throttling.ScopedThrottle on the views that cost money or change state.
+    'DEFAULT_THROTTLE_RATES': {
+        'investigate': '5/min',       # every call is a real Groq request
+        'pipeline': '5/min',          # can send an alert and run an investigation
+        'actions_decide': '20/min',   # approve / edit / reject / undo
+        'actions_read': '60/min',     # pending / log
+    },
 }
+
+# Action Agent API (dashboard_api/action_views.py). Read through Django settings, not
+# config.settings directly, so tests can swap them with override_settings.
+import sys as _sys  # noqa: E402
+_sys.path.insert(0, str(BASE_DIR))
+from config import settings as _mp_settings  # noqa: E402
+ACTION_APPROVER_TOKEN = _mp_settings.ACTION_APPROVER_TOKEN
+ACTION_AGENT_FACTORY = 'dashboard_api.action_views.default_agent_factory'
 
 # Email settings
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

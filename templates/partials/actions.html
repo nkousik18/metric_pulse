@@ -1,0 +1,48 @@
+<div id="content-actions" class="tab-content hidden">
+    <main class="container mx-auto p-6 fade-in">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">Pending actions</h1>
+                <p class="text-gray-500">Proposals from the Action Agent waiting for an approver. Nothing runs until you decide.</p>
+            </div>
+            <button onclick="loadActions()" class="flex items-center gap-2 bg-white border border-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition text-sm font-medium">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+        </div>
+
+        <!-- Approver token (D8). Kept in sessionStorage: this tab only, gone when it closes. -->
+        <div class="bg-white rounded-2xl shadow-sm p-5 mb-6 border border-gray-100">
+            <label for="approver-token" class="block text-sm font-medium text-gray-700 mb-1.5">Approver token</label>
+            <div class="flex flex-col md:flex-row gap-2">
+                <input type="password" id="approver-token" autocomplete="off" placeholder="ACTION_APPROVER_TOKEN from .env"
+                       class="flex-1 border border-gray-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-gray-50">
+                <button onclick="saveApproverToken()" class="gradient-bg text-white px-5 py-2 rounded-lg hover:opacity-90 transition font-medium text-sm">Use token</button>
+                <button onclick="clearApproverToken()" class="bg-gray-100 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-200 transition text-sm">Forget</button>
+            </div>
+            <p id="actions-status" class="text-sm text-gray-500 mt-2"></p>
+        </div>
+
+        <div id="pending-actions" class="space-y-4 mb-8"></div>
+
+        <h2 class="text-lg font-semibold text-gray-900 mb-3">Executed actions you can undo</h2>
+        <div id="undoable-actions" class="space-y-3 mb-8"></div>
+
+        <h2 class="text-lg font-semibold text-gray-900 mb-3">Action log <span class="text-sm font-normal text-gray-500">(newest first, append-only)</span></h2>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50 text-gray-600 text-left">
+                    <tr>
+                        <th class="px-4 py-2 font-medium">#</th>
+                        <th class="px-4 py-2 font-medium">When (UTC)</th>
+                        <th class="px-4 py-2 font-medium">Proposal</th>
+                        <th class="px-4 py-2 font-medium">Event</th>
+                        <th class="px-4 py-2 font-medium">Actor</th>
+                        <th class="px-4 py-2 font-medium">Action</th>
+                        <th class="px-4 py-2 font-medium">Detail</th>
+                    </tr>
+                </thead>
+                <tbody id="action-log-rows"></tbody>
+            </table>
+        </div>
+    </main>
+</div>

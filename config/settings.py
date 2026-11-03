@@ -54,6 +54,10 @@ CHECKPOINTS_DB_PATH = Path(os.getenv("CHECKPOINTS_DB_PATH", PROJECT_ROOT / "chec
 PROPOSAL_TTL_HOURS = 24  # F2
 # Single approver identity for the CLI approver (D8). Falls back to the OS user.
 ACTION_APPROVER = os.getenv("ACTION_APPROVER")
+# The API's approver check (D8, A6): a shared secret sent as `Authorization: Bearer <token>` on
+# every /api/actions/ call. Unset (or shorter than 16 characters) means the endpoints refuse all
+# requests (503). Generate one with: python -c "import secrets; print(secrets.token_urlsafe(32))"
+ACTION_APPROVER_TOKEN = (os.getenv("ACTION_APPROVER_TOKEN") or "").strip() or None
 
 # Warehouse backend (docs/local-stack-scope.md §6.1, R2). Local DuckDB is the default; Redshift is
 # the archived AWS backend, kept intact (R1). Inside AWS Lambda (AWS_LAMBDA_FUNCTION_NAME is set)

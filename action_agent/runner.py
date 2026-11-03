@@ -1,7 +1,7 @@
 """
 ActionAgent: the runtime around the action graph. It wires the store, the
 SqliteSaver checkpointer, the executors and LangSmith run config, and exposes
-the operations the CLI (and, in A6, the API) need: start, decide, undo, inspect.
+the operations the CLI and the API (dashboard_api/action_views.py) need: start, decide, undo, inspect.
 
 Every start and every decide is its own LangGraph invocation and so its own
 LangSmith trace. Each trace's root run id is stamped on the action_log rows it
@@ -24,7 +24,7 @@ from action_agent.graph import build_action_graph, default_approver
 from action_agent.owners import OwnersConfig, load_owners
 from action_agent.store import ActionStore
 from config import settings
-from observability.tracing import flush, new_run_id, run_config
+from observability.tracing import flush, git_sha, new_run_id, run_config, tracing_enabled
 
 
 def to_plain(value):
@@ -125,7 +125,26 @@ class ActionAgent:
 
         Local effects (annotation, suppression, control) stop applying because the active-effect
         queries exclude undone keys; the effect rows themselves are never edited. An opened GitHub
-        issue is closed (needs live). notify_owner can't be undone: a sent message stays sent."""
+        issue is closed (needs live). notify_owner can't be undone: a sent message stays sent.
+
+        Undo runs outside the graph, so it gets its own root run (`action_agent.undo`) with a known
+        id, stamped on the `undone` row like a decide's trace id (§13.2). Traced only when tracing
+        is on; the id is recorded either way, as it is for start and decide."""
+        run_id = new_run_id()
+        proposal = self.store.get_proposal(proposal_id) or {}
+        metadata = {'proposal_id': proposal_id, 'anomaly_id': proposal.get('anomaly_id'),
+                    'dataset_id': proposal.get('dataset_id'), 'metric': proposal.get('metric'),
+                    'decision': 'undo', 'git_sha': git_sha()}
+        do_undo = self._undo
+        if tracing_enabled():
+            from langsmith import traceable
+            do_undo = traceable(name='action_agent.undo', run_type='chain')(self._undo)
+            return do_undo(proposal_id, reason=reason, approver=approver, trace_id=str(run_id),
+                           langsmith_extra={'run_id': run_id, 'metadata': metadata,
+                                            'tags': ['metricpulse', 'action_agent', 'undo']})
+        return do_undo(proposal_id, reason=reason, approver=approver, trace_id=str(run_id))
+
+    def _undo(self, proposal_id: str, *, reason: str, approver: Optional[str], trace_id: str) -> Dict:
         status = self.store.status(proposal_id)
         if status != 'executed':
             raise ValueError(f'proposal {proposal_id} has nothing to undo (status: {status})')
@@ -142,9 +161,9 @@ class ActionAgent:
         self.store.log(proposal_id, 'undone', approver or default_approver(), action_type=action_type,
                        params=row['params'], idempotency_key=row['idempotency_key'],
                        external_id=row['external_id'], detail=f'{reason.strip()} ({outcome})',
-                       now=self.now_fn())
+                       trace_id=trace_id, now=self.now_fn())
         return {'proposal_id': proposal_id, 'status': 'undone', 'outcome': outcome,
-                'action_type': action_type, 'external_id': row['external_id']}
+                'action_type': action_type, 'external_id': row['external_id'], 'trace_id': trace_id}
 
     def is_waiting(self, proposal_id: str) -> bool:
         state = self.graph.get_state({'configurable': {'thread_id': proposal_id}})
