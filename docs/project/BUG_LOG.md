@@ -17,13 +17,13 @@ things must be run).
 
 | | Count |
 |---|---|
-| Bugs logged | 41 |
-| Found by running it live | 28 |
+| Bugs logged | 42 |
+| Found by running it live | 29 |
 | Found by a unit test | 2 |
 | Found by review | 11 |
-| Kinds | code 26, config/setup 6, constraint 1, design doc 3, process 2, test 3 |
+| Kinds | code 27, config/setup 6, constraint 1, design doc 3, process 2, test 3 |
 
-**The pattern:** 28 of 41 were found only by running the real thing (a real dataset, a real
+**The pattern:** 29 of 42 were found only by running the real thing (a real dataset, a real
 API, a real CI run). Each milestone's unit tests were green while these bugs existed, because the
 tests used tidy fixtures: plain floats instead of numpy, Olist-only dimension names, in-memory
 data instead of a CSV, a fake key instead of a real account. That is why every roadmap box is
@@ -36,6 +36,7 @@ test that was confirmed to fail without the fix.
 
 | # | Milestone | Kind | Bug | How found | Root cause | Fix | Guard |
 |---|---|---|---|---|---|---|---|
+| A7-4 | M1 | code | **Phase 1 synthesis fell back on every real Olist case without a drill-down**: the first 10-case investigation eval had grounding 0.33 and fallback 0.37 (Golden Case #1 alone: 3/3) | live (the first investigation eval over real cases) | The prompt printed each dimension as `name.title()` ("Geography"); the model cited that spelling, and `validate_citation` looks keys up exactly (`geography`), so both attempts failed. Golden Case #1 escaped it because its drill-down line spells `dimension='geography'`, and it was the only eval case until A7. Superstore's names were already title-case, so M6 never saw it | The prompt shows the exact key, `geography (source='decomposition', dimension='geography')` | `test_citation_validation.py::test_the_prompt_names_every_dimension_exactly_as_validation_accepts_it` (fails on the old prompt) |
 | A7-3 | A7 | code | Every eval after the first in a session (and in a drift run) would have recorded its ledger row as `-dirty` | review (planning the first sequential baseline runs) | The dirty check counted all tracked files, and `evals/ledger.jsonl` is tracked, so the first eval's own row dirtied the tree | The ledger and `evals/baselines/` are excluded; labels and code still count | `test_eval_plumbing.py::test_the_eval_outputs_do_not_make_a_run_dirty` (a real git repo on `tmp_path`) |
 | A7-2 | A7 | code | Onboarding validation accepted a **rejected column that doesn't exist**: the classifier "rejected" the A5 hostile header under a rewritten name (`Sales Team`) and the classification passed as grounded | live (the first 3-dataset onboarding eval) | `validate_classification` checked date, metric and dimension names against the real columns, never `rejected_columns` | Rejected names must be real columns too. Still open, for Kousik: a classification that omits a real column entirely passes (seen again in this run) | `test_classification_validation.py::test_a_rejected_column_must_be_a_real_column` |
 | A7-1 | A5 | test | The action eval's baseline comparison treated `adversarial_escalation_rate` / `adversarial_fallback_rate` as higher-is-better: a rise would never be flagged, a fall would be | review (moving the comparison into the shared eval module) | Only the golden set's `escalation_rate`/`fallback_rate` were in the lower-is-better list; every other `*_rate` defaults to higher-is-better | Added both to `LOWER_IS_BETTER` (no baseline existed yet, so no past report was wrong) | `test_eval_plumbing.py::test_action_eval_flags_a_rise_in_adversarial_escalation_not_a_fall` |

@@ -130,3 +130,29 @@ class TestValidateSynthesisOutput:
         errors = validate_synthesis_output(output, state)
         assert len(errors) == 1
         assert 'Southeast' in errors[0] and 'Northeast' in errors[0]
+
+
+def test_the_prompt_names_every_dimension_exactly_as_validation_accepts_it():
+    # BUG_LOG A7-4: the prompt showed `geography` as "Geography", the model cited "Geography",
+    # and validate_citation (exact key match) rejected it twice -> fallback on every real case
+    # without a drill-down. The prompt must spell each dimension the way validation looks it up.
+    import re
+    from investigation.prompts import build_synthesis_prompt
+    from investigation.schemas import EvidenceCitation
+    from investigation.validation import validate_citation
+
+    state = {
+        'decomposition_results': {'dimensions': {
+            'geography': {'total_change': 29, 'total_change_pct': 35.8, 'top_contributors': [
+                {'segment': 'Southeast', 'change': 29, 'contribution_pct': 100.0}]},
+            'Order Priority': {'total_change': 5, 'total_change_pct': 2.0, 'top_contributors': [
+                {'segment': 'High', 'change': 5, 'contribution_pct': 100.0}]}}},
+        'drill_down_results': {}, 'ambiguous_dimensions': [], 'detection_result': None,
+    }
+    prompt = build_synthesis_prompt(state)[1].content
+    shown = set(re.findall(r"source='decomposition', dimension='([^']+)'", prompt))
+    assert shown == {'geography', 'Order Priority'}
+    assert 'Geography' not in prompt
+    for dim, seg in (('geography', 'Southeast'), ('Order Priority', 'High')):
+        assert validate_citation(EvidenceCitation(source='decomposition', dimension=dim, segment=seg,
+                                                  claim='x'), state)

@@ -1,0 +1,15 @@
+{
+  "ts": "2026-11-03T23:22:59+00:00",
+  "git_sha": "de3adf0",
+  "threshold": 2.0,
+  "lookback_days": 30,
+  "labels_hash": "dbc437480248",
+  "n": 28,
+  "metrics": {
+    "detection_precision": 0.9167,
+    "detection_recall": 0.9167,
+    "detection_f1": 0.9167,
+    "false_alarms": 1,
+    "missed_events": 1
+  }
+}
