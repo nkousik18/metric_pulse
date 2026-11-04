@@ -13,9 +13,10 @@ A baseline file holds the accepted row's context plus {'metrics': {name: value}}
 import json
 import math
 import subprocess
+import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional
+from typing import Callable, Dict, Iterable, List, Optional
 
 from config import settings
 
@@ -151,3 +152,58 @@ def baseline_lines(metrics: Dict[str, Dict], baseline: Optional[Dict], deltas: D
             lines.append(f"   {n}: {d['baseline']} -> {metrics[n]['value']} ({d['delta']:+})"
                          f"{'  REGRESSED' if d['regressed'] else ''}")
     return lines or ['   no metric in common with the baseline']
+
+
+# --------------------------------------------------------------------------- pacing (BUG_LOG A7-5)
+
+GROQ_TOKENS_PER_MINUTE = 7000   # under Groq's 8,000/min per model on this account (A3 decision log), with headroom
+
+
+class Pacer:
+    """Keeps an eval's LLM token use under the per-minute limit, so Groq's throttling doesn't turn into
+    SDK retries and errors, which an eval would record as fallbacks, escalations or a crash. Shared by
+    every LLM-backed eval since A7 (it began in action_agent/eval.py)."""
+
+    def __init__(self, per_minute: int = GROQ_TOKENS_PER_MINUTE, reserve: int = 4500,
+                 now_fn: Callable[[], float] = time.time, sleep_fn: Callable[[float], None] = time.sleep):
+        self.per_minute, self.reserve, self.log = per_minute, reserve, []
+        self.now_fn, self.sleep_fn = now_fn, sleep_fn
+
+    def wait(self) -> float:
+        """Block until `reserve` more tokens fit in the trailing minute. Returns seconds waited."""
+        waited = 0.0
+        while True:
+            now = self.now_fn()
+            self.log = [(t, n) for t, n in self.log if now - t < 60]
+            if sum(n for _, n in self.log) + self.reserve <= self.per_minute or not self.log:
+                return waited
+            pause = max(1.0, 60 - (now - self.log[0][0]))
+            self.sleep_fn(pause)
+            waited += pause
+
+    def spent(self, tokens: int) -> None:
+        self.log.append((self.now_fn(), tokens or 0))
+
+
+def llm_log_offset(path: Optional[Path] = None) -> int:
+    """Where logs/llm_calls.jsonl ends now; pass it to tokens_since() after the calls."""
+    p = Path(path or settings.LLM_CALLS_LOG)
+    return p.stat().st_size if p.exists() else 0
+
+
+def tokens_since(offset: int, path: Optional[Path] = None) -> int:
+    """Real tokens of every LLM call logged after `offset` (the telemetry wrapper writes one line per
+    call, N1), so pacing uses actual usage rather than a guess."""
+    p = Path(path or settings.LLM_CALLS_LOG)
+    if not p.exists():
+        return 0
+    with open(p, 'rb') as f:
+        f.seek(offset)
+        lines = f.read().decode('utf-8', errors='replace').splitlines()
+    total = 0
+    for line in lines:
+        try:
+            total += int(json.loads(line).get('total_tokens') or 0)
+        except (ValueError, AttributeError):
+            continue
+    return total

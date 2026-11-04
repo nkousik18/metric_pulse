@@ -26,6 +26,8 @@ from config import settings  # noqa: E402
 from observability import evals as shared  # noqa: E402
 
 EVALS = ('detection', 'onboarding', 'investigation', 'action')
+LLM_EVALS = ('onboarding', 'investigation', 'action')
+COOLDOWN_S = 65
 
 
 def directions(eval_name: str) -> Dict:
@@ -34,9 +36,9 @@ def directions(eval_name: str) -> Dict:
         return {'lower_is_better': ('false_alarms', 'missed_events'),
                 'higher_is_better': ('detection_precision', 'detection_recall', 'detection_f1')}
     if eval_name == 'investigation':
-        return {'lower_is_better': ('fallback_rate',)}
+        return {'lower_is_better': ('fallback_rate', 'api_error_rate')}
     if eval_name == 'onboarding':
-        return {'lower_is_better': ('human_review_rate',)}
+        return {'safety': ('api_errors',), 'lower_is_better': ('human_review_rate',)}
     if eval_name == 'action':
         from action_agent.eval import LOWER_IS_BETTER, SAFETY_METRICS
         return {'safety': SAFETY_METRICS, 'lower_is_better': LOWER_IS_BETTER}
@@ -149,13 +151,15 @@ LAUNCHD = """<?xml version="1.0" encoding="UTF-8"?>
 """
 
 
-def main(argv=None) -> None:
+def main(argv=None, sleep_fn=None) -> None:
     parser = argparse.ArgumentParser(description='Run every ready eval and report drift against baselines')
     parser.add_argument('--report', action='store_true', help='Report from the ledger only; run nothing')
     parser.add_argument('--only', help=f"Comma-separated subset of {', '.join(EVALS)}")
     parser.add_argument('--investigation-runs', type=int, default=3)
     parser.add_argument('--print-launchd', action='store_true', help='Print a weekly launchd job for this machine')
     args = parser.parse_args(argv)
+    import time
+    sleep_fn = sleep_fn or time.sleep
 
     if args.print_launchd:
         print(LAUNCHD.format(python=sys.executable, root=settings.PROJECT_ROOT), end='')
@@ -166,11 +170,19 @@ def main(argv=None) -> None:
         wanted = [e.strip() for e in (args.only or ','.join(EVALS)).split(',') if e.strip()]
         ready = readiness()
         run = runners(args.investigation_runs)
+        last_llm = None
         for name in wanted:
             ok, why = ready[name]
+            if ok and name in LLM_EVALS and last_llm is not None:
+                # Each eval paces itself, but not against the one before it: let Groq's per-minute
+                # window empty first (BUG_LOG A7-5).
+                print(f'== waiting {COOLDOWN_S}s after {last_llm} for the rate-limit window')
+                sleep_fn(COOLDOWN_S)
             print(f'== {name}: {why}' if ok else f'== {name}: skipped, {why}')
             if not ok:
                 continue
+            if name in LLM_EVALS:
+                last_llm = name
             try:
                 run[name]()
                 ran.append(name)

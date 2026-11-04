@@ -312,3 +312,53 @@ def test_the_eval_outputs_do_not_make_a_run_dirty(tmp_path):
     assert not shared.git_sha_dirty(tmp_path).endswith('-dirty')
     (tmp_path / 'evals' / 'labels.yaml').write_text('relabelled\n')
     assert shared.git_sha_dirty(tmp_path).endswith('-dirty')
+
+
+# --- pacing (BUG_LOG A7-5) ---
+
+class FakeClock:
+    """An injected clock: sleeping advances time. Not a mock: Pacer takes now_fn/sleep_fn by design."""
+
+    def __init__(self):
+        self.t, self.slept = 1000.0, []
+
+    def now(self):
+        return self.t
+
+    def sleep(self, s):
+        self.slept.append(s)
+        self.t += s
+
+
+def test_pacer_waits_until_the_trailing_minute_has_room():
+    clock = FakeClock()
+    p = shared.Pacer(per_minute=7000, reserve=3000, now_fn=clock.now, sleep_fn=clock.sleep)
+    assert p.wait() == 0
+    p.spent(2500)
+    clock.t += 10
+    assert p.wait() == 0                 # 2,500 + 3,000 reserve fits in 7,000
+    p.spent(2500)
+    clock.t += 10
+    waited = p.wait()                    # 5,000 + 3,000 doesn't: wait for the first call to age out
+    assert waited == 40 and clock.slept == [40]
+    assert [n for _, n in p.log] == [2500]
+
+
+def test_tokens_since_reads_only_calls_logged_after_the_offset(tmp_path):
+    log = tmp_path / 'llm_calls.jsonl'
+    log.write_text(json.dumps({'total_tokens': 900}) + '\n')
+    offset = shared.llm_log_offset(log)
+    with open(log, 'a') as f:
+        f.write(json.dumps({'total_tokens': 1200}) + '\n')
+        f.write(json.dumps({'total_tokens': None}) + '\n')     # an API error line has no usage
+        f.write('not json\n')
+    assert shared.tokens_since(offset, log) == 1200
+    assert shared.tokens_since(0, tmp_path / 'missing.jsonl') == 0
+
+
+def test_investigation_reports_api_errors_apart_from_quality():
+    rows = [{'outcome': 'fallback_exception', 'golden_match': False, 'uncertainty_ok': True},
+            {'outcome': 'fallback_validation_failed', 'golden_match': False, 'uncertainty_ok': True},
+            {'outcome': 'grounded_first_attempt', 'golden_match': True, 'uncertainty_ok': True}]
+    m = inv_metrics(rows)
+    assert m['fallback_rate']['num'] == 2 and m['api_error_rate']['num'] == 1

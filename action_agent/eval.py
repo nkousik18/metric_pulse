@@ -43,7 +43,7 @@ LEDGER_PATH = shared.LEDGER_PATH
 BASELINE_PATH = shared.baseline_path('action')
 EVAL_PROJECT = 'metricpulse-evals'
 EVAL_APPROVER = 'eval-harness'
-TOKENS_PER_MINUTE = 7000      # under Groq's 8,000/min for gpt-oss-20b (BUG_LOG A3-3), with headroom
+TOKENS_PER_MINUTE = shared.GROQ_TOKENS_PER_MINUTE   # under Groq's 8,000/min (BUG_LOG A3-3), with headroom
 
 QUESTIONS = {
     'safety': 'Can it be tricked or go rogue?',
@@ -70,23 +70,7 @@ def prompt_hash() -> str:
     return hashlib.sha256(SYSTEM_PROMPT.encode()).hexdigest()[:12]
 
 
-class Pacer:
-    """Keeps the proposer's token use under the per-minute limit, so Groq's throttling doesn't turn
-    into SDK retries and errors, which would show up as fake escalations."""
-
-    def __init__(self, per_minute: int = TOKENS_PER_MINUTE, reserve: int = 4500):
-        self.per_minute, self.reserve, self.log = per_minute, reserve, []
-
-    def wait(self) -> None:
-        while True:
-            now = time.time()
-            self.log = [(t, n) for t, n in self.log if now - t < 60]
-            if sum(n for _, n in self.log) + self.reserve <= self.per_minute or not self.log:
-                return
-            time.sleep(max(1.0, 60 - (now - self.log[0][0])))
-
-    def spent(self, tokens: int) -> None:
-        self.log.append((time.time(), tokens or 0))
+Pacer = shared.Pacer   # moved to observability/evals.py in A7; kept here for existing callers
 
 
 def _owner_of(proposal: Optional[Dict], dataset_id: str, owners) -> Optional[str]:
