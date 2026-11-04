@@ -569,6 +569,12 @@ the `driver_check` spot-check on non-golden anomalies before the golden re-run.
   driver *on* a holiday or weekend. Built as: a clear driver gets notify_owner even then, because the
   calendar explains a change spread in proportion, not one segment moving out of it.
   **Confirmed by Kousik (2026-11-04):** a clear driver notifies its owner even on a holiday or weekend.
+- **g01 relabelled by Kousik (2026-11-04):** `notify_owner` / `regional-sales` → `annotate_anomaly`
+  (category `data_issue`), no owner. Evidence, from the warehouse and independent of the model: Olist's
+  last weeks taper from ~275 orders/day (Aug 1–20) to 11 on 2018-08-29 and 1 on 2018-09-03, with no
+  data after, the export's cut-off. Disclosed when proposed: the relabel will likely raise the score
+  (rule 3 annotates a proportional change with no calendar cause, and the grader checks the action,
+  not the category). The 0.8 target is unchanged.
 - Token budget: wide datasets send 3 contributors per dimension; the calendar's long `source`
   citation stays in the stored evidence but not the prompt. Measured prompts: Superstore g12
   10,354 → 10,124 chars (~2.5k tokens), Olist g03 6,137 → 7,005 chars. So the new fields fit without

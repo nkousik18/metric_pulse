@@ -5,6 +5,24 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-04 (night) — PRs #40 and #41 merged; two label/design decisions
+
+**What happened:** Kousik merged PR #40 (§14 scope) and PR #41 (§14 calendar + §14.8 driver check;
+CI green). Two decisions recorded in scope §14.9: (1) a clear driver notifies its owner even on a
+holiday or weekend; (2) g01 relabelled to `annotate_anomaly` / `data_issue`, no owner, because the
+warehouse shows Olist's export tapering to 1 order on 2018-09-03 with nothing after. The relabel will
+likely raise the score; that was said before he chose it. Target unchanged at 0.8.
+
+**State:** A5 not checked, no action baseline. Golden labels pass `--check`.
+
+**Next:** one golden + adversarial run on a clean tree, on a day with gpt-oss-120b quota and not the
+same day as the A7 drift run. Check A5 only at ≥ 0.8 with 0 bypasses.
+
+**Loose ends:** d04 (2018-08-25, detection label "event") sits in the same tapering tail; Investigation
+Golden Case #1 (2018-09-03, expected geography / SP) is the same day. Both are Kousik's to revisit.
+
+---
+
 ## 2026-11-04 (evening) — §14.8 driver check built; golden re-run not yet done
 
 **What happened:** Read the 5 missed A5 cases' LangSmith traces (each one 20b call, grounded, no
