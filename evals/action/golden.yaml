@@ -36,9 +36,9 @@
     - 'Credit Card: +106.6% of change (1,701.41 -> 0.00)'
     - 'Voucher: -6.6% of change (61.29 -> 166.46)'
   owner_if_top_driver: payments-team (payment / Credit Card)
-  expected_action: notify_owner
-  expected_owner: regional-sales
-  notes: null
+  expected_action: annotate_anomaly
+  expected_owner: null
+  notes: "Relabelled 2026-11-04 (was notify_owner / regional-sales). The end of Olist's export: orders taper from ~275/day (Aug 1-20) to 11 on 08-29 and 1 on 09-03, with nothing after. Every segment falls in proportion: missing data, not a regional problem. Tag it as a data issue; paging sales would be noise."
 - id: g02
   dataset_id: olist
   metric: total_revenue
