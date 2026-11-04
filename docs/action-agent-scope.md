@@ -483,3 +483,76 @@ retail events only, no state holidays and no Carnival; (3) add the `calendar_eve
 - Cost note: the calendar block makes prompts larger. Two Superstore cases had 20b give an empty
   citation, and the 120b retry was skipped because it no longer fit the 10k token budget, so they fell
   back. The fallback happened to match the labels.
+
+### 14.8 Proposed: "drives the change" measured against normal share (2026-11-04, awaiting Kousik's approval)
+
+**What the traces show** (LangSmith, the 5 misses at 45cb74e; each was one 20b call that grounded,
+so no retry or fallback was involved):
+
+| Case | What the model read | Top segment: share of the change vs. share of the previous day |
+|---|---|---|
+| g03, g08 | Saw Black Friday at −1 day, then "Credit Card contributed 77.5% → one segment drives it" → notify | Credit Card 77.5% vs. 81.5% (g03), 78.7% vs. 80.8% (g08): exactly in line with its size |
+| g05 | Read `weekday_class_changed: true` but "no events → no holiday" → notify | Credit Card 87.8% vs. ~80% |
+| g09 | Saw Black Friday at −3, then "South contributed 138.5%" → notify regional-sales | Net change +3.4% (11 orders); regions offset (South +138.5%, Southeast −130.8%) |
+| g01 | No calendar event → notify payments-team; the label is regional-sales | Credit Card 106.6% vs. ~97%; geography is also in line with share (Southeast 68% vs. 71%) |
+
+The hypothesis in §14.7 holds for g03, g05 and g08: rule 3's "one segment clearly drives the change"
+is judged from `contribution_pct` alone, and on Olist that is always Credit Card at ~80% because Credit
+Card is ~80% of the volume. g09 is a different failure: a tiny net change makes contribution
+percentages explode (dividing by ~11 orders), so offsetting segments look like drivers. g05 also shows
+the model treating "weekly pattern" as "an event", which rule 3's wording invites.
+
+**What's added to the evidence** (deterministic, computed from `decompose_metric`'s existing
+`total_previous`, no new query):
+- Per contributor: `share_of_previous_pct` = previous_value / dimension total_previous × 100, and
+  `excess_pct` = contribution_pct − share_of_previous_pct. A segment that moved with everything else has
+  excess near 0; one that moved out of proportion has a large excess.
+- A top-level `driver_check`, computed in code, not by the model:
+  `{clear_driver: {dimension, segment, contribution_pct, excess_pct} | null, reason}`.
+  A clear driver is a segment with `contribution_pct ≥ 50` **and** `excess_pct ≥ 15`, and none is
+  reported when `|total_change_pct| < 10` (contribution shares of a near-zero change aren't
+  meaningful). `reason` is one of `driver`, `proportional`, `small_net_change`.
+
+**Rule 3 becomes:** "Read `driver_check` first. If `clear_driver` is set and the calendar shows no
+cause, use notify_owner for that segment. If it is null, the change is spread across segments in
+proportion to their size: use annotate_anomaly when the calendar shows an event on or next to the date
+(category holiday or promotion, with calendar_event) or `weekday_class_changed` is true (category
+seasonal); use suppress_alerts for a return to normal right after an event or for a small net change;
+otherwise annotate_anomaly with category other. Never notify an owner only because a segment is the
+largest." The policy check is unchanged, and so are the tiers: annotate stays T1.
+
+**What it is expected to do, checked by hand against the golden evidence, not measured:**
+g02, g03, g05, g06, g07, g08 → no clear driver (no segment is both ≥ 50% of the change and ≥ 15 points
+over its share; Auto & Tools over-indexes in g05 (~+25) and g06 (~+15) but is under 30% of the change);
+g09 → `small_net_change`; g04 → clear driver Credit Card (103.5% of the change vs. ~79% share, +24), so
+it still gets a notify; Superstore g10–g15 accept annotate or notify either way. g01 is not fixed: with
+everything in line with share it would become an annotation, and its label is notify regional-sales.
+Expected ceiling: 14/15 if the model follows the field. That is a prediction for the run to confirm.
+
+**Overfitting, disclosed:** the 50/15/10 thresholds were chosen while looking at the golden evidence.
+To keep that honest: (1) the thresholds are committed before the re-run and not tuned after it; (2) the
+same `driver_check` is run over the 12 A3 probe anomalies and the detection-labelled dates outside the
+golden set, and its verdicts are listed in the PR for Kousik to spot-check before the LLM re-run;
+(3) BUG_LOG/decision log record that they were set with the golden set in view.
+
+**The token budget, fixed first so the score measures the model:** the extra fields grow the prompt
+again, and the last run already lost two 120b retries to the 10k `ACTION_TOKEN_BUDGET`. Either
+(a) send 3 contributors per dimension instead of 5 when a dataset has more than 3 dimensions
+(Superstore has 9), or (b) raise the budget. Recommended: (a), which keeps the per-run cost cap.
+
+**How it's judged:** same as §14.4. Labels and the 0.8 target unchanged; adversarial 0 bypasses and
+10/10 held; the calendar probe still rejects; unit tests for `driver_check` (proportional,
+over-indexed, small-net-change, offsetting, zero-total), no mocks; the A3 probe mustn't regress
+grounding. One golden + adversarial run, on a day the A7 drift run isn't using 120b.
+
+**Decisions for Kousik:**
+1. Approve §14.8 as written, or change it.
+2. Thresholds: 50% contribution / 15-point excess / 10% net change, or other values.
+3. Token budget: fewer contributors for wide datasets (recommended) or raise `ACTION_TOKEN_BUDGET`.
+4. g01: it stays a miss under this design. Keep the label (accept ≤ 14/15), or revisit it separately.
+
+**Estimate:** ~3h. Tracked under A5.
+
+**Kousik's answers (2026-11-04):** (1) §14.8 approved; (3) wide datasets get fewer contributors, not
+a bigger budget; (4) g01 is revisited separately, not in this change; (2) keep 50 / 15 / 10, with
+the `driver_check` spot-check on non-golden anomalies before the golden re-run.
