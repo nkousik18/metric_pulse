@@ -5,6 +5,25 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-04 — A5 decision: Kousik relabels the 8 misses
+
+**What happened:** Of the three options for the failed A5 gate, Kousik chose to relabel, keeping
+the 0.8 target. He was shown the 8 misses with the model's proposals. All were `notify_owner`, aimed
+at the top driver's owner: payments-team, except g09 at regional-sales. g01 is an owner disagreement.
+He's editing `evals/action/golden.yaml` himself. Nothing else changed.
+
+**Next:** when he says the relabel is done:
+1. Diff `evals/action/golden.yaml` against main. Tag each changed case
+   `relabelled: after seeing the model's proposal (2026-11-04)`.
+2. `python -m action_agent.golden --check`, then commit the labels.
+3. On the clean tree: `LANGSMITH_TRACING=true python -m action_agent.eval --sets golden`
+   (needs 12/15). If it reaches 0.8 with no idempotency violations, accept the action baseline
+   from that ledger row and check A5.
+4. Separately, on a day with nothing else on gpt-oss-120b first (200k tokens/day cap):
+   `python -m observability.drift`. If it's clean, check A7.
+
+---
+
 ## 2026-11-03 (late) — First labelled eval runs: A5 gate fails, a Phase 1 bug, Groq's daily cap
 
 **What happened:** Kousik finished all three label files and decided: onboarding validation does
