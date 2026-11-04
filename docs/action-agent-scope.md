@@ -556,3 +556,39 @@ grounding. One golden + adversarial run, on a day the A7 drift run isn't using 1
 **Kousik's answers (2026-11-04):** (1) §14.8 approved; (3) wide datasets get fewer contributors, not
 a bigger budget; (4) g01 is revisited separately, not in this change; (2) keep 50 / 15 / 10, with
 the `driver_check` spot-check on non-golden anomalies before the golden re-run.
+
+### 14.9 As built (2026-11-04, not yet run against the golden set)
+- `action_agent/driver_check.py`: `driver_check()` and `annotate_contributors()`, pure, thresholds
+  50 / 15 / 10 as constants. A share is undefined (so never a driver) when the dimension's previous
+  total isn't positive, e.g. a profit that was negative the day before. With several qualifying
+  segments, the largest excess wins.
+- `llm_proposer.py`: each contributor carries `share_of_previous_pct` and `excess_pct` (the raw
+  `change` field is dropped; it's current − previous); the block carries `driver_check` (without its
+  thresholds); rule 3 rewritten as above. **One addition to the approved wording, for Kousik to
+  confirm:** §14.8 said what to do with a driver and no calendar cause, and with no driver, but not a
+  driver *on* a holiday or weekend. Built as: a clear driver gets notify_owner even then, because the
+  calendar explains a change spread in proportion, not one segment moving out of it.
+- Token budget: wide datasets send 3 contributors per dimension; the calendar's long `source`
+  citation stays in the stored evidence but not the prompt. Measured prompts: Superstore g12
+  10,354 → 10,124 chars (~2.5k tokens), Olist g03 6,137 → 7,005 chars. So the new fields fit without
+  growing the Superstore prompt, but this does **not** by itself make room for a 120b retry: a retry
+  reserves 4,096 output tokens, and whether it fits the 10k budget depends on what the first attempt
+  used. The next run's `fallback_rate` shows whether it still happens.
+- **Spot-check (no LLM), `driver_check` on the real evidence:**
+  - Golden: g04 → driver (payment / Credit Card, 103.5% of the change vs. 79.3% share, +24.2);
+    g01, g02, g03, g05, g06, g07, g08 → proportional; g09 → small_net_change; Superstore g10, g11,
+    g12, g14, g15 → driver, g13 → proportional (negative previous profit). As predicted.
+  - Outside the golden set (the A3 probe dates not already golden, and detection-labelled dates):
+    | Date | Metric | Days | Net | Verdict | Detection label |
+    |---|---|---|---|---|---|
+    | 2017-11-26 | olist order_count | Sat→Sun, Black Friday −2 | −22.3% | proportional | (probe) |
+    | 2009-10-20 | superstore sales | Mon→Tue | +641.6% | driver: Large Box (78.3% vs. 0.7%) | (probe) |
+    | 2017-01-26 | olist order_count | Wed→Thu | +35.5% | driver: South (50.0% vs. 14.5%) | d01, event |
+    | 2018-01-18 | olist order_count | Wed→Thu | −15.6% | driver: Credit Card (109.3% vs. 79.3%) | d03, not an event |
+    | 2018-08-25 | olist order_count | Fri→Sat | −28.9% | driver: product Other (73.3% vs. 37.0%) | d04, event |
+    | 2017-08-29 | olist total_revenue | Mon→Tue | +45.2% | driver: Electronics (114.8% vs. 24.4%) | d05, event |
+    | 2017-11-20 | olist total_revenue | Sun→Mon | +114.5% | proportional | d06, event |
+    | 2017-12-17 | olist total_revenue | Sat→Sun | −3.5% | small_net_change | d08, not an event |
+  - Points for Kousik: d01's South sits exactly on the 50% line; d04 is a driver on a weekend (the
+    addition above decides it: notify); d03 is a driver on a day labelled "not an event" (the detector
+    decides whether to alert at all; this only decides who hears about it).

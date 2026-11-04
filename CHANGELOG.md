@@ -7,6 +7,10 @@ planned but not yet shipped, and `docs/project/SESSION_LOG.md` for session-by-se
 ## 2026-11-04
 
 ### Changed
+- The Action Agent no longer pages an owner just because their segment is the biggest. It now
+  compares each segment's share of a change with its normal share of volume, so Credit Card (most of
+  Olist's sales) moving with everything else on Black Friday reads as a broad change to tag, not a
+  payments problem. A segment that moved out of proportion still gets its owner notified.
 - The Action Agent now knows the calendar. Its evidence shows the weekday of the anomaly and of the
   day it's compared with, and any national holiday or retail event (Black Friday, Mother's Day, ...)
   on or within three days of it, from a fixed calendar per dataset. It tags known-cause anomalies

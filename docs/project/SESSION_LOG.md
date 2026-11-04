@@ -5,6 +5,34 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-04 (evening) — §14.8 driver check built; golden re-run not yet done
+
+**What happened:** Read the 5 missed A5 cases' LangSmith traces (each one 20b call, grounded, no
+fallback). g03, g05, g08: the model treated Credit Card's ~80% of the change as "one segment drives
+it", though that's just its ~80% of volume. g09: a +3.4% net change made offsetting regions look like
+drivers. g01: the owner disagreement. Kousik approved scope §14.8 (thresholds 50 / 15 / 10; fewer
+contributors for wide datasets instead of a bigger budget; g01 revisited separately). Built
+`action_agent/driver_check.py`, the share/excess fields and `driver_check` in the proposer's evidence,
+rule 3 rewritten, Superstore trimmed to 3 contributors per dimension, calendar `source` kept out of the
+prompt. 11 new tests, 369 passing. Spot-check (no LLM) in scope §14.9: golden verdicts as predicted
+(g04 the only Olist driver, g09 small_net_change, g01 proportional).
+
+**Decisions:** Kousik's §14.8 answers above. One addition for him to confirm: a clear driver gets
+notify_owner even on a holiday or weekend (§14.9).
+
+**State:** branch `feat/proposer-calendar-context`, not pushed. PR #40 still open (CI green); the
+merge was blocked by the permission system, so Kousik runs `gh pr merge 40 --squash --delete-branch`.
+A5 not checked; no action baseline.
+
+**Next:** Kousik reviews the §14.9 spot-check and the driver-on-a-holiday addition; merge PR #40,
+rebase this branch, open its PR; then one golden + adversarial run on a clean tree on a day the A7
+drift run isn't using gpt-oss-120b (today's quota was already used). A5 checks only at ≥ 0.8.
+
+**Loose ends:** g01's label (likely a data-completeness day at the end of Olist's data); whether the
+Superstore 120b retry now fits the 10k budget (the run's fallback_rate will show).
+
+---
+
 ## 2026-11-04 (later) — Built §14 calendar context; A5 re-run 0.67, gate still fails
 
 **What happened:** Kousik approved §14 with the `calendar_event` policy check, and no state holidays
