@@ -24,6 +24,10 @@ from action_agent.runner import ActionAgent  # noqa: E402
 
 from tests.test_action_policy import CITATION, EVIDENCE  # noqa: E402
 
+# 2018-09-07 is Brazil's Independence Day in the committed olist calendar, which ActionAgent.start
+# attaches (§14), so this annotation is calendar-grounded on that date and on no other nearby date.
+HOLIDAY = {'category': 'holiday', 'cause': 'Independence Day', 'calendar_event': 'Independence Day'}
+HOLIDAY_DATE = '2018-09-07'
 TOP_DRIVER = {'dimension': 'payment', 'segment': 'Credit Card', 'contribution_pct': 107.1}
 OWNERS = OwnersConfig.model_validate({
     'default_owner': 'oncall', 'people': {'oncall': {'name': 'On-Call', 'email': 'oncall@example.com'}},
@@ -114,9 +118,9 @@ def test_t0_auto_executes_without_approval(tmp_path):
     catalog = {**CATALOG, 'annotate_anomaly': replace(CATALOG['annotate_anomaly'], tier=Tier.T0)}
     agent = ActionAgent(actions_db=tmp_path / 'a.db', checkpoints_db=tmp_path / 'c.db', owners=OWNERS,
                         executors={k: rec for k in catalog}, now_fn=Clock(), catalog=catalog,
-                        proposer_fn=_proposer('annotate_anomaly', {'category': 'holiday', 'cause': 'Independence Day'}))
+                        proposer_fn=_proposer('annotate_anomaly', HOLIDAY))
     try:
-        result = _start(agent)
+        result = _start(agent, HOLIDAY_DATE)
         assert result['status'] == 'executed'
         assert _events(agent, result['proposal_id']) == ['proposed', 'policy_passed', 'executed']
         assert len(rec.calls) == 1
@@ -127,9 +131,33 @@ def test_t0_auto_executes_without_approval(tmp_path):
 
 def test_annotate_now_waits_for_approval(env):
     factory, rec, _ = env
-    agent = factory(_proposer('annotate_anomaly', {'category': 'holiday', 'cause': 'Independence Day'}))
-    result = _start(agent)
+    agent = factory(_proposer('annotate_anomaly', HOLIDAY))
+    result = _start(agent, HOLIDAY_DATE)
     assert result['status'] == 'awaiting_approval' and rec.calls == []
+
+
+def test_holiday_annotation_off_calendar_is_rejected(env):
+    """§14.3: the same 'Independence Day' annotation four days early names no calendar entry
+    within ±3 days, so policy rejects it before any approver sees it."""
+    factory, rec, _ = env
+    agent = factory(_proposer('annotate_anomaly', HOLIDAY))
+    result = _start(agent, '2018-09-03')
+    assert result['status'] == 'policy_rejected' and rec.calls == []
+    assert 'calendar_event' in result['policy']['errors'][0]
+
+
+def test_caller_supplied_calendar_is_replaced_by_the_trusted_one(env):
+    """A calendar smuggled in with the evidence (e.g. claiming Carnival) is discarded: start()
+    always recomputes it from the committed file."""
+    factory, rec, _ = env
+    fake = {'events_on_date': [{'date': '2018-09-03', 'name': 'Carnival', 'kind': 'holiday'}], 'events_nearby': []}
+    agent = factory(_proposer('annotate_anomaly', {'category': 'holiday', 'cause': 'Carnival',
+                                                   'calendar_event': 'Carnival'}))
+    result = agent.start(dataset_id='olist', metric='total_revenue', anomaly_date='2018-09-03',
+                         evidence={**EVIDENCE, 'calendar': fake}, narrative_summary='x', top_driver=TOP_DRIVER)
+    assert result['status'] == 'policy_rejected' and rec.calls == []
+    stored = agent.store.get_proposal(result['proposal_id'])['evidence']['calendar']
+    assert stored['events_on_date'] == [] and stored['weekday'] == 'Monday'
 
 
 def test_policy_rejected_proposal_is_logged_and_never_reaches_approver(env):

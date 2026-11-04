@@ -37,6 +37,8 @@ approval to idempotent execution and an append-only log. Local-only (scope doc �
 | `store.py` | `ActionStore` over `actions.db`: insert-only `proposals` (UNIQUE `anomaly_id`), trigger-enforced append-only `action_log`, effect tables. |
 | `executors.py` | `LocalStoreExecutor` (annotate/suppress/control → effect tables), `NotifierExecutor` (notify_owner → `alerting.notifier`), `GitHubIssueExecutor` + `GitHubClient` (open_incident, `--live` only), `SimulatedExecutor`, `RecordingExecutor` (tests), `default_executors(store, live)`. |
 | `hooks.py` | What local pipeline runs read: `pipeline_suppression()` (D3) and `evaluate_controls()` (D4/F4). |
+| `driver_check.py` | Scope §14.8: `driver_check(evidence)` decides in code whether one segment is worth paging its owner about: it must be ≥ 50% of the change **and** ≥ 15 points above its share of the previous day (`excess_pct`), and none is reported when the net change is under 10%. `annotate_contributors()` adds `share_of_previous_pct` and `excess_pct` to each contributor. The proposer's evidence block carries both; wide datasets (> 3 dimensions) send 3 contributors per dimension instead of 5, but `driver_check` always sees all of them. |
+| `event_calendar.py` / `calendars/` | Scope §14: the trusted per-dataset calendar (`calendars/<dataset_id>.yaml`, generated from holiday law and date rules by `--write`, verified by `--check`), `calendar_context()` (weekdays, events on the date and within ±3 days with offsets) and `attach_calendar()`. A dataset with no file gets weekdays only. |
 | `evidence.py` | `build_case()`: an anomaly's evidence, built exactly as the pipeline builds it, for Olist or an onboarded dataset. Used by `propose` and `probe.py`. |
 | `graph.py` | `build_action_graph()`: the §5 flow, compiled with a checkpointer. |
 | `runner.py` | `ActionAgent`: wires store + `SqliteSaver` + executors + LangSmith run config; `start`, `decide`, `undo`, `pending`, `waiting_on`. `live=True` allows effects outside this machine. |
@@ -50,7 +52,7 @@ approval to idempotent execution and an append-only log. Local-only (scope doc �
 
 | Action | Tier | Reversible | Params |
 |---|---|---|---|
-| `annotate_anomaly` | T1 (T0 until A5) | yes | `category`, `cause` — tag only, no alerting effect |
+| `annotate_anomaly` | T1 (T0 until A5) | yes | `category`, `cause`, `calendar_event` (optional, §14) — tag only, no alerting effect |
 | `suppress_alerts` | T1 | yes | `days` (1–7), `reason` |
 | `notify_owner` | T1 | no | `dimension`, `segment` |
 | `open_incident` | T1 | yes | `dimension`, `segment`, `title`, `severity` |
@@ -70,6 +72,11 @@ Range checks beyond the per-field bounds:
   injected segment name) from targeting a segment the evidence doesn't contain.
 - `create_control.threshold` must be within 10× either side of the segment's observed value,
   `max(current_value, previous_value)`. A segment with zero volume on both days is rejected.
+- Calendar grounding (§14): `annotate_anomaly` with category `holiday` or `promotion` must set
+  `calendar_event` to the name of an entry in `evidence['calendar']` (on the date or within ±3
+  days); any `calendar_event` given must be one; `seasonal` needs `weekday_class_changed`. No
+  calendar in the evidence fails closed. `ActionAgent.start` always recomputes the calendar from
+  the committed file, so a caller can't supply one.
 - Numeric params are strict: `true`, `"3"` and `3.0` are not accepted as an integer day count.
 
 `catalog` is a parameter so tests can inject a T2 entry. Dependency injection, not a mock.

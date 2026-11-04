@@ -19,6 +19,7 @@ from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.types import Command
 
 from action_agent.catalog import CATALOG
+from action_agent.event_calendar import CALENDAR_DIR, attach_calendar
 from action_agent.executors import default_executors
 from action_agent.graph import build_action_graph, default_approver
 from action_agent.owners import OwnersConfig, load_owners
@@ -58,10 +59,13 @@ class ActionAgent:
         live: bool = False,
         outbox_dir=None,
         catalog=None,
+        calendar_dir=CALENDAR_DIR,
     ):
         """live: allow effects outside this machine (a real GitHub issue, a non-outbox notifier
-        channel). Off by default; the CLI's --live turns it on (§9)."""
+        channel). Off by default; the CLI's --live turns it on (§9).
+        calendar_dir: where the trusted per-dataset calendars live (§14); injectable for tests."""
         self.now_fn = now_fn
+        self.calendar_dir = calendar_dir
         self.store = ActionStore(actions_db or settings.ACTIONS_DB_PATH)
         if executors is None:
             executors = default_executors(self.store, live=live, outbox_dir=outbox_dir)
@@ -96,7 +100,9 @@ class ActionAgent:
         )
         result = self.graph.invoke({
             'proposal_id': proposal_id, 'trace_id': str(run_id), 'dataset_id': dataset_id,
-            'metric': metric, 'anomaly_date': anomaly_date, 'evidence': to_plain(evidence),
+            'metric': metric, 'anomaly_date': anomaly_date,
+            # §14: the calendar always comes from the trusted file, whatever the caller passed.
+            'evidence': attach_calendar(to_plain(evidence), dataset_id, anomaly_date, self.calendar_dir),
             'narrative_summary': narrative_summary, 'top_driver': to_plain(top_driver),
         }, config)
         return self._summarize(proposal_id, result, run_id)

@@ -13,6 +13,7 @@ from typing import Dict, List, Optional
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+from action_agent.event_calendar import attach_calendar  # noqa: E402
 from action_agent.identity import OLIST_DATASET_ID  # noqa: E402
 from action_agent.runner import to_plain  # noqa: E402
 from config.db import get_connection  # noqa: E402
@@ -62,6 +63,7 @@ def build_case(dataset_id: str, metric: str, target_date: Optional[str] = None) 
         kwargs['dimension_config'] = cfg['dimension_config']
     evidence = to_plain(decompose_metric(current, previous, metric, **kwargs))
     require_decomposable(evidence, dataset_id, metric)
+    evidence = attach_calendar(evidence, dataset_id, current)   # §14; ActionAgent.start recomputes it too
     return {'dataset_id': dataset_id, 'metric': metric, 'anomaly_date': current,
             'evidence': evidence, 'narrative_summary': generate_narrative(evidence)['summary'],
             'top_driver': to_plain(get_top_driver(evidence))}

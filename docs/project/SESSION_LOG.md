@@ -5,6 +5,64 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-04 (evening) — §14.8 driver check built; golden re-run not yet done
+
+**What happened:** Read the 5 missed A5 cases' LangSmith traces (each one 20b call, grounded, no
+fallback). g03, g05, g08: the model treated Credit Card's ~80% of the change as "one segment drives
+it", though that's just its ~80% of volume. g09: a +3.4% net change made offsetting regions look like
+drivers. g01: the owner disagreement. Kousik approved scope §14.8 (thresholds 50 / 15 / 10; fewer
+contributors for wide datasets instead of a bigger budget; g01 revisited separately). Built
+`action_agent/driver_check.py`, the share/excess fields and `driver_check` in the proposer's evidence,
+rule 3 rewritten, Superstore trimmed to 3 contributors per dimension, calendar `source` kept out of the
+prompt. 11 new tests, 369 passing. Spot-check (no LLM) in scope §14.9: golden verdicts as predicted
+(g04 the only Olist driver, g09 small_net_change, g01 proportional).
+
+**Decisions:** Kousik's §14.8 answers above. One addition for him to confirm: a clear driver gets
+notify_owner even on a holiday or weekend (§14.9).
+
+**State:** branch `feat/proposer-calendar-context`, not pushed. PR #40 still open (CI green); the
+merge was blocked by the permission system, so Kousik runs `gh pr merge 40 --squash --delete-branch`.
+A5 not checked; no action baseline.
+
+**Next:** Kousik reviews the §14.9 spot-check and the driver-on-a-holiday addition; merge PR #40,
+rebase this branch, open its PR; then one golden + adversarial run on a clean tree on a day the A7
+drift run isn't using gpt-oss-120b (today's quota was already used). A5 checks only at ≥ 0.8.
+
+**Loose ends:** g01's label (likely a data-completeness day at the end of Olist's data); whether the
+Superstore 120b retry now fits the 10k budget (the run's fallback_rate will show).
+
+---
+
+## 2026-11-04 (later) — Built §14 calendar context; A5 re-run 0.67, gate still fails
+
+**What happened:** Kousik approved §14 with the `calendar_event` policy check, and no state holidays
+or Carnival. Built on `feat/proposer-calendar-context`: `action_agent/event_calendar.py` plus
+generated, committed calendars (Olist: Brazilian national holidays and retail dates 2016–2018;
+Superstore: Canadian federal holidays and Black Friday 2009–2012). The calendar is attached in
+`build_case` and always recomputed in `ActionAgent.start`. Rule 3 rewritten; policy rejects a
+holiday/promotion annotation unless it names a nearby calendar entry, and a seasonal one without a
+weekday/weekend change. The added adversarial case became a deterministic safety probe
+(`uncalendared_holiday`, scope §14.6). Calendars committed (45cb74e) before the golden re-run.
+2 bugs (BUG_LOG A5-5 Victoria Day rule, A5-6 probe status), both found before merge. 25 new tests,
+suite 358.
+
+**Result (clean tree, LangSmith on):** `action_match_rate` **0.67 (10/15)**, up from 0.47, so the
+**gate still fails**. Safety all pass: 0 unauthorized of 20, 0 bypasses, 10/10 held, idempotency 0,
+calendar injection rejected. Grounding 15/15. g04 still notify (good). Misses: g03/g08/g09 (days
+around Black Friday), g05 (Monday vs Sunday), g01 (owner). Hypothesis: Credit Card's ~80% share
+reads as "one segment drives it", so rule 3 still picks notify. Not yet verified in the traces. No
+baseline set. A5 not checked.
+
+**Also:** Superstore prompts grew; two 120b escalations were skipped by the 10k token budget (fell
+back, which happened to match). This run used 120b quota, so the A7 drift run moves to another day.
+
+**Next:** (1) Kousik decides how to handle the remaining 4 known-cause misses (e.g. compare each
+segment's change with its normal share), or accepts 0.67 for now. Don't move the target or the
+labels. (2) PR for this branch, stacked on #40. (3) A7: `python -m observability.drift` on a fresh
+120b day.
+
+---
+
 ## 2026-11-04 — A5 decision: fix the proposer, not the labels
 
 **What happened:** For the failed A5 gate (0.47 vs 0.8), Kousik first chose to relabel the 8
