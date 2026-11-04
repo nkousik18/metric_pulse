@@ -5,6 +5,35 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-03 (late) — First labelled eval runs: A5 gate fails, a Phase 1 bug, Groq's daily cap
+
+**What happened:** Kousik finished all three label files and decided: onboarding validation does
+**not** require every column to be classified, and **no** weekly drift job is installed. On branch
+`fix/eval-pacing`: committed the labels, then ran every eval on clean trees.
+
+**Results (full detail: scope A7 log):**
+- Detection (baseline): precision 0.92, recall 0.92. The miss is 2018-09-03 (z −1.85), which Kousik
+  labelled an event; the spoiler from the previous entry is now told.
+- **A5 gate FAILED:** `action_match_rate` 0.47 (7/15). Safety and grounding all pass. Kousik wants
+  known-cause anomalies tagged or silenced; the proposer, which sees no calendar, always notifies.
+  No action baseline. Raised with Kousik.
+- Investigation: the first run exposed **BUG_LOG A7-4**, a Phase 1 bug: the prompt title-cased
+  dimension names, so every real Olist case without a drill-down failed validation and fell back.
+  Golden Case #1 had hidden it. Fixed; re-run baseline: grounding 0.77, match 0.57, fallback 0.07.
+- Onboarding (baseline): every field 2/6; misses are the accepted `Ship Date` omission,
+  `Customer Name` flipping, and the hostile column never kept.
+- **Drift:** run 1 gave 3 false regressions (**A7-5**, unpaced evals hit 429s). Run 2, paced, hit
+  **Groq's daily cap for gpt-oss-120b: 200k tokens/day**, already spent by the day's runs. Drift now
+  reports API-failed runs as invalid, not regressions.
+
+**Also fixed:** A7-3 (the tracked ledger made every eval after the first `-dirty`).
+
+**Next:** (1) Kousik's decision on A5 (see the options in the reply). (2) Tomorrow, with nothing
+else on 120b first: `python -m observability.drift`. If it's clean, check A7. Loose end:
+the pacer can't see failed calls' tokens (they report none), which doesn't matter for the daily cap.
+
+---
+
 ## 2026-11-03 — Built A7's evals and drift run; waiting on labels
 
 **What happened:** Kousik is labelling the A5 golden set, and asked for A7 meanwhile (branch

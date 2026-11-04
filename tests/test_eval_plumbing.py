@@ -362,3 +362,14 @@ def test_investigation_reports_api_errors_apart_from_quality():
             {'outcome': 'grounded_first_attempt', 'golden_match': True, 'uncertainty_ok': True}]
     m = inv_metrics(rows)
     assert m['fallback_rate']['num'] == 2 and m['api_error_rate']['num'] == 1
+
+
+def test_a_run_with_api_failures_is_invalid_not_a_regression():
+    rows = [{'eval': 'investigation', 'ts': 't', 'git_sha': 'b',
+             'metrics': {'golden_match_rate': shared.rate(1, 30), 'api_error_rate': shared.rate(29, 30)}},
+            {'eval': 'onboarding', 'ts': 't', 'git_sha': 'b', 'metrics': {'api_errors': shared.count(6, 6)}}]
+    base = {'investigation': {'git_sha': 'a', 'metrics': {'golden_match_rate': 0.57}}}
+    text, n = drift_report(rows, base, ran=['investigation'], failed={})
+    assert 'Regressions (0)' in text and 'Invalid runs, not compared (2)' in text
+    assert 'investigation: 29 API call(s) failed' in text and 'onboarding: 6 API call(s) failed' in text
+    assert n == 2      # still a non-zero exit: nothing was actually checked

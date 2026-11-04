@@ -82,6 +82,15 @@ def runners(investigation_runs: int) -> Dict[str, Callable[[], None]]:
     return {'detection': detection, 'onboarding': onboarding, 'investigation': investigation, 'action': action}
 
 
+def api_failures(row: Dict) -> int:
+    """How many of a row's LLM calls failed at the API (0 for evals that don't record it)."""
+    m = row.get('metrics', {})
+    for key in ('api_errors', 'api_error_rate'):
+        if key in m and m[key].get('num'):
+            return int(m[key]['num'])
+    return 0
+
+
 def latest_rows(rows: List[Dict]) -> Dict[str, Dict]:
     out = {}
     for row in rows:
@@ -93,10 +102,16 @@ def drift_report(rows: List[Dict], baselines: Dict[str, Optional[Dict]], ran: Li
                  failed: Dict[str, str]) -> Tuple[str, int]:
     """(report text, regression count). Pure: rows and baselines are passed in."""
     latest = latest_rows(rows)
-    regressions, steady, lines = [], [], []
+    regressions, steady, lines, invalid = [], [], [], []
     for name in EVALS:
         row = latest.get(name)
         if row is None:
+            continue
+        api = api_failures(row)
+        if api:
+            # A run whose LLM calls failed (rate limit, daily quota, network) measured the API, not the
+            # model: its quality numbers aren't comparable, so it can't regress anything (BUG_LOG A7-5).
+            invalid.append((name, api, row))
             continue
         deltas = shared.compare(row['metrics'], baselines.get(name), **directions(name))
         for metric, d in deltas.items():
@@ -106,6 +121,11 @@ def drift_report(rows: List[Dict], baselines: Dict[str, Optional[Dict]], ran: Li
     lines.append(f"Drift report — {shared.now_iso()} — ran: {', '.join(ran) or 'nothing (report only)'}")
     for name, err in failed.items():
         lines.append(f'   {name}: FAILED to run: {err}')
+    if invalid:
+        lines.append(f'\nInvalid runs, not compared ({len(invalid)}):')
+        for name, api, row in invalid:
+            lines.append(f"   {name}: {api} API call(s) failed [git {row.get('git_sha')}, {row.get('ts')}]; "
+                         f"re-run when the API is available (Groq's daily cap: see evals/README.md)")
     lines.append(f'\nRegressions ({len(regressions)}):')
     for name, metric, d, row in regressions:
         lines.append(f"   {name}.{metric}: {d['baseline']} -> {row['metrics'][metric]['value']} ({d['delta']:+})"
@@ -125,7 +145,7 @@ def drift_report(rows: List[Dict], baselines: Dict[str, Optional[Dict]], ran: Li
             if m.get('value') is None:
                 continue
             lines.append(f'      {shared.fmt(metric, m)}')
-    return '\n'.join(lines), len(regressions)
+    return '\n'.join(lines), len(regressions) + len(invalid)
 
 
 LAUNCHD = """<?xml version="1.0" encoding="UTF-8"?>
