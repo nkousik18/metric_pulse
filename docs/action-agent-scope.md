@@ -568,6 +568,7 @@ the `driver_check` spot-check on non-golden anomalies before the golden re-run.
   confirm:** §14.8 said what to do with a driver and no calendar cause, and with no driver, but not a
   driver *on* a holiday or weekend. Built as: a clear driver gets notify_owner even then, because the
   calendar explains a change spread in proportion, not one segment moving out of it.
+  **Confirmed by Kousik (2026-11-04):** a clear driver notifies its owner even on a holiday or weekend.
 - Token budget: wide datasets send 3 contributors per dimension; the calendar's long `source`
   citation stays in the stored evidence but not the prompt. Measured prompts: Superstore g12
   10,354 → 10,124 chars (~2.5k tokens), Olist g03 6,137 → 7,005 chars. So the new fields fit without
