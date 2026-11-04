@@ -180,7 +180,7 @@ def failing(results: list) -> list:
 
 
 def report(results: list, skipped: list, metrics: dict, baseline, context: dict) -> str:
-    deltas = shared.compare(metrics, baseline, lower_is_better=('human_review_rate',))
+    deltas = shared.compare(metrics, baseline, safety=('api_errors',), lower_is_better=('human_review_rate',))
     lines = [f"Onboarding eval — {context['ts']} — {len(context['datasets'])} datasets x "
              f"{context['runs_per_dataset']} runs"
              + (f" ({', '.join(skipped)} skipped: input missing)" if skipped else ''),
@@ -222,26 +222,38 @@ def main(argv=None) -> None:
     parser.add_argument('--no-ledger', action='store_true')
     args = parser.parse_args(argv)
 
-    results, skipped = [], []
+    results, skipped, errors = [], [], []
+    pacer = shared.Pacer(reserve=4500)   # a classification is up to ~2.2k tokens per attempt, two attempts
     for case in all_cases():
         if 'csv' in case and not case['csv'].exists():
             skipped.append(case['name'])
             continue
         for i in range(args.runs):
             print(f"classifying {case['name']} (run {i + 1}/{args.runs})...")
-            r = run_case(case)
+            pacer.wait()
+            offset = shared.llm_log_offset()
+            try:
+                r = run_case(case)
+            except Exception as e:   # one API failure is an error case, not a crashed eval (BUG_LOG A7-5)
+                errors.append({'id': f"{case['name']}#{i}", 'error': f'{type(e).__name__}: {str(e)[:200]}'})
+                continue
+            finally:
+                pacer.spent(shared.tokens_since(offset))
             r['provenance'] = case.get('provenance')
             r['run_index'] = i
             results.append(r)
     metrics = metrics_of(results)
+    metrics['api_errors'] = shared.count(len(errors), len(results) + len(errors))
     context = {'ts': shared.now_iso(), 'git_sha': shared.git_sha_dirty(), 'model': settings.GROQ_MODEL,
                'prompt_hash': _prompt_hash(), 'datasets': sorted({r['case'] for r in results}),
                'runs_per_dataset': args.runs}
     baseline = shared.load_baseline('onboarding')
     print('\n' + report(results, skipped, metrics, baseline, context))
+    for e in errors:
+        print(f"   API error, not graded: {e['id']}: {e['error']}")
     row = {**context, 'eval': 'onboarding',
            'sets': {'datasets': len(context['datasets']), 'runs': len(results), 'skipped': skipped},
-           'metrics': metrics, 'failing': failing(results)}
+           'metrics': metrics, 'failing': failing(results), 'errors': errors}
     if not args.no_ledger:
         print(f'\nLedger: appended to {shared.append_ledger(row)}')
     if args.set_baseline:

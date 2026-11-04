@@ -291,3 +291,85 @@ def test_drift_report_with_no_baselines_flags_nothing():
 def test_launchd_job_is_a_template_for_this_machine():
     plist = LAUNCHD.format(python='/x/python', root='/repo')
     assert '<string>/x/python</string>' in plist and '/repo/logs/drift.log' in plist
+
+
+def test_the_eval_outputs_do_not_make_a_run_dirty(tmp_path):
+    # BUG_LOG A7-3. A real git repo on tmp_path: an appended ledger row or a new baseline must not
+    # mark the next eval's row -dirty; an edited label file must.
+    import subprocess
+
+    def git(*args):
+        subprocess.run(['git', *args], cwd=tmp_path, check=True, capture_output=True)
+    git('init', '-q')
+    git('-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-q', '--allow-empty', '-m', 'init')
+    (tmp_path / 'evals' / 'baselines').mkdir(parents=True)
+    for rel in ('evals/ledger.jsonl', 'evals/baselines/detection.json', 'evals/labels.yaml'):
+        (tmp_path / rel).write_text('x\n')
+    git('add', '.')
+    git('-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-q', '-m', 'files')
+    (tmp_path / 'evals' / 'ledger.jsonl').write_text('x\ny\n')
+    (tmp_path / 'evals' / 'baselines' / 'detection.json').write_text('changed\n')
+    assert not shared.git_sha_dirty(tmp_path).endswith('-dirty')
+    (tmp_path / 'evals' / 'labels.yaml').write_text('relabelled\n')
+    assert shared.git_sha_dirty(tmp_path).endswith('-dirty')
+
+
+# --- pacing (BUG_LOG A7-5) ---
+
+class FakeClock:
+    """An injected clock: sleeping advances time. Not a mock: Pacer takes now_fn/sleep_fn by design."""
+
+    def __init__(self):
+        self.t, self.slept = 1000.0, []
+
+    def now(self):
+        return self.t
+
+    def sleep(self, s):
+        self.slept.append(s)
+        self.t += s
+
+
+def test_pacer_waits_until_the_trailing_minute_has_room():
+    clock = FakeClock()
+    p = shared.Pacer(per_minute=7000, reserve=3000, now_fn=clock.now, sleep_fn=clock.sleep)
+    assert p.wait() == 0
+    p.spent(2500)
+    clock.t += 10
+    assert p.wait() == 0                 # 2,500 + 3,000 reserve fits in 7,000
+    p.spent(2500)
+    clock.t += 10
+    waited = p.wait()                    # 5,000 + 3,000 doesn't: wait for the first call to age out
+    assert waited == 40 and clock.slept == [40]
+    assert [n for _, n in p.log] == [2500]
+
+
+def test_tokens_since_reads_only_calls_logged_after_the_offset(tmp_path):
+    log = tmp_path / 'llm_calls.jsonl'
+    log.write_text(json.dumps({'total_tokens': 900}) + '\n')
+    offset = shared.llm_log_offset(log)
+    with open(log, 'a') as f:
+        f.write(json.dumps({'total_tokens': 1200}) + '\n')
+        f.write(json.dumps({'total_tokens': None}) + '\n')     # an API error line has no usage
+        f.write('not json\n')
+    assert shared.tokens_since(offset, log) == 1200
+    assert shared.tokens_since(0, tmp_path / 'missing.jsonl') == 0
+
+
+def test_investigation_reports_api_errors_apart_from_quality():
+    rows = [{'outcome': 'fallback_exception', 'golden_match': False, 'uncertainty_ok': True},
+            {'outcome': 'fallback_validation_failed', 'golden_match': False, 'uncertainty_ok': True},
+            {'outcome': 'grounded_first_attempt', 'golden_match': True, 'uncertainty_ok': True}]
+    m = inv_metrics(rows)
+    assert m['fallback_rate']['num'] == 2 and m['api_error_rate']['num'] == 1
+
+
+def test_a_run_with_api_failures_is_invalid_not_a_regression():
+    rows = [{'eval': 'investigation', 'ts': 't', 'git_sha': 'b',
+             'metrics': {'golden_match_rate': shared.rate(1, 30), 'api_error_rate': shared.rate(29, 30)}},
+            {'eval': 'onboarding', 'ts': 't', 'git_sha': 'b', 'metrics': {'api_errors': shared.count(6, 6)}}]
+    base = {'investigation': {'git_sha': 'a', 'metrics': {'golden_match_rate': 0.57}}}
+    text, n = drift_report(rows, base, ran=['investigation'], failed={})
+    assert 'Regressions (0)' in text and 'Invalid runs, not compared (2)' in text
+    assert 'investigation: 29 API call(s) failed' in text and 'onboarding: 6 API call(s) failed' in text
+    assert n == 2      # still a non-zero exit: nothing was actually checked

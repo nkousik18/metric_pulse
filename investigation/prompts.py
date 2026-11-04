@@ -44,7 +44,11 @@ or a fallback, never silently passes):
 
 
 def _format_dimension(name: str, dim_data: dict, reason: Optional[str], drill_data: Optional[dict]) -> str:
-    lines = [f"{name.title()}" + (f" -- ambiguous, reason: {reason}" if reason else "")]
+    # The exact dimension key, not a prettified one: citations are validated against these keys
+    # verbatim, so a title-cased "Geography" here made every citation of `geography` fail
+    # (BUG_LOG A7-4).
+    lines = [f"{name} (source='decomposition', dimension='{name}')"
+             + (f" -- ambiguous, reason: {reason}" if reason else "")]
     lines.append(
         f"  total_change: {dim_data.get('total_change')}, "
         f"total_change_pct: {dim_data.get('total_change_pct')}%"

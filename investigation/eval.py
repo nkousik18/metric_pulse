@@ -158,7 +158,7 @@ def summarize_results(results: List[Dict]) -> Dict:
     }
 
 
-def run_investigation_eval(golden_cases: List[Dict], runs_per_case: int = 1) -> Dict:
+def run_investigation_eval(golden_cases: List[Dict], runs_per_case: int = 1, pacer=None) -> Dict:
     """
     Runs each golden case through _run_synthesis (the real production LLM call
     path) `runs_per_case` times -- one golden case run once is an n=1 coin
@@ -168,7 +168,14 @@ def run_investigation_eval(golden_cases: List[Dict], runs_per_case: int = 1) -> 
     results = []
     for case in golden_cases:
         for run_index in range(runs_per_case):
+            # Paced by real token use (BUG_LOG A7-5): unpaced, back-to-back synthesis calls hit Groq's
+            # 8,000 tokens/minute and every throttled call became a fallback.
+            if pacer is not None:
+                pacer.wait()
+                offset = shared.llm_log_offset()
             output, log, outcome = _run_synthesis(case['state'])
+            if pacer is not None:
+                pacer.spent(shared.tokens_since(offset))
             grounded = output is not None
             expected = case['expected_primary']
             golden_match = grounded and any(
@@ -202,6 +209,7 @@ QUESTIONS = {
     'golden_match_rate': 'Does it find the right cause?',
     'uncertainty_ok_rate': "Does it admit when it's unsure?",
     'fallback_rate': 'How often does the LLM fail outright?',
+    'api_error_rate': 'How often did the API call itself fail (rate limit, network)?',
 }
 CONTEXT_KEYS = ('ts', 'git_sha', 'model', 'prompt_hash', 'runs_per_case', 'labels_hash')
 
@@ -226,6 +234,9 @@ def metrics_of(results: List[Dict]) -> Dict:
         'golden_match_rate': shared.rate(sum(r['golden_match'] for r in results), n),
         'uncertainty_ok_rate': shared.rate(sum(r['uncertainty_ok'] for r in results), n),
         'fallback_rate': shared.rate(sum(r['outcome'].startswith('fallback') for r in results), n),
+        # The LLM call itself raised (rate limit, network), not a quality failure. Reported apart so a
+        # drift run can tell infrastructure from a model getting worse (BUG_LOG A7-5).
+        'api_error_rate': shared.rate(sum(r['outcome'] == 'fallback_exception' for r in results), n),
     }
 
 
@@ -251,7 +262,7 @@ def failing(results: List[Dict]) -> List[Dict]:
 
 
 def report(metrics: Dict, kinds: Dict, fails: List[Dict], baseline, context: Dict, note) -> str:
-    deltas = shared.compare(metrics, baseline, lower_is_better=('fallback_rate',))
+    deltas = shared.compare(metrics, baseline, lower_is_better=('fallback_rate', 'api_error_rate'))
     lines = [f"Investigation eval — {context['ts']} — {context['cases']} cases x {context['runs_per_case']} runs"]
     if note:
         lines.append(f'   note: {note}')
@@ -293,7 +304,7 @@ def main(argv=None) -> None:
     args = parser.parse_args(argv)
 
     cases, note = load_cases()
-    summary = run_investigation_eval(cases, runs_per_case=args.runs)
+    summary = run_investigation_eval(cases, runs_per_case=args.runs, pacer=shared.Pacer(reserve=3500))
     results = summary['results']
     for r in results:
         print(f"[{r['case']} #{r['run_index']}] outcome={r['outcome']} "

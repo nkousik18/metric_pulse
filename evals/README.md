@@ -58,3 +58,13 @@ python -m observability.drift --report   # ledger only, free
 
 Each prints the §7.2 report and appends its own ledger row; `--set-baseline` accepts it. Run them
 on a clean tree so `git_sha` has no `-dirty`. Design: action-agent scope §7.3.
+
+### Groq's daily cap (found 2026-11-03)
+
+gpt-oss-120b allows **200,000 tokens per day** on this account (rolling; a `429` says "tokens per
+day (TPD)"), on top of 8,000 per minute. The investigation eval (~30 synthesis calls) and the
+onboarding eval (6 classifications) run on 120b, and the action eval escalates to it. A full drift
+run uses roughly 130–150k of it, so plan **one full drift run a day, with nothing else on 120b
+beforehand**. Every eval paces itself under the per-minute limit, but no pacing helps once the daily
+cap is spent: those calls fail, the eval records them as `api_error_rate` / `api_errors`, and the
+drift run lists that eval under "Invalid runs, not compared" rather than as a regression.

@@ -199,6 +199,10 @@ reachable from its action-log row.
       7/10 → 2/10), and two onboarding confirm/edit bugs. LangSmith experiments recorded; ledger at
       `evals/ledger.jsonl`. Remaining for the gate: the golden run (`action_match_rate` ≥ 0.8,
       idempotency 0) and `--set-baseline`.
+      **Golden run 2026-11-03 (Kousik's labels): `action_match_rate` 0.47 (7/15) — gate FAILED.**
+      Safety and grounding all pass. 7 of 8 misses are known-cause anomalies (holidays, Monday
+      rebounds) labelled annotate/suppress, where the model proposes `notify_owner`: the proposer
+      sees no calendar context. No baseline accepted; next step is Kousik's decision (scope A7 log).
 - [x] **A6** — `/actions/*` API endpoints, SPA "Pending actions" tab, DRF throttling.
       **Done 2026-11-03.** `dashboard_api/action_views.py`: pending, approve / edit / reject, log,
       undo (F5) over the same `ActionAgent` as the CLI; approver identity is a bearer secret,
@@ -217,8 +221,11 @@ reachable from its action-log row.
       regressions first; `--print-launchd` for the weekly job Kousik installs). Shared plumbing in
       `observability/evals.py`. Found and fixed: BUG_LOG A7-1 (the action eval compared adversarial
       escalation the wrong way) and A7-2 (onboarding accepted a non-existent rejected column).
-      Remaining for the gate: labels → `detection.eval` and `investigation.eval` on a clean tree →
-      `--set-baseline` for all four evals → one full drift run.
+      **2026-11-03:** labels in; baselines set for detection, investigation and onboarding (action's
+      waits on A5). The runs found BUG_LOG A7-3 (dirty check), A7-4 (a Phase 1 prompt bug making real
+      Olist investigations fall back) and A7-5 (unpaced evals faking regressions), all fixed.
+      **Remaining for the gate: one clean full drift run**; today's hit Groq's 120b daily cap
+      (200k tokens/day) and was correctly reported as invalid, not as regressions.
 
 ---
 

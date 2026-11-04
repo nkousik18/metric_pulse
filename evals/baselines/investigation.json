@@ -1,0 +1,14 @@
+{
+  "ts": "2026-11-03T23:58:14+00:00",
+  "git_sha": "c4bd153",
+  "model": "openai/gpt-oss-120b",
+  "prompt_hash": "851652bb03a2",
+  "runs_per_case": 3,
+  "labels_hash": "4b80592bd645",
+  "metrics": {
+    "grounding_pass_rate": 0.7667,
+    "golden_match_rate": 0.5667,
+    "uncertainty_ok_rate": 0.7,
+    "fallback_rate": 0.0667
+  }
+}
