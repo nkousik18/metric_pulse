@@ -29,13 +29,19 @@ EVIDENCE = {
              'change': 0, 'contribution_pct': 0},
         ]},
     },
+    # §14: what attach_calendar() puts in the evidence. A synthetic entry, so these tests don't
+    # depend on the committed calendar files (test_event_calendar.py covers those).
+    'calendar': {'source': 'test', 'weekday': 'Monday', 'previous_weekday': 'Wednesday',
+                 'weekday_class_changed': False, 'events_on_date': [],
+                 'events_nearby': [{'date': '2018-09-04', 'name': 'Test Festival', 'kind': 'holiday',
+                                    'offset_days': 1}]},
 }
 
 CITATION = {'dimension': 'payment', 'segment': 'Credit Card', 'source': 'decomposition',
             'claim': 'Credit Card drove the decline'}
 
 VALID_PARAMS = {
-    'annotate_anomaly': {'category': 'holiday', 'cause': 'Brazilian Independence Day'},
+    'annotate_anomaly': {'category': 'holiday', 'cause': 'Test Festival weekend', 'calendar_event': 'Test Festival'},
     'suppress_alerts': {'days': 3, 'reason': 'Known holiday dip'},
     'notify_owner': {'dimension': 'payment', 'segment': 'Credit Card'},
     'open_incident': {'dimension': 'payment', 'segment': 'Credit Card',

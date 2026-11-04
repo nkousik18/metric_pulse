@@ -6,7 +6,8 @@ Three checks, in order, each failing closed:
   1. the action is in the catalog
   2. its tier is permitted (T2 never is)
   3. its params pass schema and range checks, including grounding any
-     (dimension, segment) they name against the investigation's real evidence
+     (dimension, segment) they name against the investigation's real evidence,
+     and grounding an annotation's cause against the trusted calendar (§14)
 
 A proposal that passes gets decision 'auto_execute' (T0) or 'needs_approval'
 (T1). Anything else gets 'rejected' with human-readable reasons. Never raises
@@ -20,6 +21,7 @@ from typing import Dict, List, Mapping, Optional
 from pydantic import BaseModel, ValidationError
 
 from action_agent.catalog import CATALOG, PERMITTED_TIERS, ActionSpec, Tier
+from action_agent.event_calendar import event_names
 from action_agent.schemas import ActionProposal
 
 # create_control threshold must sit within this factor of the segment's
@@ -100,6 +102,33 @@ def _range_checks(spec: ActionSpec, params: BaseModel, evidence: Optional[Dict])
     return []
 
 
+# annotate_anomaly categories that claim an external event: they must name a calendar entry (§14.3).
+CALENDAR_CATEGORIES = ('holiday', 'promotion')
+
+
+def _calendar_checks(spec: ActionSpec, params: BaseModel, evidence: Optional[Dict]) -> List[str]:
+    """§14.3: grounding for causes, mirroring segment grounding. The calendar is the one
+    attach_calendar() put in the evidence from the trusted per-dataset file; with none, nothing
+    can be cited, so a holiday/promotion/seasonal annotation fails closed."""
+    if spec.name != 'annotate_anomaly':
+        return []
+    calendar = (evidence or {}).get('calendar') or {}
+    names = event_names(calendar)
+    errors = []
+    if params.calendar_event is not None and params.calendar_event not in names:
+        nearby = ', '.join(repr(n) for n in names) or 'none'
+        errors.append(f"calendar_event {params.calendar_event!r} is not an entry on or within 3 days of this "
+                      f"date in the dataset's trusted calendar (entries: {nearby})")
+    elif params.category in CALENDAR_CATEGORIES and params.calendar_event is None:
+        errors.append(f"category '{params.category}' needs calendar_event naming an entry on or within 3 days "
+                      f"of this date in the dataset's trusted calendar "
+                      f"(entries: {', '.join(repr(n) for n in names) or 'none'})")
+    if params.category == 'seasonal' and not calendar.get('weekday_class_changed'):
+        errors.append("category 'seasonal' needs a weekly pattern: the anomaly and comparison dates must "
+                      "fall on different weekday classes (weekend vs. weekday)")
+    return errors
+
+
 def policy_check(
     proposal, evidence: Optional[Dict], catalog: Mapping[str, ActionSpec] = CATALOG,
 ) -> PolicyResult:
@@ -133,9 +162,10 @@ def policy_check(
     except ValidationError as exc:
         return _reject(spec.name, spec.tier, _format_validation_error(exc))
 
-    errors = _range_checks(spec, params, evidence)
+    errors = _range_checks(spec, params, evidence) + _calendar_checks(spec, params, evidence)
     if errors:
         return _reject(spec.name, spec.tier, errors)
 
     decision = AUTO_EXECUTE if spec.tier == Tier.T0 else NEEDS_APPROVAL
-    return PolicyResult(decision, spec.name, spec.tier, [], params.model_dump())
+    # exclude_none: an unset optional param (calendar_event) stays out of the payload and its key.
+    return PolicyResult(decision, spec.name, spec.tier, [], params.model_dump(exclude_none=True))

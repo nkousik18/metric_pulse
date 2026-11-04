@@ -11,7 +11,7 @@ validation instead of being silently dropped.
 """
 
 import math
-from typing import List, Literal
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -37,6 +37,9 @@ class _SegmentParams(_StrictParams):
 class AnnotateAnomalyParams(_StrictParams):
     category: Literal['holiday', 'promotion', 'seasonal', 'data_issue', 'other']
     cause: str = Field(min_length=1, max_length=200)
+    # §14: names a trusted calendar entry near the date. Required (and grounded by policy_check)
+    # for category holiday or promotion; checked whenever present.
+    calendar_event: Optional[str] = Field(default=None, min_length=1, max_length=200)
 
 
 class SuppressAlertsParams(_StrictParams):
