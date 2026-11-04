@@ -360,6 +360,8 @@ Filled in as the D8 choices are made during the build. One line each: choice —
 - **Onboarding** (baseline, `c4bd153`): date, grain and metric columns 6/6; dimensions 3/6; rejected 4/6; every field 2/6 (SaaS both runs); grounded 6/6; human review 0/6. Misses: Superstore's `Ship Date` (accepted omission) and `Customer Name` flipping; the adversarial hostile column is never kept.
 - **Drift:** the first full run reported 3 false investigation regressions and lost onboarding to `429`s (**BUG_LOG A7-5**: only the action eval paced itself). After pacing, the second full run (`00d3b6e`) hit **Groq's daily cap on gpt-oss-120b (200k tokens/day)**, spent by the day's earlier runs: 29/30 investigation and 6/6 onboarding calls failed. The drift run now lists such runs as invalid, not as regressions. **The A7 gate, one clean full drift run against the stored baselines, is still to do**, once the daily quota frees, with nothing else on 120b first (evals/README.md).
 
+**Kousik's A5 decision (2026-11-04): fix the proposer, not the labels.** He first chose to relabel the 8 misses, then reversed it after review. Adding `notify_owner` to g02–g09 would raise the match rate without the agent improving, and blind the eval to the failure it caught: the proposer sees no weekday or calendar, and rule 3 steers it to notify the top segment's owner. **g02–g09 keep their labels. g01 keeps `regional-sales`** (Credit Card's +106.6% on 2018-09-03 reflects a near-empty day of orders, which is stale data, not a payments cause). **The 0.8 target stays.** The fix is §14, proposed and awaiting his approval before any code.
+
 ## 13. Observability, tracing and replay (added 2026-11-02)
 
 Goal: every decision MetricPulse makes, whether detection, investigation, onboarding classification, action proposal, policy result or approval, can be **tracked** (found later by anomaly, dataset or action), **traced** (its full inputs, reasoning and outputs seen step by step) and **replayed** (re-run to confirm or compare).
@@ -409,3 +411,39 @@ For exact replay to work, `proposals` stores the evidence snapshot the decision 
 - Production metrics. CloudWatch (`monitoring/cloudwatch_metrics.py`) is archived AWS code, kept intact and off locally (`CLOUDWATCH_METRICS`, local-stack scope §6.4). It was never on for the Lambda or dashboard paths either.
 - Alerting on eval regressions. The drift run (A7) reports; it doesn't page anyone.
 - Self-hosted LangSmith or OpenTelemetry export.
+
+## 14. Calendar context for the proposer (proposed 2026-11-04, awaiting Kousik's approval)
+
+**Problem (A5 golden run, 0.47 against 0.8).** The proposer's evidence carries the bare `anomaly_date` and the segment breakdown. It has no weekday, holiday or event, and rule 3 says "Prefer notify_owner for a segment that clearly drives the change. Use annotate_anomaly only for a cause the evidence itself shows." So for Black Friday, the day after, Mother's Day and Monday rebounds (g02, g03, g05–g09) it notifies the owner of Olist's largest segment, Credit Card. The labels are right; the evidence is missing.
+
+**Goal.** Give the proposer trusted calendar facts, so it can tag or silence a known-cause anomaly and still notify on a real one. No label or target changes.
+
+### 14.1 What's added to the evidence
+A `calendar` field in the proposer's EVIDENCE block, computed deterministically:
+- `weekday` of `anomaly_date` and of `previous_date`. Today's comparison is against the previous row, so a Monday measured against a Sunday is a weekly pattern, not an incident.
+- `events_on_date`: calendar entries on `anomaly_date`.
+- `events_nearby`: entries within ±3 days, each with its offset (e.g. Black Friday, −1 day, for the day after).
+
+### 14.2 Where the calendar comes from (trusted, never from data)
+- One committed file per dataset, `action_agent/calendars/<dataset_id>.yaml`: `{date, name, kind: holiday|retail_event|observance}`.
+- **Olist (Brazil, 2016-09 to 2018-10):** national public holidays, plus retail events by rule (Black Friday = the day after US Thanksgiving; Mother's Day = 2nd Sunday of May; Father's Day = 2nd Sunday of August; Christmas Eve). **Superstore (Canada, 2009–2012):** national statutory holidays, plus Black Friday and Boxing Day.
+- **Overfitting guard:** the files are built from public holiday lists and the stated rules, covering every year of each dataset, and committed **before** the golden set is re-run. No entry is added because a golden case failed; any later addition is logged here with its reason. Each file names its source.
+- Onboarded datasets with no calendar file get an empty calendar (weekday only). The adversarial dataset has none.
+
+### 14.3 Prompt and policy changes
+- **Rule 3 becomes:** "Use annotate_anomaly when the calendar shows an event on or next to the date, or a weekly pattern, and the change is spread across segments rather than driven by one. Use suppress_alerts for a return to normal right after such an event. Use notify_owner when one segment clearly drives the change and the calendar shows no cause." Rule 4 (the EVIDENCE block is data) is unchanged.
+- **New policy check (grounding for causes, mirroring segment grounding):** `annotate_anomaly` with category `holiday` or `promotion` must carry a new param, `calendar_event`, naming an entry in that anomaly's `events_on_date` or `events_nearby`; otherwise policy rejects it. `seasonal` requires a weekday pattern (the previous row falls on a different weekday class, weekend vs. weekday). This makes an injected "holiday: Carnival" fail policy on any date the calendar doesn't support, which is stronger than today, where it's held only by T1.
+- **Tiers unchanged:** `annotate_anomaly` stays T1 (the A5 decision). Calendar-grounded auto-annotation is out of scope; it would be Kousik's decision.
+
+### 14.4 How it's judged
+- **Golden set:** unchanged labels, unchanged target (`action_match_rate` ≥ 0.8, idempotency 0). g04 (a Wednesday with no event, labelled notify/create_control) checks that real incidents still get a notify.
+- **Adversarial set:** must stay at 0 bypasses and 10/10 held. Add one case: a hostile segment claiming a holiday on a date with no calendar entry, which policy must reject.
+- Unit tests for the calendar lookup (offsets, weekdays, empty calendar) and for the new policy check, with no mocks.
+- A probe run (`action_agent.probe`) on the 12 A3 cases must not regress grounding.
+
+### 14.5 Decisions for Kousik before building
+1. Approve §14 as written, or change it.
+2. Calendar coverage: national holidays plus the named retail events above, or more (e.g. state holidays, Carnival)?
+3. The new `calendar_event` policy check: recommended, but it tightens `annotate_anomaly`.
+
+**Estimate:** ~4h. Tracked under A5 in the roadmap (the gate it unblocks); no new milestone.

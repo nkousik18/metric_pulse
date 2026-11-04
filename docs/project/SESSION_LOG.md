@@ -5,6 +5,25 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-04 — A5 decision: fix the proposer, not the labels
+
+**What happened:** For the failed A5 gate (0.47 vs 0.8), Kousik first chose to relabel the 8
+misses. A review (pasted in, then verified against `action_agent/llm_proposer.py`) showed why that
+would be wrong. The proposer's evidence has no weekday or calendar, and its rule 3 steers it to
+notify the top segment's owner, which is Credit Card for every Olist case. So relabelling g02–g09
+would raise the score without the agent improving. Kousik reversed his choice: g02–g09 keep
+their labels, g01 keeps `regional-sales`, and the target stays 0.8. Drafted scope §14 (calendar
+context for the proposer: weekday and a trusted per-dataset holiday/event calendar in the
+evidence, rule 3 rewritten, and a policy check that a holiday/promotion annotation names a real
+calendar entry). It's **proposed, awaiting his approval**, with no code. `golden.yaml` is unchanged.
+
+**Next:** (1) Kousik reviews §14 and answers its three questions (§14.5). (2) Once approved:
+build it, commit the calendars before re-running the golden set, re-run golden plus adversarial,
+then baseline and check A5 if it reaches 0.8. (3) Separately, on a day with nothing else on
+gpt-oss-120b first: `python -m observability.drift`, then check A7 if clean.
+
+---
+
 ## 2026-11-03 (late) — First labelled eval runs: A5 gate fails, a Phase 1 bug, Groq's daily cap
 
 **What happened:** Kousik finished all three label files and decided: onboarding validation does
