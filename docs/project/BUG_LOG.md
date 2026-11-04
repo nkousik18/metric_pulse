@@ -17,13 +17,13 @@ things must be run).
 
 | | Count |
 |---|---|
-| Bugs logged | 43 |
-| Found by running it live | 30 |
+| Bugs logged | 45 |
+| Found by running it live | 31 |
 | Found by a unit test | 2 |
-| Found by review | 11 |
-| Kinds | code 28, config/setup 6, constraint 1, design doc 3, process 2, test 3 |
+| Found by review | 12 |
+| Kinds | code 30, config/setup 6, constraint 1, design doc 3, process 2, test 3 |
 
-**The pattern:** 30 of 43 were found only by running the real thing (a real dataset, a real
+**The pattern:** 31 of 45 were found only by running the real thing (a real dataset, a real
 API, a real CI run). Each milestone's unit tests were green while these bugs existed, because the
 tests used tidy fixtures: plain floats instead of numpy, Olist-only dimension names, in-memory
 data instead of a CSV, a fake key instead of a real account. That is why every roadmap box is
@@ -36,6 +36,8 @@ test that was confirmed to fail without the fix.
 
 | # | Milestone | Kind | Bug | How found | Root cause | Fix | Guard |
 |---|---|---|---|---|---|---|---|
+| A5-6 | A5 | code | The new `uncalendared_holiday` safety probe reported a correct policy rejection as a failure | live (the first safety run after §14) | The probe compared the graph's status with `'rejected'`; the graph's status for a policy rejection is `'policy_rejected'` (`'rejected'` is an approver's) | Compare with `'policy_rejected'` | The safety set's own report; the re-run shows `calendar_injection_accepted = 0` |
+| A5-5 | A5 | code | The generated Superstore calendar put Victoria Day 2010 on May 17; it was May 24 | review (spot-checking the generated dates before committing) | The rule "the last Monday before 25 May" was coded from 24 May, so a year where 24 May is itself a Monday went back a week | Count back from 25 May | `test_event_calendar.py::test_victoria_day_when_may_24_is_a_monday`, `test_committed_calendars_match_their_rules` |
 | A7-5 | A7 | code | **The first full drift run reported 3 false regressions** (investigation fallback 0.07 → 0.83) and the onboarding eval crashed with no row | live (the first full drift run) | Only the action eval paced itself under Groq's 8,000 tokens/minute; investigation and onboarding didn't, and the drift run starts them back to back in one process, so all 25 fallbacks were rate-limit exceptions (31 `429`s), and one `429` killed the onboarding eval | The shared `Pacer` (moved from the action eval) paces both by real token use from `llm_calls.jsonl`; onboarding records an API failure as an error case; `api_error_rate` / `api_errors` are reported apart from quality; the drift run waits 65s between LLM evals | `test_eval_plumbing.py` pacer, token-reader and `api_error_rate` tests; the re-run drift report |
 | A7-4 | M1 | code | **Phase 1 synthesis fell back on every real Olist case without a drill-down**: the first 10-case investigation eval had grounding 0.33 and fallback 0.37 (Golden Case #1 alone: 3/3) | live (the first investigation eval over real cases) | The prompt printed each dimension as `name.title()` ("Geography"); the model cited that spelling, and `validate_citation` looks keys up exactly (`geography`), so both attempts failed. Golden Case #1 escaped it because its drill-down line spells `dimension='geography'`, and it was the only eval case until A7. Superstore's names were already title-case, so M6 never saw it | The prompt shows the exact key, `geography (source='decomposition', dimension='geography')` | `test_citation_validation.py::test_the_prompt_names_every_dimension_exactly_as_validation_accepts_it` (fails on the old prompt) |
 | A7-3 | A7 | code | Every eval after the first in a session (and in a drift run) would have recorded its ledger row as `-dirty` | review (planning the first sequential baseline runs) | The dirty check counted all tracked files, and `evals/ledger.jsonl` is tracked, so the first eval's own row dirtied the tree | The ledger and `evals/baselines/` are excluded; labels and code still count | `test_eval_plumbing.py::test_the_eval_outputs_do_not_make_a_run_dirty` (a real git repo on `tmp_path`) |

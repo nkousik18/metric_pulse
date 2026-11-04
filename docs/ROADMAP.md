@@ -203,6 +203,9 @@ reachable from its action-log row.
       Safety and grounding all pass. 7 of 8 misses are known-cause anomalies (holidays, Monday
       rebounds) labelled annotate/suppress, where the model proposes `notify_owner`: the proposer
       sees no calendar context. No baseline accepted; next step is Kousik's decision (scope A7 log).
+      **2026-11-04: scope §14 built (trusted calendar in the evidence + `calendar_event` policy
+      check). Re-run: `action_match_rate` 0.67 (10/15), gate still FAILED;** safety, idempotency and
+      grounding all pass. No baseline. Next is Kousik's decision (scope §14.7).
 - [x] **A6** — `/actions/*` API endpoints, SPA "Pending actions" tab, DRF throttling.
       **Done 2026-11-03.** `dashboard_api/action_views.py`: pending, approve / edit / reject, log,
       undo (F5) over the same `ActionAgent` as the CLI; approver identity is a bearer secret,

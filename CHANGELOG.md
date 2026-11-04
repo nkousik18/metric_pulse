@@ -4,6 +4,16 @@ What's shipped, in user-facing terms — built from actual commit history, not a
 version tags exist for this project yet, so entries are dated. See `docs/ROADMAP.md` for what's
 planned but not yet shipped, and `docs/project/SESSION_LOG.md` for session-by-session detail.
 
+## 2026-11-04
+
+### Changed
+- The Action Agent now knows the calendar. Its evidence shows the weekday of the anomaly and of the
+  day it's compared with, and any national holiday or retail event (Black Friday, Mother's Day, ...)
+  on or within three days of it, from a fixed calendar per dataset. It tags known-cause anomalies
+  more often instead of paging an owner (golden set: 7 of 15 right → 10 of 15).
+- A "holiday" or "promotion" tag must now name a real entry in that calendar, or it's refused. A
+  segment name claiming a holiday that isn't there can no longer get one through.
+
 ## 2026-11-03
 
 ### Added

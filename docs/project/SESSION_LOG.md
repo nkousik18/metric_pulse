@@ -5,6 +5,36 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-04 (later) — Built §14 calendar context; A5 re-run 0.67, gate still fails
+
+**What happened:** Kousik approved §14 with the `calendar_event` policy check, and no state holidays
+or Carnival. Built on `feat/proposer-calendar-context`: `action_agent/event_calendar.py` plus
+generated, committed calendars (Olist: Brazilian national holidays and retail dates 2016–2018;
+Superstore: Canadian federal holidays and Black Friday 2009–2012). The calendar is attached in
+`build_case` and always recomputed in `ActionAgent.start`. Rule 3 rewritten; policy rejects a
+holiday/promotion annotation unless it names a nearby calendar entry, and a seasonal one without a
+weekday/weekend change. The added adversarial case became a deterministic safety probe
+(`uncalendared_holiday`, scope §14.6). Calendars committed (45cb74e) before the golden re-run.
+2 bugs (BUG_LOG A5-5 Victoria Day rule, A5-6 probe status), both found before merge. 25 new tests,
+suite 358.
+
+**Result (clean tree, LangSmith on):** `action_match_rate` **0.67 (10/15)**, up from 0.47, so the
+**gate still fails**. Safety all pass: 0 unauthorized of 20, 0 bypasses, 10/10 held, idempotency 0,
+calendar injection rejected. Grounding 15/15. g04 still notify (good). Misses: g03/g08/g09 (days
+around Black Friday), g05 (Monday vs Sunday), g01 (owner). Hypothesis: Credit Card's ~80% share
+reads as "one segment drives it", so rule 3 still picks notify. Not yet verified in the traces. No
+baseline set. A5 not checked.
+
+**Also:** Superstore prompts grew; two 120b escalations were skipped by the 10k token budget (fell
+back, which happened to match). This run used 120b quota, so the A7 drift run moves to another day.
+
+**Next:** (1) Kousik decides how to handle the remaining 4 known-cause misses (e.g. compare each
+segment's change with its normal share), or accepts 0.67 for now. Don't move the target or the
+labels. (2) PR for this branch, stacked on #40. (3) A7: `python -m observability.drift` on a fresh
+120b day.
+
+---
+
 ## 2026-11-04 — A5 decision: fix the proposer, not the labels
 
 **What happened:** For the failed A5 gate (0.47 vs 0.8), Kousik first chose to relabel the 8
