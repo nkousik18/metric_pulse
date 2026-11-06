@@ -4,6 +4,16 @@ What's shipped, in user-facing terms — built from actual commit history, not a
 version tags exist for this project yet, so entries are dated. See `docs/ROADMAP.md` for what's
 planned but not yet shipped, and `docs/project/SESSION_LOG.md` for session-by-session detail.
 
+## 2026-11-06
+
+### Added
+- **A data-freshness alert.** MetricPulse now notices when a day has far fewer records than usual
+  (under a quarter of the recent median) and alerts that the data looks incomplete, even when the
+  numbers don't look statistically unusual. On the end of the Olist data, where orders slide from
+  ~250 a day to 1, the old detector stayed quiet; it now alerts, and says the segment breakdown is
+  likely an artefact of missing data. The Action Agent tags such a day as a data issue instead of
+  paging anyone. Sparse datasets (under 50 records a day) are skipped.
+
 ## 2026-11-04
 
 ### Changed

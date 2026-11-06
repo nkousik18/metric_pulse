@@ -229,6 +229,11 @@ reachable from its action-log row.
       Olist investigations fall back) and A7-5 (unpaced evals faking regressions), all fixed.
       **Remaining for the gate: one clean full drift run**; today's hit Groq's 120b daily cap
       (200k tokens/day) and was correctly reported as invalid, not as regressions.
+      **2026-11-06, data-freshness check (scope §15, approved; built, under A7 where the gap was
+      found):** `detection/freshness.py` flags a day whose record volume is under 25% of the previous
+      28 rows' median (off below 50 records/day). The pipeline alerts on a stale day even when the
+      z-score doesn't; the Action Agent's rule 3 annotates it as `data_issue`. Detection eval with it:
+      recall 12/12, precision 12/13, F1 0.96 (z-score alone 0.92); the threshold stays 2.0.
 
 ---
 

@@ -130,8 +130,22 @@ def test_run_reports_missing_dates_and_replays_each_case():
     s = _series([100] * 40 + [400])
     cases = [{'id': 'spike', 'is_event': True, 'dataset_id': 'x', 'metric': 'm', 'date': s['metric_date'].iloc[-1]},
              {'id': 'gone', 'is_event': False, 'dataset_id': 'x', 'metric': 'm', 'date': '1999-01-01'}]
-    out = run(cases, 2.0, series_loader=lambda ds, m: s)
+    out = run(cases, 2.0, series_loader=lambda ds, m: s, volume_loader=lambda ds: s[['metric_date']])
     assert out['missing'] == ['gone'] and out['confusion']['tp'] == 1
+    assert out['with_freshness']['stale'] == []          # no volume column: never stale
+
+
+def test_run_adds_the_freshness_check_to_the_alert_decision():
+    # A slow slide: the z-score on the last day isn't extreme, but the record volume has collapsed.
+    values = [300] * 40 + [250, 200, 150, 100, 60, 30, 10, 1]
+    s = _series(values)
+    volume = s.rename(columns={'m': 'order_count'})
+    last = s['metric_date'].iloc[-1]
+    cases = [{'id': 'tail', 'is_event': True, 'dataset_id': 'x', 'metric': 'm', 'date': last}]
+    out = run(cases, 3.5, series_loader=lambda ds, m: s, volume_loader=lambda ds: volume)
+    assert out['confusion']['fn'] == 1                                   # the z-score alone misses it
+    assert out['with_freshness']['stale'] == ['tail'] and out['with_freshness']['confusion']['tp'] == 1
+    assert out['metrics']['with_freshness_recall']['value'] == 1.0
 
 
 # --- candidates and labels ---

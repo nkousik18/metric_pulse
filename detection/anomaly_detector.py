@@ -190,6 +190,11 @@ def run_detection(
     
     # Get all anomalies
     all_anomalies = df_analyzed[df_analyzed['is_anomaly'] == True].to_dict('records')
+
+    # §15: the latest day's record volume vs. the rows before it (a failing feed, which the z-score
+    # can't see once the decline fills its window). 'not_applicable' when there's no volume column.
+    from detection.freshness import check_freshness
+    freshness = check_freshness(df)
     
     results = {
         'status': 'completed',
@@ -199,6 +204,7 @@ def run_detection(
         'anomaly_count': len(all_anomalies),
         'latest_anomaly': latest_anomaly,
         'all_anomalies': all_anomalies,
+        'freshness': freshness,
         'statistics': {
             'mean': round(df[metric].mean(), 2),
             'std': round(df[metric].std(), 2),

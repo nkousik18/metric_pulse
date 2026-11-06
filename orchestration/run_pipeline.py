@@ -70,6 +70,11 @@ def run_pipeline(
         
         anomaly_detected = detection_results['anomaly_count'] > 0
         logger.info(f"Anomalies detected: {detection_results['anomaly_count']}")
+        # §15: a stale day (record volume collapsed) alerts even when the z-score doesn't.
+        freshness = detection_results.get('freshness') or {}
+        stale = freshness.get('status') == 'stale'
+        if stale:
+            logger.warning(f"Data freshness: {freshness.get('reason')}")
         
         # Step 2: Get comparison dates
         logger.info("Step 2: Getting comparison dates...")
@@ -86,6 +91,7 @@ def run_pipeline(
         # Step 4: Generate Narrative
         logger.info("Step 4: Generating narrative...")
         narratives = generate_narrative(decomposition_results)
+        narratives = _with_freshness(narratives, freshness)
         results['narratives'] = narratives
 
         # Step 4.5: Investigation agent (optional, non-blocking) -- only when
@@ -121,7 +127,8 @@ def run_pipeline(
                 results['investigation'] = {'status': 'failed', 'error': str(e)}
 
         # Step 5: Send Alert (if anomaly detected or forced)
-        suppression = _suppression(metric, current_date) if (anomaly_detected or force_alert) else None
+        should_alert = anomaly_detected or stale or force_alert
+        suppression = _suppression(metric, current_date) if should_alert else None
         if suppression:
             # D3 (docs/action-agent-scope.md): an approved suppress_alerts that hasn't expired or
             # been undone means no repeat alert for this anomaly, even with --force-alert. To
@@ -129,7 +136,7 @@ def run_pipeline(
             logger.info(f"Step 5: Alert suppressed until {suppression['expires_at']} ({suppression['reason']})")
             results['alert'] = {'status': 'suppressed', 'until': suppression['expires_at'],
                                 'reason': suppression['reason']}
-        elif anomaly_detected or force_alert:
+        elif should_alert:
             logger.info("Step 5: Sending alert...")
             
             if dry_run:
@@ -144,6 +151,7 @@ def run_pipeline(
                     'current_date': current_date,
                     'previous_date': previous_date,
                     'anomaly_count': detection_results['anomaly_count'],
+                    'data_freshness': freshness.get('status'),
                     'force_alert': force_alert,
                 })
                 results['alert'] = alert_result
@@ -180,6 +188,21 @@ def run_pipeline(
             logger.warning(f"Failed to publish CloudWatch metrics: {e}")
     
     return results
+
+
+def _with_freshness(narratives: Dict, freshness: Optional[Dict]) -> Dict:
+    """§15: on a stale day, lead every narrative with the data-incomplete note and mark the subject,
+    so nobody reads the segment breakdown of missing data as a business change. Pure."""
+    from detection.freshness import stale_note
+    note = stale_note(freshness)
+    if not note:
+        return narratives
+    out = dict(narratives)
+    for key in ('full', 'slack', 'summary'):
+        if key in out:
+            out[key] = f"{note}\n\n{out[key]}" if key != 'summary' else f"{note} {out[key]}"
+    out['email_subject'] = f"[Data incomplete] {out.get('email_subject', 'MetricPulse Alert')}"
+    return out
 
 
 def _suppression(metric: str, current_date: str) -> Optional[Dict]:

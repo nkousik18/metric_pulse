@@ -76,6 +76,17 @@ def load_series(dataset_id: str, metric: str) -> pd.DataFrame:
     return df.sort_values('metric_date').reset_index(drop=True)
 
 
+def load_volume(dataset_id: str) -> pd.DataFrame:
+    """Every row's record volume (order_count / row_count) for the §15 freshness check."""
+    from action_agent.evidence import dataset_config
+    from detection.anomaly_detector import fetch_daily_metrics
+    from detection.freshness import volume_column
+    cfg = dataset_config(dataset_id)
+    df = fetch_daily_metrics(1_000_000, cfg['metric_columns'], cfg['table_name'], cfg['connection_factory'])
+    col = volume_column(df.columns)
+    return df[['metric_date'] + ([col] if col else [])].copy()
+
+
 def replay(series: pd.DataFrame, metric: str, date: str, threshold: float,
            lookback: int = settings.LOOKBACK_DAYS) -> Optional[Dict]:
     """The pipeline's decision on `date`, had it been the latest day: the `lookback` rows ending at
@@ -123,6 +134,20 @@ def scores(c: Dict[str, int]) -> Dict[str, Dict]:
     return {'detection_precision': precision, 'detection_recall': recall,
             'detection_f1': shared.value(f1, n),
             'false_alarms': shared.count(c['fp'], n), 'missed_events': shared.count(c['fn'], n)}
+
+
+def with_freshness(cases: List[Dict], zscores: Dict[str, Optional[float]], stale: Dict[str, bool],
+                   threshold: float) -> Dict:
+    """§15: the pipeline's alert decision once the freshness check exists: flagged by the z-score OR
+    stale. Reported next to the z-score-only headline (which stays comparable with its baseline)."""
+    flagged = {cid: (z is not None and abs(z) > threshold) or bool(stale.get(cid)) for cid, z in zscores.items()}
+    c = confusion(cases, flagged)
+    s = scores(c)
+    metrics = {'with_freshness_precision': s['detection_precision'], 'with_freshness_recall': s['detection_recall'],
+               'with_freshness_f1': s['detection_f1']}
+    failing = [k['id'] for k in cases if flagged[k['id']] != bool(k['is_event'])]
+    return {'confusion': c, 'metrics': metrics, 'failing': failing,
+            'stale': sorted(cid for cid, v in stale.items() if v)}
 
 
 def grade(cases: List[Dict], zscores: Dict[str, Optional[float]], threshold: float) -> Dict:
@@ -230,10 +255,14 @@ def label_errors(cases: List[Dict]) -> List[str]:
 
 # --------------------------------------------------------------------------- run
 
-def run(cases: List[Dict], threshold: float, series_loader=load_series) -> Dict:
-    zscores, missing = {}, []
-    cache = {}
+def run(cases: List[Dict], threshold: float, series_loader=load_series, volume_loader=load_volume) -> Dict:
+    from detection.freshness import check_freshness
+    zscores, missing, stale = {}, [], {}
+    cache, volumes = {}, {}
     for c in cases:
+        if c['dataset_id'] not in volumes:
+            volumes[c['dataset_id']] = volume_loader(c['dataset_id'])
+        stale[c['id']] = check_freshness(volumes[c['dataset_id']], date=c['date'])['status'] == 'stale'
         key = (c['dataset_id'], c['metric'])
         if key not in cache:
             cache[key] = series_loader(*key)
@@ -244,20 +273,30 @@ def run(cases: List[Dict], threshold: float, series_loader=load_series) -> Dict:
     graded = grade(cases, zscores, threshold)
     graded['missing'] = missing
     graded['zscores'] = zscores
+    combined = with_freshness(cases, zscores, stale, threshold)
+    graded['metrics'] = {**graded['metrics'], **combined['metrics']}
+    graded['with_freshness'] = combined
     return graded
 
 
 def report(result: Dict, baseline: Optional[Dict], context: Dict) -> str:
     m = result['metrics']
     deltas = shared.compare(m, baseline, lower_is_better=('false_alarms', 'missed_events'),
-                            higher_is_better=('detection_precision', 'detection_recall', 'detection_f1'))
+                            higher_is_better=('detection_precision', 'detection_recall', 'detection_f1',
+                                              'with_freshness_precision', 'with_freshness_recall', 'with_freshness_f1'))
     lines = [f"Detection eval — {context['ts']} — {context['n']} labelled dates, threshold {context['threshold']}, "
              f"lookback {context['lookback_days']} rows",
              f'\n1. Question: {QUESTION}', '2. Result:']
     lines += [f'   {shared.fmt(k, v)}' for k, v in m.items()]
     c = result['confusion']
     lines.append(f"   confusion: {c['tp']} caught, {c['fp']} false alarms, {c['fn']} missed, {c['tn']} correctly quiet")
-    lines.append('   threshold sweep (reported, not gated):')
+    if 'with_freshness' in result:
+        w = result['with_freshness']
+        cw = w['confusion']
+        lines.append(f"   with the §15 freshness check (z-score OR stale): {cw['tp']} caught, {cw['fp']} false alarms, "
+                     f"{cw['fn']} missed; stale: {', '.join(w['stale']) or 'none'}; "
+                     f"still wrong: {', '.join(w['failing']) or 'none'}")
+    lines.append('   threshold sweep (z-score only; reported, not gated):')
     lines.append('     thr    tp  fp  fn  tn  precision  recall   f1')
     for s in result['sweep']:
         def f(x):

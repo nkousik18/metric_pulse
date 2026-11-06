@@ -115,7 +115,10 @@ Rules:
 segment, copy its `dimension` and `segment` exactly from the evidence.
 2. Give 1-3 rationale_citations. Each cites one (dimension, segment) pair that appears in the evidence, \
 with source "decomposition" and a short factual claim (e.g. its contribution to the change).
-3. Read the evidence's `driver_check` first; it is computed from the data, not a guess. A segment's \
+3. Read the evidence's `freshness` first. If freshness.status is stale, the data for the date looks \
+incomplete (far fewer records than usual), so the segment numbers describe missing data, not a business \
+change: use annotate_anomaly with category data_issue and do not notify an owner. Otherwise, read \
+`driver_check`; it is computed from the data, not a guess. A segment's \
 contribution_pct is not enough on its own: a segment that is 80% of normal volume is ~80% of every change. \
 share_of_previous_pct is its normal share and excess_pct how far its contribution exceeds that share.
    - If driver_check.clear_driver is set, one segment moved out of proportion to its size: use notify_owner \
@@ -157,6 +160,9 @@ def _evidence_block(state: Dict) -> Dict:
         'calendar': {k: v for k, v in (evidence.get('calendar') or {}).items() if k != 'source'} or None,
         # §14.8: computed from every contributor, before the wide-dataset trim above.
         'driver_check': {k: v for k, v in driver_check(evidence).items() if k != 'thresholds'},
+        # §15: the data-freshness check (detection/freshness.py), without its thresholds.
+        'freshness': {k: v for k, v in (evidence.get('freshness') or {'status': 'not_applicable'}).items()
+                      if k in ('status', 'volume', 'median', 'ratio', 'reason')},
         'narrative': state.get('narrative_summary'), 'dimensions': dims,
     }
 
