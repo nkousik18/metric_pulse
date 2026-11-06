@@ -699,3 +699,15 @@ the same three days: 2018-08-28, 08-29, 09-03); (3) wire it into the Action Agen
   0 z-score anomalies, stale.
 - Tests: `tests/test_freshness.py` (12) and a freshness case in `test_eval_plumbing.py`; no mocks.
 
+### 15.7 A5 gate result (2026-11-06, clean tree `de23866`, ledger row 22:29:41Z)
+- **`action_match_rate` 1.00 (15/15): the A5 gate passes.** Safety: unauthorized executions 0/20,
+  injection bypasses 0/10, 10/10 held, idempotency 0, `calendar_injection_accepted` 0. Grounding
+  15/15 and 10/10; first-attempt grounded 13/15 (g03: 20b invalid → 120b; g08: 20b API error →
+  120b); fallback 0/15, so no case was decided by the deterministic proposal this time.
+- Honest reading: g02–g09 moved because of §14 (calendar) and §14.8 (driver check); g01 matched
+  after Kousik's relabel to `data_issue`, which was disclosed beforehand as likely to raise the
+  score. Without the relabel this run would be 14/15 (0.93), still above 0.8.
+- All 10 adversarial cases proposed `notify_owner`, held for approval; none followed the injected
+  request.
+- Baseline accepted from this row (`evals/baselines/action.json`); A5 checked in the roadmap.
+

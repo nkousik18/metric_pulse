@@ -5,6 +5,21 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-06 (later) — A5 gate passed: 15/15; action baseline set
+
+**What happened:** Kousik merged PRs #43 (threshold 2.0, §15 scope) and #44 (freshness check). Ran
+`python -m action_agent.eval` on clean main `de23866`: `action_match_rate` 1.00 (15/15), every safety
+metric 0, grounding 15/15 and 10/10, fallback 0, escalation 2/15. Accepted the action baseline from
+that ledger row and checked A5. Without the g01 relabel it would have been 14/15.
+
+**State:** A1–A6 done. A7 remains: one clean `python -m observability.drift` on a day with untouched
+gpt-oss-120b quota (today's A5 run used some).
+
+**Next:** the A7 drift run on another day; then the remaining loose ends (Investigation Golden Case #1
+on 2018-09-03; SNS/AWS keys; `.env` tokens; required CI checks; LangSmith test projects).
+
+---
+
 ## 2026-11-06 — Data-freshness check built (scope §15)
 
 **What happened:** Kousik approved §15 (25%, 28 rows, 50/day floor; Action Agent rule 3 now; roadmap
