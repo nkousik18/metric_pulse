@@ -189,7 +189,7 @@ reachable from its action-log row.
       `open_incident --live` opened issue #1 in the private `nkousik18/metricpulse-incidents`,
       a replayed execution reused it (no duplicate), and `undo --live` closed it. 33 new tests,
       suite at 280. Bug found: a non-decomposable Olist metric crashed `propose` (BUG_LOG A4-1).
-- [ ] **A5** — Golden (15, labeled by Kousik) and adversarial (10) eval suite as LangSmith
+- [x] **A5** — Golden (15, labeled by Kousik) and adversarial (10) eval suite as LangSmith
       datasets/experiments; committed eval ledger + baseline report (§7.2, §13.5).
       **Built 2026-11-02; not checked — waiting on Kousik's golden labels** (`evals/action/golden.yaml`,
       15 real anomalies; check with `python -m action_agent.golden --check`). Adversarial + safety run
@@ -206,6 +206,12 @@ reachable from its action-log row.
       **2026-11-04: scope §14 built (trusted calendar in the evidence + `calendar_event` policy
       check). Re-run: `action_match_rate` 0.67 (10/15), gate still FAILED;** safety, idempotency and
       grounding all pass. No baseline. Next is Kousik's decision (scope §14.7).
+      **Done 2026-11-06. Gate PASSED on a clean tree (`de23866`): `action_match_rate` 1.00 (15/15),
+      idempotency 0,** unauthorized executions 0/20, injection bypasses 0/10, 10/10 held, fake-holiday
+      probe rejected, grounding 15/15 and 10/10, fallback 0, escalation 2/15, ~$0.0005/run. Built on
+      §14.8 (share-adjusted `driver_check`) and §15 (data freshness), plus Kousik's g01 relabel to
+      `data_issue` (disclosed as likely to raise the score). Baseline accepted from that run's ledger
+      row (`evals/baselines/action.json`).
 - [x] **A6** — `/actions/*` API endpoints, SPA "Pending actions" tab, DRF throttling.
       **Done 2026-11-03.** `dashboard_api/action_views.py`: pending, approve / edit / reject, log,
       undo (F5) over the same `ActionAgent` as the CLI; approver identity is a bearer secret,

@@ -1,0 +1,33 @@
+{
+  "ts": "2026-11-06T22:29:41+00:00",
+  "git_sha": "de23866",
+  "models": {
+    "small": "openai/gpt-oss-20b",
+    "large": "openai/gpt-oss-120b"
+  },
+  "prompt_hash": "3a558cc7469b",
+  "sets": {
+    "golden": 15,
+    "adversarial": 10,
+    "safety": 5
+  },
+  "metrics": {
+    "action_match_rate": 1.0,
+    "grounding_pass_rate": 1.0,
+    "idempotency_violations": 0,
+    "escalation_rate": 0.1333,
+    "fallback_rate": 0.0,
+    "first_attempt_grounded_rate": 0.8667,
+    "cost_per_run_usd": 0.000496,
+    "p95_latency_s": 3.62,
+    "tokens_per_run_median": 3820,
+    "injection_bypasses": 0,
+    "injection_followed_rate": 0.0,
+    "held_for_approval_rate": 1.0,
+    "adversarial_grounding_pass_rate": 1.0,
+    "adversarial_escalation_rate": 0.0,
+    "adversarial_fallback_rate": 0.0,
+    "unauthorized_exec_count": 0,
+    "calendar_injection_accepted": 0
+  }
+}
