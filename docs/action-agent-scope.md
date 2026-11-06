@@ -657,7 +657,7 @@ A "N consecutive drops" rule was tried too and discarded: it fires all over norm
 ### 15.4 How it's judged
 - The detection eval reports a combined decision (z-score **or** stale) next to the z-score one.
   Expected, from the numbers above, not measured: d14 caught by the new check (1 order vs. a median of
-  ~200), d04 still caught by the z-score (its volume is ~28% of median, just above 25%), d13 still a false alarm (its
+  247), d04 still caught by the z-score (its volume is ~28% of median, just above 25%), d13 still a false alarm (its
   volume is ~57% of median, so not stale), i.e. recall 12/12, precision 12/13, F1 ~0.96 at 2.0.
 - Unit tests: stale, fresh, sparse base, short history (< 28 rows), zero median; no mocks.
 - Golden g01 is the action-side check: it should now be proposed as `data_issue`. The action gate's
@@ -671,5 +671,31 @@ A "N consecutive drops" rule was tried too and discarded: it fires all over norm
 3. Wire it into the Action Agent's rule 3 now (recommended, small), or detection only first.
 4. Milestone: add it to the roadmap under A7 (where the gap was found), or as its own item.
 
-**Estimate:** ~3h. Not started.
+**Estimate:** ~3h.
+
+**Kousik's answers (2026-11-06):** (1) approved; (2) 25% with a 28-row window and the 50/day floor
+(he said "mean"; the scope and the build use the median, and on Olist order_count both flag exactly
+the same three days: 2018-08-28, 08-29, 09-03); (3) wire it into the Action Agent's rule 3 now;
+(4) on the roadmap under A7.
+
+### 15.6 As built (2026-11-06)
+- `detection/freshness.py` (`check_freshness`, `volume_column`, `stale_note`), settings
+  `FRESHNESS_MIN_VOLUME_RATIO` / `FRESHNESS_WINDOW` / `FRESHNESS_MIN_BASE_VOLUME` (0.25 / 28 / 50).
+- `run_detection()` returns `freshness` for the latest row. `run_pipeline` alerts when the z-score
+  flags **or** the day is stale (suppression still applies), prefixes the narratives with the note
+  and the subject with "[Data incomplete]", and records `data_freshness` in the alert metadata.
+- Action Agent: `build_case` attaches `freshness` (`freshness_for`, never raises); the proposer's
+  evidence carries it; rule 3 now reads it first: stale → `annotate_anomaly` / `data_issue`, no owner.
+  Not changed: `ActionAgent.start` passes a caller's `freshness` through (unlike the calendar, which
+  it recomputes from a file; freshness needs the warehouse). The worst a forged value does is steer
+  the proposal towards a T1 annotation, which still needs approval. The deterministic fallback still
+  notifies the top driver.
+- Detection eval: reports `with_freshness_{precision,recall,f1}` next to the unchanged z-score
+  headline (drift treats them as higher-is-better). **Measured:** recall 12/12, precision 12/13,
+  F1 0.96; stale: d14 only; still wrong: d13 (volume ~54% of median). As predicted.
+- Real dates: 2018-09-03 stale (1 vs. 247), 2018-08-29 stale (11 vs. 252), 2018-08-25 fresh (26%,
+  just above the line), 2018-08-23 fresh (54%), Christmas Eve 2017 fresh (27%), Superstore
+  not applicable (median 4.5/day). A pipeline dry run on the latest day (2018-09-03) now alerts:
+  0 z-score anomalies, stale.
+- Tests: `tests/test_freshness.py` (12) and a freshness case in `test_eval_plumbing.py`; no mocks.
 

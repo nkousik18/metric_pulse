@@ -34,7 +34,8 @@ def directions(eval_name: str) -> Dict:
     """How each eval's metrics regress, for shared.compare."""
     if eval_name == 'detection':
         return {'lower_is_better': ('false_alarms', 'missed_events'),
-                'higher_is_better': ('detection_precision', 'detection_recall', 'detection_f1')}
+                'higher_is_better': ('detection_precision', 'detection_recall', 'detection_f1',
+                                     'with_freshness_precision', 'with_freshness_recall', 'with_freshness_f1')}
     if eval_name == 'investigation':
         return {'lower_is_better': ('fallback_rate', 'api_error_rate')}
     if eval_name == 'onboarding':

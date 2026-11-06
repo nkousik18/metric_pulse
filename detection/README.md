@@ -7,6 +7,7 @@ Anomaly detection on daily business metrics using a whole-window z-score. This i
 | File | Purpose |
 |------|---------|
 | `anomaly_detector.py` | Everything — fetch, score, flag, summarize. Single-file module. |
+| `freshness.py` | The data-freshness check (`docs/action-agent-scope.md` §15). `check_freshness(df, date=None)`: a day is `stale` when its record volume (`order_count`, or an onboarded dataset's `row_count`) is under `FRESHNESS_MIN_VOLUME_RATIO` (0.25) × the median of the previous `FRESHNESS_WINDOW` (28) rows; `not_applicable` when that median is under `FRESHNESS_MIN_BASE_VOLUME` (50/day, e.g. Superstore), with too little history, or with no volume column. `run_detection()` puts it in its result as `freshness`; the pipeline alerts on a stale day even with no z-score anomaly and leads the narrative with `stale_note()`. Why: a z-score over a 30-row window can't see a slow slide that already fills the window (Olist's export tail: 1 order on 2018-09-03, z only −1.85). |
 | `eval.py` | The detection eval (A7, action-agent scope §7.3): `python -m detection.eval [--candidates \| --check \| --set-baseline]`. Grades the production decision **replayed** for each labelled date (the `LOOKBACK_DAYS` rows ending at it, through the unchanged `detect_anomalies`), against Kousik's `is_event` labels in `evals/detection/labels.yaml`: precision, recall, F1, false alarms, missed events, and a 1.5–3.5 threshold sweep. No LLM, free. The candidates file never shows the detector's z or flag. |
 | `__init__.py` | Empty — makes the folder an importable package. |
 

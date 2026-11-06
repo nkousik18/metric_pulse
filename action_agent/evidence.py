@@ -50,6 +50,19 @@ def require_decomposable(evidence: Dict, dataset_id: str, metric: str) -> None:
                          f"that metric ({first[:120]})")
 
 
+def freshness_for(dataset_id: str, date: str) -> Dict:
+    """§15: the data-freshness check for `date`, from the dataset's own daily fact table (the same
+    check the pipeline's detection step runs). Never raises: a failure is 'not_applicable'."""
+    from detection.anomaly_detector import fetch_daily_metrics
+    from detection.freshness import check_freshness
+    try:
+        cfg = dataset_config(dataset_id)
+        df = fetch_daily_metrics(1_000_000, cfg['metric_columns'], cfg['table_name'], cfg['connection_factory'])
+        return check_freshness(df, date=date)
+    except Exception as e:
+        return {'status': 'not_applicable', 'date': date, 'reason': f'check failed: {type(e).__name__}: {e}'[:200]}
+
+
 def build_case(dataset_id: str, metric: str, target_date: Optional[str] = None) -> Dict:
     """Evidence for one anomaly, exactly as the pipeline builds it. target_date=None means the
     latest date in the data (what `propose` and the pipeline use)."""
@@ -64,6 +77,7 @@ def build_case(dataset_id: str, metric: str, target_date: Optional[str] = None) 
     evidence = to_plain(decompose_metric(current, previous, metric, **kwargs))
     require_decomposable(evidence, dataset_id, metric)
     evidence = attach_calendar(evidence, dataset_id, current)   # §14; ActionAgent.start recomputes it too
+    evidence['freshness'] = freshness_for(dataset_id, current)   # §15
     return {'dataset_id': dataset_id, 'metric': metric, 'anomaly_date': current,
             'evidence': evidence, 'narrative_summary': generate_narrative(evidence)['summary'],
             'top_driver': to_plain(get_top_driver(evidence))}

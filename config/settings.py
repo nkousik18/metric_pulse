@@ -36,6 +36,12 @@ SNS_TOPIC_ARN = os.getenv("SNS_TOPIC_ARN")
 # Detection Configuration
 ANOMALY_THRESHOLD_ZSCORE = float(os.getenv("ANOMALY_THRESHOLD_ZSCORE", 2.0))
 LOOKBACK_DAYS = int(os.getenv("LOOKBACK_DAYS", 30))
+# Data-freshness check (docs/action-agent-scope.md §15): a day is stale when its record volume is
+# under FRESHNESS_MIN_VOLUME_RATIO x the median of the previous FRESHNESS_WINDOW rows; off when that
+# median is under FRESHNESS_MIN_BASE_VOLUME records/day (too sparse to judge).
+FRESHNESS_MIN_VOLUME_RATIO = float(os.getenv("FRESHNESS_MIN_VOLUME_RATIO", 0.25))
+FRESHNESS_WINDOW = int(os.getenv("FRESHNESS_WINDOW", 28))
+FRESHNESS_MIN_BASE_VOLUME = float(os.getenv("FRESHNESS_MIN_BASE_VOLUME", 50))
 
 # Investigation Agent Configuration (Phase 1 -- investigation/synthesize node)
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")

@@ -5,6 +5,23 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-06 — Data-freshness check built (scope §15)
+
+**What happened:** Kousik approved §15 (25%, 28 rows, 50/day floor; Action Agent rule 3 now; roadmap
+under A7). He said "mean"; built with the median as scoped, and both flag the same three Olist days.
+Built `detection/freshness.py`, wired it into `run_detection`, the pipeline's alert decision and
+narrative, the Action Agent's evidence and rule 3, and the detection eval (a combined z-or-stale
+score). Measured: detection recall 12/12, precision 12/13, F1 0.96 (z alone 0.92). A pipeline dry run
+on 2018-09-03 now alerts with "[Data incomplete]". 381 tests pass.
+
+**State:** branch `feat/data-freshness`, on top of PR #43 (open: the 2.0 decision and the §15 draft).
+A5 and A7 unchecked. The proposer prompt changed (rule 3), so the A5 run should use this build.
+
+**Next:** merge PR #43, then this branch's PR; then the A5 golden + adversarial run (today has 120b
+quota), and the A7 drift run on another day.
+
+---
+
 ## 2026-11-04 (late night) — Detection threshold kept at 2.0; data-freshness check scoped
 
 **What happened:** Re-ran the detection eval (`c6b5e5d`, unchanged 0.92/0.92). Sorted every label by
