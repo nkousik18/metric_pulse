@@ -362,6 +362,16 @@ Filled in as the D8 choices are made during the build. One line each: choice —
 
 **Kousik's A5 decision (2026-11-04): fix the proposer, not the labels.** He first chose to relabel the 8 misses, then reversed it after review. Adding `notify_owner` to g02–g09 would raise the match rate without the agent improving, and blind the eval to the failure it caught: the proposer sees no weekday or calendar, and rule 3 steers it to notify the top segment's owner. **g02–g09 keep their labels. g01 keeps `regional-sales`** (Credit Card's +106.6% on 2018-09-03 reflects a near-empty day of orders, which is stale data, not a payments cause). **The 0.8 target stays.** The fix is §14, proposed and awaiting his approval before any code.
 
+**Kousik's decision (2026-11-04): the detection threshold stays at 2.0.** Re-run at `c6b5e5d`
+(unchanged: precision and recall 0.92, F1 0.92). Every labelled date sorted by replayed |z|: outside
+Olist's export tail (2018-08-20 on), the 10 events are at 2.90–5.17 and the 15 non-events at
+0.03–1.77, so any threshold in (1.77, 2.90) is perfect there and 2.0 sits inside that gap. The two
+errors are both in the tail and pull opposite ways: d14 (2018-09-03, event) at 1.85 and d13
+(2018-08-23, not an event) at 2.15. No threshold gets both. 1.75 catches d14 but adds d13 and d28 (a
+normal Superstore day at 1.77, 0.02 above it); 2.25 scores higher (F1 0.96) only by dropping d13.
+A z-score over a 30-row window can't see a slow slide, because the window already holds it. The fix
+for d14 is a data-freshness check, not a threshold: proposed in §15.
+
 ## 13. Observability, tracing and replay (added 2026-11-02)
 
 Goal: every decision MetricPulse makes, whether detection, investigation, onboarding classification, action proposal, policy result or approval, can be **tracked** (found later by anomaly, dataset or action), **traced** (its full inputs, reasoning and outputs seen step by step) and **replayed** (re-run to confirm or compare).
@@ -599,3 +609,67 @@ the `driver_check` spot-check on non-golden anomalies before the golden re-run.
   - Points for Kousik: d01's South sits exactly on the 50% line; d04 is a driver on a weekend (the
     addition above decides it: notify); d03 is a driver on a day labelled "not an event" (the detector
     decides whether to alert at all; this only decides who hears about it).
+
+## 15. Data-freshness check (proposed 2026-11-04, awaiting Kousik's approval)
+
+**Why.** The z-score detector compares a day with its own trailing 30-row window. A feed that
+fails slowly fills that window with the decline, so the worst day doesn't stand out: Olist's export
+tail went from ~275 orders/day (Aug 1–20, 2018) to 11 on 08-29 and 1 on 09-03, and the replayed z on
+09-03 is only −1.85 (detection label d14, an event: missed). The same day is golden g01, now labelled
+`annotate_anomaly` / `data_issue`. Kousik's labels already treat this as worth an alert (d04, d14:
+"data freshness problem"). This is a detection-layer change, scoped here because the evals that
+found it live in §7.
+
+### 15.1 The check
+A second, independent signal next to the z-score, on the dataset's **record volume**, not the alerted
+metric (Olist: `order_count`; an onboarded dataset: its `row_count`, which codegen already adds):
+
+    stale when  volume(today) < MIN_VOLUME_RATIO × median(volume over the previous 28 rows)
+    applies only when that median ≥ MIN_BASE_VOLUME records/day
+
+Proposed values: `MIN_VOLUME_RATIO = 0.25`, `MIN_BASE_VOLUME = 50`, `FRESHNESS_WINDOW = 28` rows,
+as settings like `ANOMALY_THRESHOLD_ZSCORE`. Pure function in `detection/`, no new query (the pipeline
+already fetches the series). Volume, not value, because a revenue dip can be real business (Christmas
+Eve 2017 revenue is under 25% of its median; order count isn't).
+
+### 15.2 Measured on the real series (no code yet, a throwaway script)
+| Series | Days < 25% of prior-28 median | Which |
+|---|---|---|
+| Olist order_count | 3 of 586 | 2018-08-28, 08-29, 09-03: all in the export tail |
+| Olist order_count at 40% | 9 of 586 | the tail (6) plus 2017-06-21, 2017-12-24 |
+| Superstore sales | 240 of 1,390 | lumpy: a few orders a day, many near-zero days |
+
+So the check works only on a dataset with a real daily base: Superstore (~6 orders/day) falls under
+`MIN_BASE_VOLUME` and the check is off for it, reported as "not applicable (sparse)", not as fresh.
+A "N consecutive drops" rule was tried too and discarded: it fires all over normal weekly cycles.
+
+### 15.3 What it does when it fires
+- The pipeline result gains a `freshness` block: `{status: fresh|stale|not_applicable, volume,
+  median, ratio, reason}`. A stale day alerts even when the z-score doesn't, with the narrative
+  saying "data looks incomplete" rather than naming a segment, and no decomposition-led root cause.
+- The Action Agent evidence carries the same block, and rule 3 gains: when `freshness.status` is
+  stale, propose `annotate_anomaly` category `data_issue` (g01's label). No new action, no tier
+  change, no new owner routing.
+- Out of scope: checking the warehouse load timestamp or the max date against today (the local
+  data is historical, so "today" means nothing here; it is the natural production version and is
+  named, not built), and any automatic suppression.
+
+### 15.4 How it's judged
+- The detection eval reports a combined decision (z-score **or** stale) next to the z-score one.
+  Expected, from the numbers above, not measured: d14 caught by the new check (1 order vs. a median of
+  ~200), d04 still caught by the z-score (its volume is ~28% of median, just above 25%), d13 still a false alarm (its
+  volume is ~57% of median, so not stale), i.e. recall 12/12, precision 12/13, F1 ~0.96 at 2.0.
+- Unit tests: stale, fresh, sparse base, short history (< 28 rows), zero median; no mocks.
+- Golden g01 is the action-side check: it should now be proposed as `data_issue`. The action gate's
+  0.8 target is unchanged.
+- **Overfitting, disclosed:** 25% was chosen after seeing the tail. The guard: at that value it
+  fires on no Olist day outside the tail, and the values are committed before the eval is re-run.
+
+### 15.5 Decisions for Kousik
+1. Approve §15, or change it.
+2. Values: 25% of the 28-row median, with a 50 records/day floor (or others).
+3. Wire it into the Action Agent's rule 3 now (recommended, small), or detection only first.
+4. Milestone: add it to the roadmap under A7 (where the gap was found), or as its own item.
+
+**Estimate:** ~3h. Not started.
+

@@ -5,6 +5,23 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-04 (late night) — Detection threshold kept at 2.0; data-freshness check scoped
+
+**What happened:** Re-ran the detection eval (`c6b5e5d`, unchanged 0.92/0.92). Sorted every label by
+replayed |z|: outside Olist's export tail the labels separate perfectly anywhere in (1.77, 2.90); both
+errors (d14 missed, d13 false alarm) are tail dates pulling opposite ways, so no threshold fixes them.
+Kousik kept 2.0 (recorded in the scope decision log). Drafted scope §15, a data-freshness check on
+record volume (stale below 25% of the prior-28-row median, off below 50 records/day), measured on the
+real series with a throwaway script: Olist order_count fires on 3 of 586 days, all in the tail;
+Superstore is too sparse and is excluded. No code.
+
+**State:** branch `docs/detection-threshold-decision` (the decision, §15 draft, one detection ledger
+row). A5 run and A7 drift run still waiting on gpt-oss-120b quota, on separate days.
+
+**Next:** Kousik answers §15.5; then the A5 run.
+
+---
+
 ## 2026-11-04 (night) — PRs #40 and #41 merged; two label/design decisions
 
 **What happened:** Kousik merged PR #40 (§14 scope) and PR #41 (§14 calendar + §14.8 driver check;
