@@ -23,11 +23,18 @@ Render" claims in the other docs wait until the new URL exists. Hosting is new w
 
 **State:** A1–A7 and L1–L3 done. #47 open, CI green.
 
+**LangSmith test projects (loose end closed):** listed the account: `metricpulse-a2-verify`,
+`metricpulse-a3-verify`, 7 `action-*` experiments (5 referenced from `evals/ledger.jsonl`, the two
+`b83a11e` ones not), `metricpulse-evals`, `evaluators`, and the golden (15) and adversarial (10)
+datasets. Kousik chose to keep everything; nothing deleted. Note: `LANGSMITH_TRACING` defaults to
+off and `.env` doesn't set it, so evals since 11-04 recorded no LangSmith experiments; set
+`LANGSMITH_TRACING=true` for a run that should.
+
 **Next / loose ends:** merge #47; Kousik: delete the inactive key and `metric-pulse-dev` user in
 the IAM console, remove the dead vars from `.env` and `~/.aws/credentials`, revoke the Gmail app
 password unless the contact form is coming back; decide on `docs/project/demos/m6_onboarding_demo.cast`
 (still untracked) and `brag-output*/`; scope hosting, then fix the 8 remaining "live on Render" lines
-in `docs/`; Golden Case #1 / d04 labels; LangSmith test projects; optional weekly drift job;
+in `docs/`; Golden Case #1 / d04 labels; optional weekly drift job;
 onboarding column-classification quality.
 
 ---
