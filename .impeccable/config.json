@@ -11,6 +11,15 @@
         ],
         "createdAt": "2026-11-12T17:44:06.514Z",
         "reason": "Claude: L257 is a ternary pairing text-gray-600 with bg-gray-100 and text-amber-700 with bg-amber-50; no gray text sits on a colored background"
+      },
+      {
+        "rule": "monotonous-spacing",
+        "value": "*",
+        "files": [
+          "templates/partials/styles.html"
+        ],
+        "createdAt": "2026-11-12T23:36:10.305Z",
+        "reason": "Claude: styles.html is the token file; the 4px step is defined once alongside an 8-64px scale, and the rendered layout varies spacing (4-8px within groups, 16-24px in tiles, 28px between tiles, 48px after the intro), verified in Chrome 2026-11-12"
       }
     ]
   }
