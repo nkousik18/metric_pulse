@@ -5,6 +5,23 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-12 (night) — Hosting scope approved; H1 handoff written
+
+**What happened:** Merged #49. Kousik approved the scope and both proposed decisions (the 2.1 MB
+staging snapshot of full Olist as demo data; demo mode with live effects off server-side and a
+daily LLM cap). While preparing the handoff I found the scope's §5 was wrong: the actions API is
+not open, it requires `ACTION_APPROVER_TOKEN` as a bearer token and fails closed. Corrected §5 and
+§6.5 (demo mode shares a public demo token, safe only because `live` is forced off) and logged it
+in §10.
+
+**State:** scope approved, H1–H3 unchecked, nothing built.
+
+**Next (for the next agent):** build H1. **Start with `docs/hosting-scope.md` §11**, the ordered
+reading list with file/line pointers. Confirm the recorded anomaly dates and the Pages URL with
+Kousik first. Recording makes real Groq calls.
+
+---
+
 ## 2026-11-12 (evening) — Hosting scoped (H1–H3), tracing back on
 
 **What happened:** Merged #47 (screenshots) and #48 (logs). Kousik chose to keep every LangSmith
