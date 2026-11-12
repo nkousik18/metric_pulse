@@ -1,0 +1,2063 @@
+{
+ "initial": {
+  "log": {
+   "data": {
+    "events": [
+     {
+      "action_type": "notify_owner",
+      "actor": "action_agent",
+      "created_at": "2026-11-12T17:52:20.349777+00:00",
+      "detail": null,
+      "event": "policy_passed",
+      "external_id": null,
+      "idempotency_key": "521b31e81f1b58855d6aed2e3f1f9544a9985e82703dbbff4bc1633d1be34a67",
+      "log_id": 6,
+      "params": {
+       "dimension": "product",
+       "segment": "Other"
+      },
+      "payload": {
+       "body": "Total Revenue decreased 19.5% on 2018-08-23. Primary driver: Credit Card (payment) contributed 71.9% of the change.\n\nEvidence -- product:\n\n| Segment | Previous | Current | Change | Contribution |\n|---|---:|---:|---:|---:|\n| **Other** | 8,752.05 | 5,585.40 | -3,166.65 | +67.1% |\n| Home & Furniture | 3,202.18 | 1,573.84 | -1,628.34 | +34.5% |\n| Auto & Tools | 2,458.62 | 4,063.80 | +1,605.18 | -34.0% |\n| Electronics | 2,583.35 | 1,390.74 | -1,192.61 | +25.3% |\n| Health & Beauty | 4,683.82 | 3,953.90 | -729.92 | +15.5% |\n\nCited evidence:\n- product / Other (decomposition): Segment 'Other' contributed 67.06% of the revenue change, exceeding its normal share by 31%\n\nAnomaly: olist / total_revenue / 2018-08-23 (id 8fb7e7d4f999)",
+       "subject": "[MetricPulse] total_revenue anomaly on 2018-08-23: Other (product)"
+      },
+      "policy": {
+       "action_type": "notify_owner",
+       "decision": "needs_approval",
+       "errors": [],
+       "params": {
+        "dimension": "product",
+        "segment": "Other"
+       },
+       "tier": "T1"
+      },
+      "proposal_id": "a2883af6-6a30-4b36-8be8-c0875909b655",
+      "trace_id": "1d09e564-5872-4ba8-b134-aad3f621f422"
+     },
+     {
+      "action_type": "notify_owner",
+      "actor": "llm:openai/gpt-oss-20b",
+      "created_at": "2026-11-12T17:52:20.347201+00:00",
+      "detail": "openai/gpt-oss-20b grounded; 3,065 tokens",
+      "event": "proposed",
+      "external_id": null,
+      "idempotency_key": null,
+      "log_id": 5,
+      "params": {
+       "dimension": "product",
+       "segment": "Other"
+      },
+      "payload": null,
+      "policy": null,
+      "proposal_id": "a2883af6-6a30-4b36-8be8-c0875909b655",
+      "trace_id": "1d09e564-5872-4ba8-b134-aad3f621f422"
+     },
+     {
+      "action_type": "notify_owner",
+      "actor": "action_agent",
+      "created_at": "2026-11-12T17:52:16.653373+00:00",
+      "detail": null,
+      "event": "policy_passed",
+      "external_id": null,
+      "idempotency_key": "0008dc67164e578f209072d366e5f7669345d8762fb1b739e9e19bbbde9520b8",
+      "log_id": 4,
+      "params": {
+       "dimension": "product",
+       "segment": "Other"
+      },
+      "payload": {
+       "body": "Order Count decreased 28.9% on 2018-08-25. Primary driver: Southeast (geography) contributed 92.9% of the change.\n\nEvidence -- product:\n\n| Segment | Previous | Current | Change | Contribution |\n|---|---:|---:|---:|---:|\n| **Other** | 37.00 | 15.00 | -22.00 | +73.3% |\n| Fashion & Sports | 9.00 | 2.00 | -7.00 | +23.3% |\n| Electronics | 12.00 | 8.00 | -4.00 | +13.3% |\n| Auto & Tools | 9.00 | 11.00 | +2.00 | -6.7% |\n| Kids & Toys | 5.00 | 7.00 | +2.00 | -6.7% |\n\nCited evidence:\n- product / Other (decomposition): The 'Other' product segment contributed 73.33% of the total change in order count.\n- product / Other (decomposition): The clear_driver flag indicates that this segment is the primary driver of the anomaly.\n\nAnomaly: olist / order_count / 2018-08-25 (id be284b988ba7)",
+       "subject": "[MetricPulse] order_count anomaly on 2018-08-25: Other (product)"
+      },
+      "policy": {
+       "action_type": "notify_owner",
+       "decision": "needs_approval",
+       "errors": [],
+       "params": {
+        "dimension": "product",
+        "segment": "Other"
+       },
+       "tier": "T1"
+      },
+      "proposal_id": "e2c6533a-bbe5-4c83-b6bd-da3dcd6b6e16",
+      "trace_id": "58e76d34-dff9-4444-95bc-22b3e0bededc"
+     },
+     {
+      "action_type": "notify_owner",
+      "actor": "llm:openai/gpt-oss-20b",
+      "created_at": "2026-11-12T17:52:16.650620+00:00",
+      "detail": "openai/gpt-oss-20b grounded; 2,990 tokens",
+      "event": "proposed",
+      "external_id": null,
+      "idempotency_key": null,
+      "log_id": 3,
+      "params": {
+       "dimension": "product",
+       "segment": "Other"
+      },
+      "payload": null,
+      "policy": null,
+      "proposal_id": "e2c6533a-bbe5-4c83-b6bd-da3dcd6b6e16",
+      "trace_id": "58e76d34-dff9-4444-95bc-22b3e0bededc"
+     },
+     {
+      "action_type": "annotate_anomaly",
+      "actor": "action_agent",
+      "created_at": "2026-11-12T17:52:12.933438+00:00",
+      "detail": null,
+      "event": "policy_passed",
+      "external_id": null,
+      "idempotency_key": "e1b54b96728a5c33b81d60e5aba5b92c7948eeebeec0a4b62cb3486bc61c32c0",
+      "log_id": 2,
+      "params": {
+       "category": "data_issue",
+       "cause": "Incomplete data: only 1 record vs median 247"
+      },
+      "payload": {
+       "anomaly_id": "5e25dcd9b0b58c65f47d2d2e672961650264bdf2669b7636e8f6e4dcb7283a01",
+       "category": "data_issue",
+       "cause": "Incomplete data: only 1 record vs median 247"
+      },
+      "policy": {
+       "action_type": "annotate_anomaly",
+       "decision": "needs_approval",
+       "errors": [],
+       "params": {
+        "category": "data_issue",
+        "cause": "Incomplete data: only 1 record vs median 247"
+       },
+       "tier": "T1"
+      },
+      "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+      "trace_id": "277c3470-0ce8-419c-9c98-f538d5d08a93"
+     },
+     {
+      "action_type": "annotate_anomaly",
+      "actor": "llm:openai/gpt-oss-20b",
+      "created_at": "2026-11-12T17:52:12.930874+00:00",
+      "detail": "openai/gpt-oss-20b grounded; 2,867 tokens",
+      "event": "proposed",
+      "external_id": null,
+      "idempotency_key": null,
+      "log_id": 1,
+      "params": {
+       "category": "data_issue",
+       "cause": "Incomplete data: only 1 record vs median 247"
+      },
+      "payload": null,
+      "policy": null,
+      "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+      "trace_id": "277c3470-0ce8-419c-9c98-f538d5d08a93"
+     }
+    ],
+    "proposals": [
+     {
+      "action_type": "annotate_anomaly",
+      "anomaly_date": "2018-09-03",
+      "anomaly_id": "5e25dcd9b0b58c65f47d2d2e672961650264bdf2669b7636e8f6e4dcb7283a01",
+      "created_at": "2026-11-12T17:52:12.930874+00:00",
+      "dataset_id": "olist",
+      "executed_action_type": null,
+      "expires_at": "2026-11-13T17:52:12.930874+00:00",
+      "metric": "total_revenue",
+      "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+      "proposer": "llm:openai/gpt-oss-20b",
+      "status": "pending",
+      "trace_id": "277c3470-0ce8-419c-9c98-f538d5d08a93",
+      "undoable": false
+     },
+     {
+      "action_type": "notify_owner",
+      "anomaly_date": "2018-08-23",
+      "anomaly_id": "8fb7e7d4f9999b01eb6649bcaa81d03ef8d33f9d0fb8dbd7fcd18860c7cc55a4",
+      "created_at": "2026-11-12T17:52:20.347201+00:00",
+      "dataset_id": "olist",
+      "executed_action_type": null,
+      "expires_at": "2026-11-13T17:52:20.347201+00:00",
+      "metric": "total_revenue",
+      "proposal_id": "a2883af6-6a30-4b36-8be8-c0875909b655",
+      "proposer": "llm:openai/gpt-oss-20b",
+      "status": "pending",
+      "trace_id": "1d09e564-5872-4ba8-b134-aad3f621f422",
+      "undoable": false
+     },
+     {
+      "action_type": "notify_owner",
+      "anomaly_date": "2018-08-25",
+      "anomaly_id": "be284b988ba7695b3aa8c8048e62b6b6b9588de67f55d04d2455ad766bf6cca7",
+      "created_at": "2026-11-12T17:52:16.650620+00:00",
+      "dataset_id": "olist",
+      "executed_action_type": null,
+      "expires_at": "2026-11-13T17:52:16.650620+00:00",
+      "metric": "order_count",
+      "proposal_id": "e2c6533a-bbe5-4c83-b6bd-da3dcd6b6e16",
+      "proposer": "llm:openai/gpt-oss-20b",
+      "status": "pending",
+      "trace_id": "58e76d34-dff9-4444-95bc-22b3e0bededc",
+      "undoable": false
+     }
+    ]
+   },
+   "status": "success"
+  },
+  "pending": {
+   "data": [
+    {
+     "action_type": "annotate_anomaly",
+     "anomaly_date": "2018-09-03",
+     "anomaly_id": "5e25dcd9b0b58c65f47d2d2e672961650264bdf2669b7636e8f6e4dcb7283a01",
+     "created_at": "2026-11-12T17:52:12.930874+00:00",
+     "dataset_id": "olist",
+     "expires_at": "2026-11-13T17:52:12.930874+00:00",
+     "metric": "total_revenue",
+     "narrative": "Total Revenue decreased 90.6% on 2018-09-03. Primary driver: Credit Card (payment) contributed 106.6% of the change.",
+     "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+     "proposer": "llm:openai/gpt-oss-20b",
+     "rationale_citations": [
+      {
+       "claim": "Credit Card contributed 106.59% of the change",
+       "dimension": "payment",
+       "segment": "Credit Card",
+       "source": "decomposition"
+      },
+      {
+       "claim": "Southeast contributed 67.99% of the change",
+       "dimension": "geography",
+       "segment": "Southeast",
+       "source": "decomposition"
+      }
+     ],
+     "status": "pending",
+     "trace_id": "277c3470-0ce8-419c-9c98-f538d5d08a93",
+     "waiting_on": {
+      "dry_run": {
+       "action_type": "annotate_anomaly",
+       "anomaly_id": "5e25dcd9b0b58c65f47d2d2e672961650264bdf2669b7636e8f6e4dcb7283a01",
+       "decision": "needs_approval",
+       "idempotency_key": "e1b54b96728a5c33b81d60e5aba5b92c7948eeebeec0a4b62cb3486bc61c32c0",
+       "params": {
+        "category": "data_issue",
+        "cause": "Incomplete data: only 1 record vs median 247"
+       },
+       "payload": {
+        "anomaly_id": "5e25dcd9b0b58c65f47d2d2e672961650264bdf2669b7636e8f6e4dcb7283a01",
+        "category": "data_issue",
+        "cause": "Incomplete data: only 1 record vs median 247"
+       },
+       "reversible": true,
+       "target": {
+        "kind": "annotation",
+        "store": "actions.db:annotations"
+       },
+       "tier": "T1"
+      },
+      "expires_at": "2026-11-13T17:52:12.930874+00:00",
+      "policy_errors": [],
+      "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810"
+     }
+    },
+    {
+     "action_type": "notify_owner",
+     "anomaly_date": "2018-08-25",
+     "anomaly_id": "be284b988ba7695b3aa8c8048e62b6b6b9588de67f55d04d2455ad766bf6cca7",
+     "created_at": "2026-11-12T17:52:16.650620+00:00",
+     "dataset_id": "olist",
+     "expires_at": "2026-11-13T17:52:16.650620+00:00",
+     "metric": "order_count",
+     "narrative": "Order Count decreased 28.9% on 2018-08-25. Primary driver: Southeast (geography) contributed 92.9% of the change.",
+     "proposal_id": "e2c6533a-bbe5-4c83-b6bd-da3dcd6b6e16",
+     "proposer": "llm:openai/gpt-oss-20b",
+     "rationale_citations": [
+      {
+       "claim": "The 'Other' product segment contributed 73.33% of the total change in order count.",
+       "dimension": "product",
+       "segment": "Other",
+       "source": "decomposition"
+      },
+      {
+       "claim": "The clear_driver flag indicates that this segment is the primary driver of the anomaly.",
+       "dimension": "product",
+       "segment": "Other",
+       "source": "decomposition"
+      }
+     ],
+     "status": "pending",
+     "trace_id": "58e76d34-dff9-4444-95bc-22b3e0bededc",
+     "waiting_on": {
+      "dry_run": {
+       "action_type": "notify_owner",
+       "anomaly_id": "be284b988ba7695b3aa8c8048e62b6b6b9588de67f55d04d2455ad766bf6cca7",
+       "decision": "needs_approval",
+       "idempotency_key": "0008dc67164e578f209072d366e5f7669345d8762fb1b739e9e19bbbde9520b8",
+       "params": {
+        "dimension": "product",
+        "segment": "Other"
+       },
+       "payload": {
+        "body": "Order Count decreased 28.9% on 2018-08-25. Primary driver: Southeast (geography) contributed 92.9% of the change.\n\nEvidence -- product:\n\n| Segment | Previous | Current | Change | Contribution |\n|---|---:|---:|---:|---:|\n| **Other** | 37.00 | 15.00 | -22.00 | +73.3% |\n| Fashion & Sports | 9.00 | 2.00 | -7.00 | +23.3% |\n| Electronics | 12.00 | 8.00 | -4.00 | +13.3% |\n| Auto & Tools | 9.00 | 11.00 | +2.00 | -6.7% |\n| Kids & Toys | 5.00 | 7.00 | +2.00 | -6.7% |\n\nCited evidence:\n- product / Other (decomposition): The 'Other' product segment contributed 73.33% of the total change in order count.\n- product / Other (decomposition): The clear_driver flag indicates that this segment is the primary driver of the anomaly.\n\nAnomaly: olist / order_count / 2018-08-25 (id be284b988ba7)",
+        "subject": "[MetricPulse] order_count anomaly on 2018-08-25: Other (product)"
+       },
+       "reversible": false,
+       "target": {
+        "channel": "outbox",
+        "kind": "notifier",
+        "owner": {
+         "email": "analytics-oncall@example.com",
+         "id": "analytics-oncall",
+         "matched": "default",
+         "name": "Analytics On-Call"
+        }
+       },
+       "tier": "T1"
+      },
+      "expires_at": "2026-11-13T17:52:16.650620+00:00",
+      "policy_errors": [],
+      "proposal_id": "e2c6533a-bbe5-4c83-b6bd-da3dcd6b6e16"
+     }
+    },
+    {
+     "action_type": "notify_owner",
+     "anomaly_date": "2018-08-23",
+     "anomaly_id": "8fb7e7d4f9999b01eb6649bcaa81d03ef8d33f9d0fb8dbd7fcd18860c7cc55a4",
+     "created_at": "2026-11-12T17:52:20.347201+00:00",
+     "dataset_id": "olist",
+     "expires_at": "2026-11-13T17:52:20.347201+00:00",
+     "metric": "total_revenue",
+     "narrative": "Total Revenue decreased 19.5% on 2018-08-23. Primary driver: Credit Card (payment) contributed 71.9% of the change.",
+     "proposal_id": "a2883af6-6a30-4b36-8be8-c0875909b655",
+     "proposer": "llm:openai/gpt-oss-20b",
+     "rationale_citations": [
+      {
+       "claim": "Segment 'Other' contributed 67.06% of the revenue change, exceeding its normal share by 31%",
+       "dimension": "product",
+       "segment": "Other",
+       "source": "decomposition"
+      }
+     ],
+     "status": "pending",
+     "trace_id": "1d09e564-5872-4ba8-b134-aad3f621f422",
+     "waiting_on": {
+      "dry_run": {
+       "action_type": "notify_owner",
+       "anomaly_id": "8fb7e7d4f9999b01eb6649bcaa81d03ef8d33f9d0fb8dbd7fcd18860c7cc55a4",
+       "decision": "needs_approval",
+       "idempotency_key": "521b31e81f1b58855d6aed2e3f1f9544a9985e82703dbbff4bc1633d1be34a67",
+       "params": {
+        "dimension": "product",
+        "segment": "Other"
+       },
+       "payload": {
+        "body": "Total Revenue decreased 19.5% on 2018-08-23. Primary driver: Credit Card (payment) contributed 71.9% of the change.\n\nEvidence -- product:\n\n| Segment | Previous | Current | Change | Contribution |\n|---|---:|---:|---:|---:|\n| **Other** | 8,752.05 | 5,585.40 | -3,166.65 | +67.1% |\n| Home & Furniture | 3,202.18 | 1,573.84 | -1,628.34 | +34.5% |\n| Auto & Tools | 2,458.62 | 4,063.80 | +1,605.18 | -34.0% |\n| Electronics | 2,583.35 | 1,390.74 | -1,192.61 | +25.3% |\n| Health & Beauty | 4,683.82 | 3,953.90 | -729.92 | +15.5% |\n\nCited evidence:\n- product / Other (decomposition): Segment 'Other' contributed 67.06% of the revenue change, exceeding its normal share by 31%\n\nAnomaly: olist / total_revenue / 2018-08-23 (id 8fb7e7d4f999)",
+        "subject": "[MetricPulse] total_revenue anomaly on 2018-08-23: Other (product)"
+       },
+       "reversible": false,
+       "target": {
+        "channel": "outbox",
+        "kind": "notifier",
+        "owner": {
+         "email": "analytics-oncall@example.com",
+         "id": "analytics-oncall",
+         "matched": "default",
+         "name": "Analytics On-Call"
+        }
+       },
+       "tier": "T1"
+      },
+      "expires_at": "2026-11-13T17:52:20.347201+00:00",
+      "policy_errors": [],
+      "proposal_id": "a2883af6-6a30-4b36-8be8-c0875909b655"
+     }
+    }
+   ],
+   "status": "success"
+  }
+ },
+ "proposals": [
+  {
+   "case": "d14",
+   "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+   "trace_url": "https://aws.smith.langchain.com/o/716f3aa7-91e5-4e6f-aaad-2b6f8daa7f10/projects/p/b7077ade-ea75-4faf-b1e6-8c7e03849aa5/r/277c3470-0ce8-419c-9c98-f538d5d08a93?poll=true"
+  },
+  {
+   "case": "d04",
+   "proposal_id": "e2c6533a-bbe5-4c83-b6bd-da3dcd6b6e16",
+   "trace_url": "https://aws.smith.langchain.com/o/716f3aa7-91e5-4e6f-aaad-2b6f8daa7f10/projects/p/b7077ade-ea75-4faf-b1e6-8c7e03849aa5/r/58e76d34-dff9-4444-95bc-22b3e0bededc?poll=true"
+  },
+  {
+   "case": "d13",
+   "proposal_id": "a2883af6-6a30-4b36-8be8-c0875909b655",
+   "trace_url": "https://aws.smith.langchain.com/o/716f3aa7-91e5-4e6f-aaad-2b6f8daa7f10/projects/p/b7077ade-ea75-4faf-b1e6-8c7e03849aa5/r/1d09e564-5872-4ba8-b134-aad3f621f422?poll=true"
+  }
+ ],
+ "steps": [
+  {
+   "after": {
+    "log": {
+     "data": {
+      "events": [
+       {
+        "action_type": "notify_owner",
+        "actor": "action_agent",
+        "created_at": "2026-11-12T17:52:22.957378+00:00",
+        "detail": "sent",
+        "event": "executed",
+        "external_id": "outbox:0374d160d39b4e0ea24cbf74353f6281",
+        "idempotency_key": "0008dc67164e578f209072d366e5f7669345d8762fb1b739e9e19bbbde9520b8",
+        "log_id": 8,
+        "params": {
+         "dimension": "product",
+         "segment": "Other"
+        },
+        "payload": {
+         "body": "Order Count decreased 28.9% on 2018-08-25. Primary driver: Southeast (geography) contributed 92.9% of the change.\n\nEvidence -- product:\n\n| Segment | Previous | Current | Change | Contribution |\n|---|---:|---:|---:|---:|\n| **Other** | 37.00 | 15.00 | -22.00 | +73.3% |\n| Fashion & Sports | 9.00 | 2.00 | -7.00 | +23.3% |\n| Electronics | 12.00 | 8.00 | -4.00 | +13.3% |\n| Auto & Tools | 9.00 | 11.00 | +2.00 | -6.7% |\n| Kids & Toys | 5.00 | 7.00 | +2.00 | -6.7% |\n\nCited evidence:\n- product / Other (decomposition): The 'Other' product segment contributed 73.33% of the total change in order count.\n- product / Other (decomposition): The clear_driver flag indicates that this segment is the primary driver of the anomaly.\n\nAnomaly: olist / order_count / 2018-08-25 (id be284b988ba7)",
+         "subject": "[MetricPulse] order_count anomaly on 2018-08-25: Other (product)"
+        },
+        "policy": null,
+        "proposal_id": "e2c6533a-bbe5-4c83-b6bd-da3dcd6b6e16",
+        "trace_id": "adc3048e-f158-47ae-b569-eb8067e0ae2b"
+       },
+       {
+        "action_type": "notify_owner",
+        "actor": "demo-approver",
+        "created_at": "2026-11-12T17:52:22.881965+00:00",
+        "detail": "Approved as proposed (recorded demo).",
+        "event": "approved",
+        "external_id": null,
+        "idempotency_key": "0008dc67164e578f209072d366e5f7669345d8762fb1b739e9e19bbbde9520b8",
+        "log_id": 7,
+        "params": {
+         "dimension": "product",
+         "segment": "Other"
+        },
+        "payload": null,
+        "policy": null,
+        "proposal_id": "e2c6533a-bbe5-4c83-b6bd-da3dcd6b6e16",
+        "trace_id": "adc3048e-f158-47ae-b569-eb8067e0ae2b"
+       },
+       {
+        "action_type": "notify_owner",
+        "actor": "action_agent",
+        "created_at": "2026-11-12T17:52:20.349777+00:00",
+        "detail": null,
+        "event": "policy_passed",
+        "external_id": null,
+        "idempotency_key": "521b31e81f1b58855d6aed2e3f1f9544a9985e82703dbbff4bc1633d1be34a67",
+        "log_id": 6,
+        "params": {
+         "dimension": "product",
+         "segment": "Other"
+        },
+        "payload": {
+         "body": "Total Revenue decreased 19.5% on 2018-08-23. Primary driver: Credit Card (payment) contributed 71.9% of the change.\n\nEvidence -- product:\n\n| Segment | Previous | Current | Change | Contribution |\n|---|---:|---:|---:|---:|\n| **Other** | 8,752.05 | 5,585.40 | -3,166.65 | +67.1% |\n| Home & Furniture | 3,202.18 | 1,573.84 | -1,628.34 | +34.5% |\n| Auto & Tools | 2,458.62 | 4,063.80 | +1,605.18 | -34.0% |\n| Electronics | 2,583.35 | 1,390.74 | -1,192.61 | +25.3% |\n| Health & Beauty | 4,683.82 | 3,953.90 | -729.92 | +15.5% |\n\nCited evidence:\n- product / Other (decomposition): Segment 'Other' contributed 67.06% of the revenue change, exceeding its normal share by 31%\n\nAnomaly: olist / total_revenue / 2018-08-23 (id 8fb7e7d4f999)",
+         "subject": "[MetricPulse] total_revenue anomaly on 2018-08-23: Other (product)"
+        },
+        "policy": {
+         "action_type": "notify_owner",
+         "decision": "needs_approval",
+         "errors": [],
+         "params": {
+          "dimension": "product",
+          "segment": "Other"
+         },
+         "tier": "T1"
+        },
+        "proposal_id": "a2883af6-6a30-4b36-8be8-c0875909b655",
+        "trace_id": "1d09e564-5872-4ba8-b134-aad3f621f422"
+       },
+       {
+        "action_type": "notify_owner",
+        "actor": "llm:openai/gpt-oss-20b",
+        "created_at": "2026-11-12T17:52:20.347201+00:00",
+        "detail": "openai/gpt-oss-20b grounded; 3,065 tokens",
+        "event": "proposed",
+        "external_id": null,
+        "idempotency_key": null,
+        "log_id": 5,
+        "params": {
+         "dimension": "product",
+         "segment": "Other"
+        },
+        "payload": null,
+        "policy": null,
+        "proposal_id": "a2883af6-6a30-4b36-8be8-c0875909b655",
+        "trace_id": "1d09e564-5872-4ba8-b134-aad3f621f422"
+       },
+       {
+        "action_type": "notify_owner",
+        "actor": "action_agent",
+        "created_at": "2026-11-12T17:52:16.653373+00:00",
+        "detail": null,
+        "event": "policy_passed",
+        "external_id": null,
+        "idempotency_key": "0008dc67164e578f209072d366e5f7669345d8762fb1b739e9e19bbbde9520b8",
+        "log_id": 4,
+        "params": {
+         "dimension": "product",
+         "segment": "Other"
+        },
+        "payload": {
+         "body": "Order Count decreased 28.9% on 2018-08-25. Primary driver: Southeast (geography) contributed 92.9% of the change.\n\nEvidence -- product:\n\n| Segment | Previous | Current | Change | Contribution |\n|---|---:|---:|---:|---:|\n| **Other** | 37.00 | 15.00 | -22.00 | +73.3% |\n| Fashion & Sports | 9.00 | 2.00 | -7.00 | +23.3% |\n| Electronics | 12.00 | 8.00 | -4.00 | +13.3% |\n| Auto & Tools | 9.00 | 11.00 | +2.00 | -6.7% |\n| Kids & Toys | 5.00 | 7.00 | +2.00 | -6.7% |\n\nCited evidence:\n- product / Other (decomposition): The 'Other' product segment contributed 73.33% of the total change in order count.\n- product / Other (decomposition): The clear_driver flag indicates that this segment is the primary driver of the anomaly.\n\nAnomaly: olist / order_count / 2018-08-25 (id be284b988ba7)",
+         "subject": "[MetricPulse] order_count anomaly on 2018-08-25: Other (product)"
+        },
+        "policy": {
+         "action_type": "notify_owner",
+         "decision": "needs_approval",
+         "errors": [],
+         "params": {
+          "dimension": "product",
+          "segment": "Other"
+         },
+         "tier": "T1"
+        },
+        "proposal_id": "e2c6533a-bbe5-4c83-b6bd-da3dcd6b6e16",
+        "trace_id": "58e76d34-dff9-4444-95bc-22b3e0bededc"
+       },
+       {
+        "action_type": "notify_owner",
+        "actor": "llm:openai/gpt-oss-20b",
+        "created_at": "2026-11-12T17:52:16.650620+00:00",
+        "detail": "openai/gpt-oss-20b grounded; 2,990 tokens",
+        "event": "proposed",
+        "external_id": null,
+        "idempotency_key": null,
+        "log_id": 3,
+        "params": {
+         "dimension": "product",
+         "segment": "Other"
+        },
+        "payload": null,
+        "policy": null,
+        "proposal_id": "e2c6533a-bbe5-4c83-b6bd-da3dcd6b6e16",
+        "trace_id": "58e76d34-dff9-4444-95bc-22b3e0bededc"
+       },
+       {
+        "action_type": "annotate_anomaly",
+        "actor": "action_agent",
+        "created_at": "2026-11-12T17:52:12.933438+00:00",
+        "detail": null,
+        "event": "policy_passed",
+        "external_id": null,
+        "idempotency_key": "e1b54b96728a5c33b81d60e5aba5b92c7948eeebeec0a4b62cb3486bc61c32c0",
+        "log_id": 2,
+        "params": {
+         "category": "data_issue",
+         "cause": "Incomplete data: only 1 record vs median 247"
+        },
+        "payload": {
+         "anomaly_id": "5e25dcd9b0b58c65f47d2d2e672961650264bdf2669b7636e8f6e4dcb7283a01",
+         "category": "data_issue",
+         "cause": "Incomplete data: only 1 record vs median 247"
+        },
+        "policy": {
+         "action_type": "annotate_anomaly",
+         "decision": "needs_approval",
+         "errors": [],
+         "params": {
+          "category": "data_issue",
+          "cause": "Incomplete data: only 1 record vs median 247"
+         },
+         "tier": "T1"
+        },
+        "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+        "trace_id": "277c3470-0ce8-419c-9c98-f538d5d08a93"
+       },
+       {
+        "action_type": "annotate_anomaly",
+        "actor": "llm:openai/gpt-oss-20b",
+        "created_at": "2026-11-12T17:52:12.930874+00:00",
+        "detail": "openai/gpt-oss-20b grounded; 2,867 tokens",
+        "event": "proposed",
+        "external_id": null,
+        "idempotency_key": null,
+        "log_id": 1,
+        "params": {
+         "category": "data_issue",
+         "cause": "Incomplete data: only 1 record vs median 247"
+        },
+        "payload": null,
+        "policy": null,
+        "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+        "trace_id": "277c3470-0ce8-419c-9c98-f538d5d08a93"
+       }
+      ],
+      "proposals": [
+       {
+        "action_type": "annotate_anomaly",
+        "anomaly_date": "2018-09-03",
+        "anomaly_id": "5e25dcd9b0b58c65f47d2d2e672961650264bdf2669b7636e8f6e4dcb7283a01",
+        "created_at": "2026-11-12T17:52:12.930874+00:00",
+        "dataset_id": "olist",
+        "executed_action_type": null,
+        "expires_at": "2026-11-13T17:52:12.930874+00:00",
+        "metric": "total_revenue",
+        "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+        "proposer": "llm:openai/gpt-oss-20b",
+        "status": "pending",
+        "trace_id": "277c3470-0ce8-419c-9c98-f538d5d08a93",
+        "undoable": false
+       },
+       {
+        "action_type": "notify_owner",
+        "anomaly_date": "2018-08-23",
+        "anomaly_id": "8fb7e7d4f9999b01eb6649bcaa81d03ef8d33f9d0fb8dbd7fcd18860c7cc55a4",
+        "created_at": "2026-11-12T17:52:20.347201+00:00",
+        "dataset_id": "olist",
+        "executed_action_type": null,
+        "expires_at": "2026-11-13T17:52:20.347201+00:00",
+        "metric": "total_revenue",
+        "proposal_id": "a2883af6-6a30-4b36-8be8-c0875909b655",
+        "proposer": "llm:openai/gpt-oss-20b",
+        "status": "pending",
+        "trace_id": "1d09e564-5872-4ba8-b134-aad3f621f422",
+        "undoable": false
+       },
+       {
+        "action_type": "notify_owner",
+        "anomaly_date": "2018-08-25",
+        "anomaly_id": "be284b988ba7695b3aa8c8048e62b6b6b9588de67f55d04d2455ad766bf6cca7",
+        "created_at": "2026-11-12T17:52:16.650620+00:00",
+        "dataset_id": "olist",
+        "executed_action_type": "notify_owner",
+        "expires_at": "2026-11-13T17:52:16.650620+00:00",
+        "metric": "order_count",
+        "proposal_id": "e2c6533a-bbe5-4c83-b6bd-da3dcd6b6e16",
+        "proposer": "llm:openai/gpt-oss-20b",
+        "status": "executed",
+        "trace_id": "58e76d34-dff9-4444-95bc-22b3e0bededc",
+        "undoable": false
+       }
+      ]
+     },
+     "status": "success"
+    },
+    "pending": {
+     "data": [
+      {
+       "action_type": "annotate_anomaly",
+       "anomaly_date": "2018-09-03",
+       "anomaly_id": "5e25dcd9b0b58c65f47d2d2e672961650264bdf2669b7636e8f6e4dcb7283a01",
+       "created_at": "2026-11-12T17:52:12.930874+00:00",
+       "dataset_id": "olist",
+       "expires_at": "2026-11-13T17:52:12.930874+00:00",
+       "metric": "total_revenue",
+       "narrative": "Total Revenue decreased 90.6% on 2018-09-03. Primary driver: Credit Card (payment) contributed 106.6% of the change.",
+       "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+       "proposer": "llm:openai/gpt-oss-20b",
+       "rationale_citations": [
+        {
+         "claim": "Credit Card contributed 106.59% of the change",
+         "dimension": "payment",
+         "segment": "Credit Card",
+         "source": "decomposition"
+        },
+        {
+         "claim": "Southeast contributed 67.99% of the change",
+         "dimension": "geography",
+         "segment": "Southeast",
+         "source": "decomposition"
+        }
+       ],
+       "status": "pending",
+       "trace_id": "277c3470-0ce8-419c-9c98-f538d5d08a93",
+       "waiting_on": {
+        "dry_run": {
+         "action_type": "annotate_anomaly",
+         "anomaly_id": "5e25dcd9b0b58c65f47d2d2e672961650264bdf2669b7636e8f6e4dcb7283a01",
+         "decision": "needs_approval",
+         "idempotency_key": "e1b54b96728a5c33b81d60e5aba5b92c7948eeebeec0a4b62cb3486bc61c32c0",
+         "params": {
+          "category": "data_issue",
+          "cause": "Incomplete data: only 1 record vs median 247"
+         },
+         "payload": {
+          "anomaly_id": "5e25dcd9b0b58c65f47d2d2e672961650264bdf2669b7636e8f6e4dcb7283a01",
+          "category": "data_issue",
+          "cause": "Incomplete data: only 1 record vs median 247"
+         },
+         "reversible": true,
+         "target": {
+          "kind": "annotation",
+          "store": "actions.db:annotations"
+         },
+         "tier": "T1"
+        },
+        "expires_at": "2026-11-13T17:52:12.930874+00:00",
+        "policy_errors": [],
+        "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810"
+       }
+      },
+      {
+       "action_type": "notify_owner",
+       "anomaly_date": "2018-08-23",
+       "anomaly_id": "8fb7e7d4f9999b01eb6649bcaa81d03ef8d33f9d0fb8dbd7fcd18860c7cc55a4",
+       "created_at": "2026-11-12T17:52:20.347201+00:00",
+       "dataset_id": "olist",
+       "expires_at": "2026-11-13T17:52:20.347201+00:00",
+       "metric": "total_revenue",
+       "narrative": "Total Revenue decreased 19.5% on 2018-08-23. Primary driver: Credit Card (payment) contributed 71.9% of the change.",
+       "proposal_id": "a2883af6-6a30-4b36-8be8-c0875909b655",
+       "proposer": "llm:openai/gpt-oss-20b",
+       "rationale_citations": [
+        {
+         "claim": "Segment 'Other' contributed 67.06% of the revenue change, exceeding its normal share by 31%",
+         "dimension": "product",
+         "segment": "Other",
+         "source": "decomposition"
+        }
+       ],
+       "status": "pending",
+       "trace_id": "1d09e564-5872-4ba8-b134-aad3f621f422",
+       "waiting_on": {
+        "dry_run": {
+         "action_type": "notify_owner",
+         "anomaly_id": "8fb7e7d4f9999b01eb6649bcaa81d03ef8d33f9d0fb8dbd7fcd18860c7cc55a4",
+         "decision": "needs_approval",
+         "idempotency_key": "521b31e81f1b58855d6aed2e3f1f9544a9985e82703dbbff4bc1633d1be34a67",
+         "params": {
+          "dimension": "product",
+          "segment": "Other"
+         },
+         "payload": {
+          "body": "Total Revenue decreased 19.5% on 2018-08-23. Primary driver: Credit Card (payment) contributed 71.9% of the change.\n\nEvidence -- product:\n\n| Segment | Previous | Current | Change | Contribution |\n|---|---:|---:|---:|---:|\n| **Other** | 8,752.05 | 5,585.40 | -3,166.65 | +67.1% |\n| Home & Furniture | 3,202.18 | 1,573.84 | -1,628.34 | +34.5% |\n| Auto & Tools | 2,458.62 | 4,063.80 | +1,605.18 | -34.0% |\n| Electronics | 2,583.35 | 1,390.74 | -1,192.61 | +25.3% |\n| Health & Beauty | 4,683.82 | 3,953.90 | -729.92 | +15.5% |\n\nCited evidence:\n- product / Other (decomposition): Segment 'Other' contributed 67.06% of the revenue change, exceeding its normal share by 31%\n\nAnomaly: olist / total_revenue / 2018-08-23 (id 8fb7e7d4f999)",
+          "subject": "[MetricPulse] total_revenue anomaly on 2018-08-23: Other (product)"
+         },
+         "reversible": false,
+         "target": {
+          "channel": "outbox",
+          "kind": "notifier",
+          "owner": {
+           "email": "analytics-oncall@example.com",
+           "id": "analytics-oncall",
+           "matched": "default",
+           "name": "Analytics On-Call"
+          }
+         },
+         "tier": "T1"
+        },
+        "expires_at": "2026-11-13T17:52:20.347201+00:00",
+        "policy_errors": [],
+        "proposal_id": "a2883af6-6a30-4b36-8be8-c0875909b655"
+       }
+      }
+     ],
+     "status": "success"
+    }
+   },
+   "body": {
+    "live": false,
+    "reason": "Approved as proposed (recorded demo)."
+   },
+   "proposal_id": "e2c6533a-bbe5-4c83-b6bd-da3dcd6b6e16",
+   "response": {
+    "body": {
+     "data": {
+      "dry_run": {
+       "action_type": "notify_owner",
+       "anomaly_id": "be284b988ba7695b3aa8c8048e62b6b6b9588de67f55d04d2455ad766bf6cca7",
+       "decision": "needs_approval",
+       "idempotency_key": "0008dc67164e578f209072d366e5f7669345d8762fb1b739e9e19bbbde9520b8",
+       "params": {
+        "dimension": "product",
+        "segment": "Other"
+       },
+       "payload": {
+        "body": "Order Count decreased 28.9% on 2018-08-25. Primary driver: Southeast (geography) contributed 92.9% of the change.\n\nEvidence -- product:\n\n| Segment | Previous | Current | Change | Contribution |\n|---|---:|---:|---:|---:|\n| **Other** | 37.00 | 15.00 | -22.00 | +73.3% |\n| Fashion & Sports | 9.00 | 2.00 | -7.00 | +23.3% |\n| Electronics | 12.00 | 8.00 | -4.00 | +13.3% |\n| Auto & Tools | 9.00 | 11.00 | +2.00 | -6.7% |\n| Kids & Toys | 5.00 | 7.00 | +2.00 | -6.7% |\n\nCited evidence:\n- product / Other (decomposition): The 'Other' product segment contributed 73.33% of the total change in order count.\n- product / Other (decomposition): The clear_driver flag indicates that this segment is the primary driver of the anomaly.\n\nAnomaly: olist / order_count / 2018-08-25 (id be284b988ba7)",
+        "subject": "[MetricPulse] order_count anomaly on 2018-08-25: Other (product)"
+       },
+       "reversible": false,
+       "target": {
+        "channel": "outbox",
+        "kind": "notifier",
+        "owner": {
+         "email": "analytics-oncall@example.com",
+         "id": "analytics-oncall",
+         "matched": "default",
+         "name": "Analytics On-Call"
+        }
+       },
+       "tier": "T1"
+      },
+      "error": null,
+      "execution": {
+       "external_id": "outbox:0374d160d39b4e0ea24cbf74353f6281",
+       "outcome": "sent"
+      },
+      "policy": {
+       "action_type": "notify_owner",
+       "decision": "needs_approval",
+       "errors": [],
+       "params": {
+        "dimension": "product",
+        "segment": "Other"
+       },
+       "tier": "T1"
+      },
+      "proposal_id": "e2c6533a-bbe5-4c83-b6bd-da3dcd6b6e16",
+      "status": "executed",
+      "trace_id": "adc3048e-f158-47ae-b569-eb8067e0ae2b",
+      "waiting_on": null
+     },
+     "status": "success"
+    },
+    "status": 200
+   },
+   "verb": "approve"
+  },
+  {
+   "after": {
+    "log": {
+     "data": {
+      "events": [
+       {
+        "action_type": "annotate_anomaly",
+        "actor": "action_agent",
+        "created_at": "2026-11-12T17:52:23.065187+00:00",
+        "detail": "applied",
+        "event": "executed",
+        "external_id": "annotations:1",
+        "idempotency_key": "0e9ce300a2ab22bc4e5d35a258fe566ea7848a73e3902b4e5c4a01e0f50848f4",
+        "log_id": 12,
+        "params": {
+         "category": "data_issue",
+         "cause": "Incomplete data: only 1 record vs median 247 (confirmed by the approver)"
+        },
+        "payload": {
+         "anomaly_id": "5e25dcd9b0b58c65f47d2d2e672961650264bdf2669b7636e8f6e4dcb7283a01",
+         "category": "data_issue",
+         "cause": "Incomplete data: only 1 record vs median 247 (confirmed by the approver)"
+        },
+        "policy": null,
+        "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+        "trace_id": "1784c9bc-42cc-4814-bb82-831e2e9c176e"
+       },
+       {
+        "action_type": "annotate_anomaly",
+        "actor": "demo-approver",
+        "created_at": "2026-11-12T17:52:23.062845+00:00",
+        "detail": null,
+        "event": "edited",
+        "external_id": null,
+        "idempotency_key": "0e9ce300a2ab22bc4e5d35a258fe566ea7848a73e3902b4e5c4a01e0f50848f4",
+        "log_id": 11,
+        "params": {
+         "category": "data_issue",
+         "cause": "Incomplete data: only 1 record vs median 247 (confirmed by the approver)"
+        },
+        "payload": null,
+        "policy": null,
+        "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+        "trace_id": "1784c9bc-42cc-4814-bb82-831e2e9c176e"
+       },
+       {
+        "action_type": "annotate_anomaly",
+        "actor": "action_agent",
+        "created_at": "2026-11-12T17:52:23.062147+00:00",
+        "detail": null,
+        "event": "policy_passed",
+        "external_id": null,
+        "idempotency_key": "0e9ce300a2ab22bc4e5d35a258fe566ea7848a73e3902b4e5c4a01e0f50848f4",
+        "log_id": 10,
+        "params": {
+         "category": "data_issue",
+         "cause": "Incomplete data: only 1 record vs median 247 (confirmed by the approver)"
+        },
+        "payload": {
+         "anomaly_id": "5e25dcd9b0b58c65f47d2d2e672961650264bdf2669b7636e8f6e4dcb7283a01",
+         "category": "data_issue",
+         "cause": "Incomplete data: only 1 record vs median 247 (confirmed by the approver)"
+        },
+        "policy": {
+         "action_type": "annotate_anomaly",
+         "decision": "needs_approval",
+         "errors": [],
+         "params": {
+          "category": "data_issue",
+          "cause": "Incomplete data: only 1 record vs median 247 (confirmed by the approver)"
+         },
+         "tier": "T1"
+        },
+        "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+        "trace_id": "1784c9bc-42cc-4814-bb82-831e2e9c176e"
+       },
+       {
+        "action_type": "annotate_anomaly",
+        "actor": "demo-approver",
+        "created_at": "2026-11-12T17:52:23.059982+00:00",
+        "detail": "Adjusted the parameters before approving (recorded demo).",
+        "event": "edit_submitted",
+        "external_id": null,
+        "idempotency_key": null,
+        "log_id": 9,
+        "params": {
+         "category": "data_issue",
+         "cause": "Incomplete data: only 1 record vs median 247 (confirmed by the approver)"
+        },
+        "payload": null,
+        "policy": null,
+        "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+        "trace_id": "1784c9bc-42cc-4814-bb82-831e2e9c176e"
+       },
+       {
+        "action_type": "notify_owner",
+        "actor": "action_agent",
+        "created_at": "2026-11-12T17:52:22.957378+00:00",
+        "detail": "sent",
+        "event": "executed",
+        "external_id": "outbox:0374d160d39b4e0ea24cbf74353f6281",
+        "idempotency_key": "0008dc67164e578f209072d366e5f7669345d8762fb1b739e9e19bbbde9520b8",
+        "log_id": 8,
+        "params": {
+         "dimension": "product",
+         "segment": "Other"
+        },
+        "payload": {
+         "body": "Order Count decreased 28.9% on 2018-08-25. Primary driver: Southeast (geography) contributed 92.9% of the change.\n\nEvidence -- product:\n\n| Segment | Previous | Current | Change | Contribution |\n|---|---:|---:|---:|---:|\n| **Other** | 37.00 | 15.00 | -22.00 | +73.3% |\n| Fashion & Sports | 9.00 | 2.00 | -7.00 | +23.3% |\n| Electronics | 12.00 | 8.00 | -4.00 | +13.3% |\n| Auto & Tools | 9.00 | 11.00 | +2.00 | -6.7% |\n| Kids & Toys | 5.00 | 7.00 | +2.00 | -6.7% |\n\nCited evidence:\n- product / Other (decomposition): The 'Other' product segment contributed 73.33% of the total change in order count.\n- product / Other (decomposition): The clear_driver flag indicates that this segment is the primary driver of the anomaly.\n\nAnomaly: olist / order_count / 2018-08-25 (id be284b988ba7)",
+         "subject": "[MetricPulse] order_count anomaly on 2018-08-25: Other (product)"
+        },
+        "policy": null,
+        "proposal_id": "e2c6533a-bbe5-4c83-b6bd-da3dcd6b6e16",
+        "trace_id": "adc3048e-f158-47ae-b569-eb8067e0ae2b"
+       },
+       {
+        "action_type": "notify_owner",
+        "actor": "demo-approver",
+        "created_at": "2026-11-12T17:52:22.881965+00:00",
+        "detail": "Approved as proposed (recorded demo).",
+        "event": "approved",
+        "external_id": null,
+        "idempotency_key": "0008dc67164e578f209072d366e5f7669345d8762fb1b739e9e19bbbde9520b8",
+        "log_id": 7,
+        "params": {
+         "dimension": "product",
+         "segment": "Other"
+        },
+        "payload": null,
+        "policy": null,
+        "proposal_id": "e2c6533a-bbe5-4c83-b6bd-da3dcd6b6e16",
+        "trace_id": "adc3048e-f158-47ae-b569-eb8067e0ae2b"
+       },
+       {
+        "action_type": "notify_owner",
+        "actor": "action_agent",
+        "created_at": "2026-11-12T17:52:20.349777+00:00",
+        "detail": null,
+        "event": "policy_passed",
+        "external_id": null,
+        "idempotency_key": "521b31e81f1b58855d6aed2e3f1f9544a9985e82703dbbff4bc1633d1be34a67",
+        "log_id": 6,
+        "params": {
+         "dimension": "product",
+         "segment": "Other"
+        },
+        "payload": {
+         "body": "Total Revenue decreased 19.5% on 2018-08-23. Primary driver: Credit Card (payment) contributed 71.9% of the change.\n\nEvidence -- product:\n\n| Segment | Previous | Current | Change | Contribution |\n|---|---:|---:|---:|---:|\n| **Other** | 8,752.05 | 5,585.40 | -3,166.65 | +67.1% |\n| Home & Furniture | 3,202.18 | 1,573.84 | -1,628.34 | +34.5% |\n| Auto & Tools | 2,458.62 | 4,063.80 | +1,605.18 | -34.0% |\n| Electronics | 2,583.35 | 1,390.74 | -1,192.61 | +25.3% |\n| Health & Beauty | 4,683.82 | 3,953.90 | -729.92 | +15.5% |\n\nCited evidence:\n- product / Other (decomposition): Segment 'Other' contributed 67.06% of the revenue change, exceeding its normal share by 31%\n\nAnomaly: olist / total_revenue / 2018-08-23 (id 8fb7e7d4f999)",
+         "subject": "[MetricPulse] total_revenue anomaly on 2018-08-23: Other (product)"
+        },
+        "policy": {
+         "action_type": "notify_owner",
+         "decision": "needs_approval",
+         "errors": [],
+         "params": {
+          "dimension": "product",
+          "segment": "Other"
+         },
+         "tier": "T1"
+        },
+        "proposal_id": "a2883af6-6a30-4b36-8be8-c0875909b655",
+        "trace_id": "1d09e564-5872-4ba8-b134-aad3f621f422"
+       },
+       {
+        "action_type": "notify_owner",
+        "actor": "llm:openai/gpt-oss-20b",
+        "created_at": "2026-11-12T17:52:20.347201+00:00",
+        "detail": "openai/gpt-oss-20b grounded; 3,065 tokens",
+        "event": "proposed",
+        "external_id": null,
+        "idempotency_key": null,
+        "log_id": 5,
+        "params": {
+         "dimension": "product",
+         "segment": "Other"
+        },
+        "payload": null,
+        "policy": null,
+        "proposal_id": "a2883af6-6a30-4b36-8be8-c0875909b655",
+        "trace_id": "1d09e564-5872-4ba8-b134-aad3f621f422"
+       },
+       {
+        "action_type": "notify_owner",
+        "actor": "action_agent",
+        "created_at": "2026-11-12T17:52:16.653373+00:00",
+        "detail": null,
+        "event": "policy_passed",
+        "external_id": null,
+        "idempotency_key": "0008dc67164e578f209072d366e5f7669345d8762fb1b739e9e19bbbde9520b8",
+        "log_id": 4,
+        "params": {
+         "dimension": "product",
+         "segment": "Other"
+        },
+        "payload": {
+         "body": "Order Count decreased 28.9% on 2018-08-25. Primary driver: Southeast (geography) contributed 92.9% of the change.\n\nEvidence -- product:\n\n| Segment | Previous | Current | Change | Contribution |\n|---|---:|---:|---:|---:|\n| **Other** | 37.00 | 15.00 | -22.00 | +73.3% |\n| Fashion & Sports | 9.00 | 2.00 | -7.00 | +23.3% |\n| Electronics | 12.00 | 8.00 | -4.00 | +13.3% |\n| Auto & Tools | 9.00 | 11.00 | +2.00 | -6.7% |\n| Kids & Toys | 5.00 | 7.00 | +2.00 | -6.7% |\n\nCited evidence:\n- product / Other (decomposition): The 'Other' product segment contributed 73.33% of the total change in order count.\n- product / Other (decomposition): The clear_driver flag indicates that this segment is the primary driver of the anomaly.\n\nAnomaly: olist / order_count / 2018-08-25 (id be284b988ba7)",
+         "subject": "[MetricPulse] order_count anomaly on 2018-08-25: Other (product)"
+        },
+        "policy": {
+         "action_type": "notify_owner",
+         "decision": "needs_approval",
+         "errors": [],
+         "params": {
+          "dimension": "product",
+          "segment": "Other"
+         },
+         "tier": "T1"
+        },
+        "proposal_id": "e2c6533a-bbe5-4c83-b6bd-da3dcd6b6e16",
+        "trace_id": "58e76d34-dff9-4444-95bc-22b3e0bededc"
+       },
+       {
+        "action_type": "notify_owner",
+        "actor": "llm:openai/gpt-oss-20b",
+        "created_at": "2026-11-12T17:52:16.650620+00:00",
+        "detail": "openai/gpt-oss-20b grounded; 2,990 tokens",
+        "event": "proposed",
+        "external_id": null,
+        "idempotency_key": null,
+        "log_id": 3,
+        "params": {
+         "dimension": "product",
+         "segment": "Other"
+        },
+        "payload": null,
+        "policy": null,
+        "proposal_id": "e2c6533a-bbe5-4c83-b6bd-da3dcd6b6e16",
+        "trace_id": "58e76d34-dff9-4444-95bc-22b3e0bededc"
+       },
+       {
+        "action_type": "annotate_anomaly",
+        "actor": "action_agent",
+        "created_at": "2026-11-12T17:52:12.933438+00:00",
+        "detail": null,
+        "event": "policy_passed",
+        "external_id": null,
+        "idempotency_key": "e1b54b96728a5c33b81d60e5aba5b92c7948eeebeec0a4b62cb3486bc61c32c0",
+        "log_id": 2,
+        "params": {
+         "category": "data_issue",
+         "cause": "Incomplete data: only 1 record vs median 247"
+        },
+        "payload": {
+         "anomaly_id": "5e25dcd9b0b58c65f47d2d2e672961650264bdf2669b7636e8f6e4dcb7283a01",
+         "category": "data_issue",
+         "cause": "Incomplete data: only 1 record vs median 247"
+        },
+        "policy": {
+         "action_type": "annotate_anomaly",
+         "decision": "needs_approval",
+         "errors": [],
+         "params": {
+          "category": "data_issue",
+          "cause": "Incomplete data: only 1 record vs median 247"
+         },
+         "tier": "T1"
+        },
+        "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+        "trace_id": "277c3470-0ce8-419c-9c98-f538d5d08a93"
+       },
+       {
+        "action_type": "annotate_anomaly",
+        "actor": "llm:openai/gpt-oss-20b",
+        "created_at": "2026-11-12T17:52:12.930874+00:00",
+        "detail": "openai/gpt-oss-20b grounded; 2,867 tokens",
+        "event": "proposed",
+        "external_id": null,
+        "idempotency_key": null,
+        "log_id": 1,
+        "params": {
+         "category": "data_issue",
+         "cause": "Incomplete data: only 1 record vs median 247"
+        },
+        "payload": null,
+        "policy": null,
+        "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+        "trace_id": "277c3470-0ce8-419c-9c98-f538d5d08a93"
+       }
+      ],
+      "proposals": [
+       {
+        "action_type": "annotate_anomaly",
+        "anomaly_date": "2018-09-03",
+        "anomaly_id": "5e25dcd9b0b58c65f47d2d2e672961650264bdf2669b7636e8f6e4dcb7283a01",
+        "created_at": "2026-11-12T17:52:12.930874+00:00",
+        "dataset_id": "olist",
+        "executed_action_type": "annotate_anomaly",
+        "expires_at": "2026-11-13T17:52:12.930874+00:00",
+        "metric": "total_revenue",
+        "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+        "proposer": "llm:openai/gpt-oss-20b",
+        "status": "executed",
+        "trace_id": "277c3470-0ce8-419c-9c98-f538d5d08a93",
+        "undoable": true
+       },
+       {
+        "action_type": "notify_owner",
+        "anomaly_date": "2018-08-23",
+        "anomaly_id": "8fb7e7d4f9999b01eb6649bcaa81d03ef8d33f9d0fb8dbd7fcd18860c7cc55a4",
+        "created_at": "2026-11-12T17:52:20.347201+00:00",
+        "dataset_id": "olist",
+        "executed_action_type": null,
+        "expires_at": "2026-11-13T17:52:20.347201+00:00",
+        "metric": "total_revenue",
+        "proposal_id": "a2883af6-6a30-4b36-8be8-c0875909b655",
+        "proposer": "llm:openai/gpt-oss-20b",
+        "status": "pending",
+        "trace_id": "1d09e564-5872-4ba8-b134-aad3f621f422",
+        "undoable": false
+       },
+       {
+        "action_type": "notify_owner",
+        "anomaly_date": "2018-08-25",
+        "anomaly_id": "be284b988ba7695b3aa8c8048e62b6b6b9588de67f55d04d2455ad766bf6cca7",
+        "created_at": "2026-11-12T17:52:16.650620+00:00",
+        "dataset_id": "olist",
+        "executed_action_type": "notify_owner",
+        "expires_at": "2026-11-13T17:52:16.650620+00:00",
+        "metric": "order_count",
+        "proposal_id": "e2c6533a-bbe5-4c83-b6bd-da3dcd6b6e16",
+        "proposer": "llm:openai/gpt-oss-20b",
+        "status": "executed",
+        "trace_id": "58e76d34-dff9-4444-95bc-22b3e0bededc",
+        "undoable": false
+       }
+      ]
+     },
+     "status": "success"
+    },
+    "pending": {
+     "data": [
+      {
+       "action_type": "notify_owner",
+       "anomaly_date": "2018-08-23",
+       "anomaly_id": "8fb7e7d4f9999b01eb6649bcaa81d03ef8d33f9d0fb8dbd7fcd18860c7cc55a4",
+       "created_at": "2026-11-12T17:52:20.347201+00:00",
+       "dataset_id": "olist",
+       "expires_at": "2026-11-13T17:52:20.347201+00:00",
+       "metric": "total_revenue",
+       "narrative": "Total Revenue decreased 19.5% on 2018-08-23. Primary driver: Credit Card (payment) contributed 71.9% of the change.",
+       "proposal_id": "a2883af6-6a30-4b36-8be8-c0875909b655",
+       "proposer": "llm:openai/gpt-oss-20b",
+       "rationale_citations": [
+        {
+         "claim": "Segment 'Other' contributed 67.06% of the revenue change, exceeding its normal share by 31%",
+         "dimension": "product",
+         "segment": "Other",
+         "source": "decomposition"
+        }
+       ],
+       "status": "pending",
+       "trace_id": "1d09e564-5872-4ba8-b134-aad3f621f422",
+       "waiting_on": {
+        "dry_run": {
+         "action_type": "notify_owner",
+         "anomaly_id": "8fb7e7d4f9999b01eb6649bcaa81d03ef8d33f9d0fb8dbd7fcd18860c7cc55a4",
+         "decision": "needs_approval",
+         "idempotency_key": "521b31e81f1b58855d6aed2e3f1f9544a9985e82703dbbff4bc1633d1be34a67",
+         "params": {
+          "dimension": "product",
+          "segment": "Other"
+         },
+         "payload": {
+          "body": "Total Revenue decreased 19.5% on 2018-08-23. Primary driver: Credit Card (payment) contributed 71.9% of the change.\n\nEvidence -- product:\n\n| Segment | Previous | Current | Change | Contribution |\n|---|---:|---:|---:|---:|\n| **Other** | 8,752.05 | 5,585.40 | -3,166.65 | +67.1% |\n| Home & Furniture | 3,202.18 | 1,573.84 | -1,628.34 | +34.5% |\n| Auto & Tools | 2,458.62 | 4,063.80 | +1,605.18 | -34.0% |\n| Electronics | 2,583.35 | 1,390.74 | -1,192.61 | +25.3% |\n| Health & Beauty | 4,683.82 | 3,953.90 | -729.92 | +15.5% |\n\nCited evidence:\n- product / Other (decomposition): Segment 'Other' contributed 67.06% of the revenue change, exceeding its normal share by 31%\n\nAnomaly: olist / total_revenue / 2018-08-23 (id 8fb7e7d4f999)",
+          "subject": "[MetricPulse] total_revenue anomaly on 2018-08-23: Other (product)"
+         },
+         "reversible": false,
+         "target": {
+          "channel": "outbox",
+          "kind": "notifier",
+          "owner": {
+           "email": "analytics-oncall@example.com",
+           "id": "analytics-oncall",
+           "matched": "default",
+           "name": "Analytics On-Call"
+          }
+         },
+         "tier": "T1"
+        },
+        "expires_at": "2026-11-13T17:52:20.347201+00:00",
+        "policy_errors": [],
+        "proposal_id": "a2883af6-6a30-4b36-8be8-c0875909b655"
+       }
+      }
+     ],
+     "status": "success"
+    }
+   },
+   "body": {
+    "live": false,
+    "params": {
+     "category": "data_issue",
+     "cause": "Incomplete data: only 1 record vs median 247 (confirmed by the approver)"
+    },
+    "reason": "Adjusted the parameters before approving (recorded demo)."
+   },
+   "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+   "response": {
+    "body": {
+     "data": {
+      "dry_run": {
+       "action_type": "annotate_anomaly",
+       "anomaly_id": "5e25dcd9b0b58c65f47d2d2e672961650264bdf2669b7636e8f6e4dcb7283a01",
+       "decision": "needs_approval",
+       "idempotency_key": "0e9ce300a2ab22bc4e5d35a258fe566ea7848a73e3902b4e5c4a01e0f50848f4",
+       "params": {
+        "category": "data_issue",
+        "cause": "Incomplete data: only 1 record vs median 247 (confirmed by the approver)"
+       },
+       "payload": {
+        "anomaly_id": "5e25dcd9b0b58c65f47d2d2e672961650264bdf2669b7636e8f6e4dcb7283a01",
+        "category": "data_issue",
+        "cause": "Incomplete data: only 1 record vs median 247 (confirmed by the approver)"
+       },
+       "reversible": true,
+       "target": {
+        "kind": "annotation",
+        "store": "actions.db:annotations"
+       },
+       "tier": "T1"
+      },
+      "error": null,
+      "execution": {
+       "external_id": "annotations:1",
+       "outcome": "applied"
+      },
+      "policy": {
+       "action_type": "annotate_anomaly",
+       "decision": "needs_approval",
+       "errors": [],
+       "params": {
+        "category": "data_issue",
+        "cause": "Incomplete data: only 1 record vs median 247 (confirmed by the approver)"
+       },
+       "tier": "T1"
+      },
+      "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+      "status": "executed",
+      "trace_id": "1784c9bc-42cc-4814-bb82-831e2e9c176e",
+      "waiting_on": null
+     },
+     "status": "success"
+    },
+    "status": 200
+   },
+   "verb": "edit"
+  },
+  {
+   "after": {
+    "log": {
+     "data": {
+      "events": [
+       {
+        "action_type": "notify_owner",
+        "actor": "demo-approver",
+        "created_at": "2026-11-12T17:52:23.164191+00:00",
+        "detail": "Not worth acting on (recorded demo).",
+        "event": "rejected",
+        "external_id": null,
+        "idempotency_key": "521b31e81f1b58855d6aed2e3f1f9544a9985e82703dbbff4bc1633d1be34a67",
+        "log_id": 13,
+        "params": null,
+        "payload": null,
+        "policy": null,
+        "proposal_id": "a2883af6-6a30-4b36-8be8-c0875909b655",
+        "trace_id": "99fe8d09-a965-44a6-8605-86b63efb6fdd"
+       },
+       {
+        "action_type": "annotate_anomaly",
+        "actor": "action_agent",
+        "created_at": "2026-11-12T17:52:23.065187+00:00",
+        "detail": "applied",
+        "event": "executed",
+        "external_id": "annotations:1",
+        "idempotency_key": "0e9ce300a2ab22bc4e5d35a258fe566ea7848a73e3902b4e5c4a01e0f50848f4",
+        "log_id": 12,
+        "params": {
+         "category": "data_issue",
+         "cause": "Incomplete data: only 1 record vs median 247 (confirmed by the approver)"
+        },
+        "payload": {
+         "anomaly_id": "5e25dcd9b0b58c65f47d2d2e672961650264bdf2669b7636e8f6e4dcb7283a01",
+         "category": "data_issue",
+         "cause": "Incomplete data: only 1 record vs median 247 (confirmed by the approver)"
+        },
+        "policy": null,
+        "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+        "trace_id": "1784c9bc-42cc-4814-bb82-831e2e9c176e"
+       },
+       {
+        "action_type": "annotate_anomaly",
+        "actor": "demo-approver",
+        "created_at": "2026-11-12T17:52:23.062845+00:00",
+        "detail": null,
+        "event": "edited",
+        "external_id": null,
+        "idempotency_key": "0e9ce300a2ab22bc4e5d35a258fe566ea7848a73e3902b4e5c4a01e0f50848f4",
+        "log_id": 11,
+        "params": {
+         "category": "data_issue",
+         "cause": "Incomplete data: only 1 record vs median 247 (confirmed by the approver)"
+        },
+        "payload": null,
+        "policy": null,
+        "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+        "trace_id": "1784c9bc-42cc-4814-bb82-831e2e9c176e"
+       },
+       {
+        "action_type": "annotate_anomaly",
+        "actor": "action_agent",
+        "created_at": "2026-11-12T17:52:23.062147+00:00",
+        "detail": null,
+        "event": "policy_passed",
+        "external_id": null,
+        "idempotency_key": "0e9ce300a2ab22bc4e5d35a258fe566ea7848a73e3902b4e5c4a01e0f50848f4",
+        "log_id": 10,
+        "params": {
+         "category": "data_issue",
+         "cause": "Incomplete data: only 1 record vs median 247 (confirmed by the approver)"
+        },
+        "payload": {
+         "anomaly_id": "5e25dcd9b0b58c65f47d2d2e672961650264bdf2669b7636e8f6e4dcb7283a01",
+         "category": "data_issue",
+         "cause": "Incomplete data: only 1 record vs median 247 (confirmed by the approver)"
+        },
+        "policy": {
+         "action_type": "annotate_anomaly",
+         "decision": "needs_approval",
+         "errors": [],
+         "params": {
+          "category": "data_issue",
+          "cause": "Incomplete data: only 1 record vs median 247 (confirmed by the approver)"
+         },
+         "tier": "T1"
+        },
+        "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+        "trace_id": "1784c9bc-42cc-4814-bb82-831e2e9c176e"
+       },
+       {
+        "action_type": "annotate_anomaly",
+        "actor": "demo-approver",
+        "created_at": "2026-11-12T17:52:23.059982+00:00",
+        "detail": "Adjusted the parameters before approving (recorded demo).",
+        "event": "edit_submitted",
+        "external_id": null,
+        "idempotency_key": null,
+        "log_id": 9,
+        "params": {
+         "category": "data_issue",
+         "cause": "Incomplete data: only 1 record vs median 247 (confirmed by the approver)"
+        },
+        "payload": null,
+        "policy": null,
+        "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+        "trace_id": "1784c9bc-42cc-4814-bb82-831e2e9c176e"
+       },
+       {
+        "action_type": "notify_owner",
+        "actor": "action_agent",
+        "created_at": "2026-11-12T17:52:22.957378+00:00",
+        "detail": "sent",
+        "event": "executed",
+        "external_id": "outbox:0374d160d39b4e0ea24cbf74353f6281",
+        "idempotency_key": "0008dc67164e578f209072d366e5f7669345d8762fb1b739e9e19bbbde9520b8",
+        "log_id": 8,
+        "params": {
+         "dimension": "product",
+         "segment": "Other"
+        },
+        "payload": {
+         "body": "Order Count decreased 28.9% on 2018-08-25. Primary driver: Southeast (geography) contributed 92.9% of the change.\n\nEvidence -- product:\n\n| Segment | Previous | Current | Change | Contribution |\n|---|---:|---:|---:|---:|\n| **Other** | 37.00 | 15.00 | -22.00 | +73.3% |\n| Fashion & Sports | 9.00 | 2.00 | -7.00 | +23.3% |\n| Electronics | 12.00 | 8.00 | -4.00 | +13.3% |\n| Auto & Tools | 9.00 | 11.00 | +2.00 | -6.7% |\n| Kids & Toys | 5.00 | 7.00 | +2.00 | -6.7% |\n\nCited evidence:\n- product / Other (decomposition): The 'Other' product segment contributed 73.33% of the total change in order count.\n- product / Other (decomposition): The clear_driver flag indicates that this segment is the primary driver of the anomaly.\n\nAnomaly: olist / order_count / 2018-08-25 (id be284b988ba7)",
+         "subject": "[MetricPulse] order_count anomaly on 2018-08-25: Other (product)"
+        },
+        "policy": null,
+        "proposal_id": "e2c6533a-bbe5-4c83-b6bd-da3dcd6b6e16",
+        "trace_id": "adc3048e-f158-47ae-b569-eb8067e0ae2b"
+       },
+       {
+        "action_type": "notify_owner",
+        "actor": "demo-approver",
+        "created_at": "2026-11-12T17:52:22.881965+00:00",
+        "detail": "Approved as proposed (recorded demo).",
+        "event": "approved",
+        "external_id": null,
+        "idempotency_key": "0008dc67164e578f209072d366e5f7669345d8762fb1b739e9e19bbbde9520b8",
+        "log_id": 7,
+        "params": {
+         "dimension": "product",
+         "segment": "Other"
+        },
+        "payload": null,
+        "policy": null,
+        "proposal_id": "e2c6533a-bbe5-4c83-b6bd-da3dcd6b6e16",
+        "trace_id": "adc3048e-f158-47ae-b569-eb8067e0ae2b"
+       },
+       {
+        "action_type": "notify_owner",
+        "actor": "action_agent",
+        "created_at": "2026-11-12T17:52:20.349777+00:00",
+        "detail": null,
+        "event": "policy_passed",
+        "external_id": null,
+        "idempotency_key": "521b31e81f1b58855d6aed2e3f1f9544a9985e82703dbbff4bc1633d1be34a67",
+        "log_id": 6,
+        "params": {
+         "dimension": "product",
+         "segment": "Other"
+        },
+        "payload": {
+         "body": "Total Revenue decreased 19.5% on 2018-08-23. Primary driver: Credit Card (payment) contributed 71.9% of the change.\n\nEvidence -- product:\n\n| Segment | Previous | Current | Change | Contribution |\n|---|---:|---:|---:|---:|\n| **Other** | 8,752.05 | 5,585.40 | -3,166.65 | +67.1% |\n| Home & Furniture | 3,202.18 | 1,573.84 | -1,628.34 | +34.5% |\n| Auto & Tools | 2,458.62 | 4,063.80 | +1,605.18 | -34.0% |\n| Electronics | 2,583.35 | 1,390.74 | -1,192.61 | +25.3% |\n| Health & Beauty | 4,683.82 | 3,953.90 | -729.92 | +15.5% |\n\nCited evidence:\n- product / Other (decomposition): Segment 'Other' contributed 67.06% of the revenue change, exceeding its normal share by 31%\n\nAnomaly: olist / total_revenue / 2018-08-23 (id 8fb7e7d4f999)",
+         "subject": "[MetricPulse] total_revenue anomaly on 2018-08-23: Other (product)"
+        },
+        "policy": {
+         "action_type": "notify_owner",
+         "decision": "needs_approval",
+         "errors": [],
+         "params": {
+          "dimension": "product",
+          "segment": "Other"
+         },
+         "tier": "T1"
+        },
+        "proposal_id": "a2883af6-6a30-4b36-8be8-c0875909b655",
+        "trace_id": "1d09e564-5872-4ba8-b134-aad3f621f422"
+       },
+       {
+        "action_type": "notify_owner",
+        "actor": "llm:openai/gpt-oss-20b",
+        "created_at": "2026-11-12T17:52:20.347201+00:00",
+        "detail": "openai/gpt-oss-20b grounded; 3,065 tokens",
+        "event": "proposed",
+        "external_id": null,
+        "idempotency_key": null,
+        "log_id": 5,
+        "params": {
+         "dimension": "product",
+         "segment": "Other"
+        },
+        "payload": null,
+        "policy": null,
+        "proposal_id": "a2883af6-6a30-4b36-8be8-c0875909b655",
+        "trace_id": "1d09e564-5872-4ba8-b134-aad3f621f422"
+       },
+       {
+        "action_type": "notify_owner",
+        "actor": "action_agent",
+        "created_at": "2026-11-12T17:52:16.653373+00:00",
+        "detail": null,
+        "event": "policy_passed",
+        "external_id": null,
+        "idempotency_key": "0008dc67164e578f209072d366e5f7669345d8762fb1b739e9e19bbbde9520b8",
+        "log_id": 4,
+        "params": {
+         "dimension": "product",
+         "segment": "Other"
+        },
+        "payload": {
+         "body": "Order Count decreased 28.9% on 2018-08-25. Primary driver: Southeast (geography) contributed 92.9% of the change.\n\nEvidence -- product:\n\n| Segment | Previous | Current | Change | Contribution |\n|---|---:|---:|---:|---:|\n| **Other** | 37.00 | 15.00 | -22.00 | +73.3% |\n| Fashion & Sports | 9.00 | 2.00 | -7.00 | +23.3% |\n| Electronics | 12.00 | 8.00 | -4.00 | +13.3% |\n| Auto & Tools | 9.00 | 11.00 | +2.00 | -6.7% |\n| Kids & Toys | 5.00 | 7.00 | +2.00 | -6.7% |\n\nCited evidence:\n- product / Other (decomposition): The 'Other' product segment contributed 73.33% of the total change in order count.\n- product / Other (decomposition): The clear_driver flag indicates that this segment is the primary driver of the anomaly.\n\nAnomaly: olist / order_count / 2018-08-25 (id be284b988ba7)",
+         "subject": "[MetricPulse] order_count anomaly on 2018-08-25: Other (product)"
+        },
+        "policy": {
+         "action_type": "notify_owner",
+         "decision": "needs_approval",
+         "errors": [],
+         "params": {
+          "dimension": "product",
+          "segment": "Other"
+         },
+         "tier": "T1"
+        },
+        "proposal_id": "e2c6533a-bbe5-4c83-b6bd-da3dcd6b6e16",
+        "trace_id": "58e76d34-dff9-4444-95bc-22b3e0bededc"
+       },
+       {
+        "action_type": "notify_owner",
+        "actor": "llm:openai/gpt-oss-20b",
+        "created_at": "2026-11-12T17:52:16.650620+00:00",
+        "detail": "openai/gpt-oss-20b grounded; 2,990 tokens",
+        "event": "proposed",
+        "external_id": null,
+        "idempotency_key": null,
+        "log_id": 3,
+        "params": {
+         "dimension": "product",
+         "segment": "Other"
+        },
+        "payload": null,
+        "policy": null,
+        "proposal_id": "e2c6533a-bbe5-4c83-b6bd-da3dcd6b6e16",
+        "trace_id": "58e76d34-dff9-4444-95bc-22b3e0bededc"
+       },
+       {
+        "action_type": "annotate_anomaly",
+        "actor": "action_agent",
+        "created_at": "2026-11-12T17:52:12.933438+00:00",
+        "detail": null,
+        "event": "policy_passed",
+        "external_id": null,
+        "idempotency_key": "e1b54b96728a5c33b81d60e5aba5b92c7948eeebeec0a4b62cb3486bc61c32c0",
+        "log_id": 2,
+        "params": {
+         "category": "data_issue",
+         "cause": "Incomplete data: only 1 record vs median 247"
+        },
+        "payload": {
+         "anomaly_id": "5e25dcd9b0b58c65f47d2d2e672961650264bdf2669b7636e8f6e4dcb7283a01",
+         "category": "data_issue",
+         "cause": "Incomplete data: only 1 record vs median 247"
+        },
+        "policy": {
+         "action_type": "annotate_anomaly",
+         "decision": "needs_approval",
+         "errors": [],
+         "params": {
+          "category": "data_issue",
+          "cause": "Incomplete data: only 1 record vs median 247"
+         },
+         "tier": "T1"
+        },
+        "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+        "trace_id": "277c3470-0ce8-419c-9c98-f538d5d08a93"
+       },
+       {
+        "action_type": "annotate_anomaly",
+        "actor": "llm:openai/gpt-oss-20b",
+        "created_at": "2026-11-12T17:52:12.930874+00:00",
+        "detail": "openai/gpt-oss-20b grounded; 2,867 tokens",
+        "event": "proposed",
+        "external_id": null,
+        "idempotency_key": null,
+        "log_id": 1,
+        "params": {
+         "category": "data_issue",
+         "cause": "Incomplete data: only 1 record vs median 247"
+        },
+        "payload": null,
+        "policy": null,
+        "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+        "trace_id": "277c3470-0ce8-419c-9c98-f538d5d08a93"
+       }
+      ],
+      "proposals": [
+       {
+        "action_type": "annotate_anomaly",
+        "anomaly_date": "2018-09-03",
+        "anomaly_id": "5e25dcd9b0b58c65f47d2d2e672961650264bdf2669b7636e8f6e4dcb7283a01",
+        "created_at": "2026-11-12T17:52:12.930874+00:00",
+        "dataset_id": "olist",
+        "executed_action_type": "annotate_anomaly",
+        "expires_at": "2026-11-13T17:52:12.930874+00:00",
+        "metric": "total_revenue",
+        "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+        "proposer": "llm:openai/gpt-oss-20b",
+        "status": "executed",
+        "trace_id": "277c3470-0ce8-419c-9c98-f538d5d08a93",
+        "undoable": true
+       },
+       {
+        "action_type": "notify_owner",
+        "anomaly_date": "2018-08-23",
+        "anomaly_id": "8fb7e7d4f9999b01eb6649bcaa81d03ef8d33f9d0fb8dbd7fcd18860c7cc55a4",
+        "created_at": "2026-11-12T17:52:20.347201+00:00",
+        "dataset_id": "olist",
+        "executed_action_type": null,
+        "expires_at": "2026-11-13T17:52:20.347201+00:00",
+        "metric": "total_revenue",
+        "proposal_id": "a2883af6-6a30-4b36-8be8-c0875909b655",
+        "proposer": "llm:openai/gpt-oss-20b",
+        "status": "rejected",
+        "trace_id": "1d09e564-5872-4ba8-b134-aad3f621f422",
+        "undoable": false
+       },
+       {
+        "action_type": "notify_owner",
+        "anomaly_date": "2018-08-25",
+        "anomaly_id": "be284b988ba7695b3aa8c8048e62b6b6b9588de67f55d04d2455ad766bf6cca7",
+        "created_at": "2026-11-12T17:52:16.650620+00:00",
+        "dataset_id": "olist",
+        "executed_action_type": "notify_owner",
+        "expires_at": "2026-11-13T17:52:16.650620+00:00",
+        "metric": "order_count",
+        "proposal_id": "e2c6533a-bbe5-4c83-b6bd-da3dcd6b6e16",
+        "proposer": "llm:openai/gpt-oss-20b",
+        "status": "executed",
+        "trace_id": "58e76d34-dff9-4444-95bc-22b3e0bededc",
+        "undoable": false
+       }
+      ]
+     },
+     "status": "success"
+    },
+    "pending": {
+     "data": [],
+     "status": "success"
+    }
+   },
+   "body": {
+    "live": false,
+    "reason": "Not worth acting on (recorded demo)."
+   },
+   "proposal_id": "a2883af6-6a30-4b36-8be8-c0875909b655",
+   "response": {
+    "body": {
+     "data": {
+      "dry_run": {
+       "action_type": "notify_owner",
+       "anomaly_id": "8fb7e7d4f9999b01eb6649bcaa81d03ef8d33f9d0fb8dbd7fcd18860c7cc55a4",
+       "decision": "needs_approval",
+       "idempotency_key": "521b31e81f1b58855d6aed2e3f1f9544a9985e82703dbbff4bc1633d1be34a67",
+       "params": {
+        "dimension": "product",
+        "segment": "Other"
+       },
+       "payload": {
+        "body": "Total Revenue decreased 19.5% on 2018-08-23. Primary driver: Credit Card (payment) contributed 71.9% of the change.\n\nEvidence -- product:\n\n| Segment | Previous | Current | Change | Contribution |\n|---|---:|---:|---:|---:|\n| **Other** | 8,752.05 | 5,585.40 | -3,166.65 | +67.1% |\n| Home & Furniture | 3,202.18 | 1,573.84 | -1,628.34 | +34.5% |\n| Auto & Tools | 2,458.62 | 4,063.80 | +1,605.18 | -34.0% |\n| Electronics | 2,583.35 | 1,390.74 | -1,192.61 | +25.3% |\n| Health & Beauty | 4,683.82 | 3,953.90 | -729.92 | +15.5% |\n\nCited evidence:\n- product / Other (decomposition): Segment 'Other' contributed 67.06% of the revenue change, exceeding its normal share by 31%\n\nAnomaly: olist / total_revenue / 2018-08-23 (id 8fb7e7d4f999)",
+        "subject": "[MetricPulse] total_revenue anomaly on 2018-08-23: Other (product)"
+       },
+       "reversible": false,
+       "target": {
+        "channel": "outbox",
+        "kind": "notifier",
+        "owner": {
+         "email": "analytics-oncall@example.com",
+         "id": "analytics-oncall",
+         "matched": "default",
+         "name": "Analytics On-Call"
+        }
+       },
+       "tier": "T1"
+      },
+      "error": null,
+      "execution": null,
+      "policy": {
+       "action_type": "notify_owner",
+       "decision": "needs_approval",
+       "errors": [],
+       "params": {
+        "dimension": "product",
+        "segment": "Other"
+       },
+       "tier": "T1"
+      },
+      "proposal_id": "a2883af6-6a30-4b36-8be8-c0875909b655",
+      "status": "rejected",
+      "trace_id": "99fe8d09-a965-44a6-8605-86b63efb6fdd",
+      "waiting_on": null
+     },
+     "status": "success"
+    },
+    "status": 200
+   },
+   "verb": "reject"
+  },
+  {
+   "after": {
+    "log": {
+     "data": {
+      "events": [
+       {
+        "action_type": "annotate_anomaly",
+        "actor": "demo-approver",
+        "created_at": "2026-11-12T17:52:23.359533+00:00",
+        "detail": "Reversed after review (recorded demo). (effect_lifted)",
+        "event": "undone",
+        "external_id": "annotations:1",
+        "idempotency_key": "0e9ce300a2ab22bc4e5d35a258fe566ea7848a73e3902b4e5c4a01e0f50848f4",
+        "log_id": 14,
+        "params": {
+         "category": "data_issue",
+         "cause": "Incomplete data: only 1 record vs median 247 (confirmed by the approver)"
+        },
+        "payload": null,
+        "policy": null,
+        "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+        "trace_id": "a1112107-cd3b-4f51-a57b-da2220fbf958"
+       },
+       {
+        "action_type": "notify_owner",
+        "actor": "demo-approver",
+        "created_at": "2026-11-12T17:52:23.164191+00:00",
+        "detail": "Not worth acting on (recorded demo).",
+        "event": "rejected",
+        "external_id": null,
+        "idempotency_key": "521b31e81f1b58855d6aed2e3f1f9544a9985e82703dbbff4bc1633d1be34a67",
+        "log_id": 13,
+        "params": null,
+        "payload": null,
+        "policy": null,
+        "proposal_id": "a2883af6-6a30-4b36-8be8-c0875909b655",
+        "trace_id": "99fe8d09-a965-44a6-8605-86b63efb6fdd"
+       },
+       {
+        "action_type": "annotate_anomaly",
+        "actor": "action_agent",
+        "created_at": "2026-11-12T17:52:23.065187+00:00",
+        "detail": "applied",
+        "event": "executed",
+        "external_id": "annotations:1",
+        "idempotency_key": "0e9ce300a2ab22bc4e5d35a258fe566ea7848a73e3902b4e5c4a01e0f50848f4",
+        "log_id": 12,
+        "params": {
+         "category": "data_issue",
+         "cause": "Incomplete data: only 1 record vs median 247 (confirmed by the approver)"
+        },
+        "payload": {
+         "anomaly_id": "5e25dcd9b0b58c65f47d2d2e672961650264bdf2669b7636e8f6e4dcb7283a01",
+         "category": "data_issue",
+         "cause": "Incomplete data: only 1 record vs median 247 (confirmed by the approver)"
+        },
+        "policy": null,
+        "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+        "trace_id": "1784c9bc-42cc-4814-bb82-831e2e9c176e"
+       },
+       {
+        "action_type": "annotate_anomaly",
+        "actor": "demo-approver",
+        "created_at": "2026-11-12T17:52:23.062845+00:00",
+        "detail": null,
+        "event": "edited",
+        "external_id": null,
+        "idempotency_key": "0e9ce300a2ab22bc4e5d35a258fe566ea7848a73e3902b4e5c4a01e0f50848f4",
+        "log_id": 11,
+        "params": {
+         "category": "data_issue",
+         "cause": "Incomplete data: only 1 record vs median 247 (confirmed by the approver)"
+        },
+        "payload": null,
+        "policy": null,
+        "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+        "trace_id": "1784c9bc-42cc-4814-bb82-831e2e9c176e"
+       },
+       {
+        "action_type": "annotate_anomaly",
+        "actor": "action_agent",
+        "created_at": "2026-11-12T17:52:23.062147+00:00",
+        "detail": null,
+        "event": "policy_passed",
+        "external_id": null,
+        "idempotency_key": "0e9ce300a2ab22bc4e5d35a258fe566ea7848a73e3902b4e5c4a01e0f50848f4",
+        "log_id": 10,
+        "params": {
+         "category": "data_issue",
+         "cause": "Incomplete data: only 1 record vs median 247 (confirmed by the approver)"
+        },
+        "payload": {
+         "anomaly_id": "5e25dcd9b0b58c65f47d2d2e672961650264bdf2669b7636e8f6e4dcb7283a01",
+         "category": "data_issue",
+         "cause": "Incomplete data: only 1 record vs median 247 (confirmed by the approver)"
+        },
+        "policy": {
+         "action_type": "annotate_anomaly",
+         "decision": "needs_approval",
+         "errors": [],
+         "params": {
+          "category": "data_issue",
+          "cause": "Incomplete data: only 1 record vs median 247 (confirmed by the approver)"
+         },
+         "tier": "T1"
+        },
+        "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+        "trace_id": "1784c9bc-42cc-4814-bb82-831e2e9c176e"
+       },
+       {
+        "action_type": "annotate_anomaly",
+        "actor": "demo-approver",
+        "created_at": "2026-11-12T17:52:23.059982+00:00",
+        "detail": "Adjusted the parameters before approving (recorded demo).",
+        "event": "edit_submitted",
+        "external_id": null,
+        "idempotency_key": null,
+        "log_id": 9,
+        "params": {
+         "category": "data_issue",
+         "cause": "Incomplete data: only 1 record vs median 247 (confirmed by the approver)"
+        },
+        "payload": null,
+        "policy": null,
+        "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+        "trace_id": "1784c9bc-42cc-4814-bb82-831e2e9c176e"
+       },
+       {
+        "action_type": "notify_owner",
+        "actor": "action_agent",
+        "created_at": "2026-11-12T17:52:22.957378+00:00",
+        "detail": "sent",
+        "event": "executed",
+        "external_id": "outbox:0374d160d39b4e0ea24cbf74353f6281",
+        "idempotency_key": "0008dc67164e578f209072d366e5f7669345d8762fb1b739e9e19bbbde9520b8",
+        "log_id": 8,
+        "params": {
+         "dimension": "product",
+         "segment": "Other"
+        },
+        "payload": {
+         "body": "Order Count decreased 28.9% on 2018-08-25. Primary driver: Southeast (geography) contributed 92.9% of the change.\n\nEvidence -- product:\n\n| Segment | Previous | Current | Change | Contribution |\n|---|---:|---:|---:|---:|\n| **Other** | 37.00 | 15.00 | -22.00 | +73.3% |\n| Fashion & Sports | 9.00 | 2.00 | -7.00 | +23.3% |\n| Electronics | 12.00 | 8.00 | -4.00 | +13.3% |\n| Auto & Tools | 9.00 | 11.00 | +2.00 | -6.7% |\n| Kids & Toys | 5.00 | 7.00 | +2.00 | -6.7% |\n\nCited evidence:\n- product / Other (decomposition): The 'Other' product segment contributed 73.33% of the total change in order count.\n- product / Other (decomposition): The clear_driver flag indicates that this segment is the primary driver of the anomaly.\n\nAnomaly: olist / order_count / 2018-08-25 (id be284b988ba7)",
+         "subject": "[MetricPulse] order_count anomaly on 2018-08-25: Other (product)"
+        },
+        "policy": null,
+        "proposal_id": "e2c6533a-bbe5-4c83-b6bd-da3dcd6b6e16",
+        "trace_id": "adc3048e-f158-47ae-b569-eb8067e0ae2b"
+       },
+       {
+        "action_type": "notify_owner",
+        "actor": "demo-approver",
+        "created_at": "2026-11-12T17:52:22.881965+00:00",
+        "detail": "Approved as proposed (recorded demo).",
+        "event": "approved",
+        "external_id": null,
+        "idempotency_key": "0008dc67164e578f209072d366e5f7669345d8762fb1b739e9e19bbbde9520b8",
+        "log_id": 7,
+        "params": {
+         "dimension": "product",
+         "segment": "Other"
+        },
+        "payload": null,
+        "policy": null,
+        "proposal_id": "e2c6533a-bbe5-4c83-b6bd-da3dcd6b6e16",
+        "trace_id": "adc3048e-f158-47ae-b569-eb8067e0ae2b"
+       },
+       {
+        "action_type": "notify_owner",
+        "actor": "action_agent",
+        "created_at": "2026-11-12T17:52:20.349777+00:00",
+        "detail": null,
+        "event": "policy_passed",
+        "external_id": null,
+        "idempotency_key": "521b31e81f1b58855d6aed2e3f1f9544a9985e82703dbbff4bc1633d1be34a67",
+        "log_id": 6,
+        "params": {
+         "dimension": "product",
+         "segment": "Other"
+        },
+        "payload": {
+         "body": "Total Revenue decreased 19.5% on 2018-08-23. Primary driver: Credit Card (payment) contributed 71.9% of the change.\n\nEvidence -- product:\n\n| Segment | Previous | Current | Change | Contribution |\n|---|---:|---:|---:|---:|\n| **Other** | 8,752.05 | 5,585.40 | -3,166.65 | +67.1% |\n| Home & Furniture | 3,202.18 | 1,573.84 | -1,628.34 | +34.5% |\n| Auto & Tools | 2,458.62 | 4,063.80 | +1,605.18 | -34.0% |\n| Electronics | 2,583.35 | 1,390.74 | -1,192.61 | +25.3% |\n| Health & Beauty | 4,683.82 | 3,953.90 | -729.92 | +15.5% |\n\nCited evidence:\n- product / Other (decomposition): Segment 'Other' contributed 67.06% of the revenue change, exceeding its normal share by 31%\n\nAnomaly: olist / total_revenue / 2018-08-23 (id 8fb7e7d4f999)",
+         "subject": "[MetricPulse] total_revenue anomaly on 2018-08-23: Other (product)"
+        },
+        "policy": {
+         "action_type": "notify_owner",
+         "decision": "needs_approval",
+         "errors": [],
+         "params": {
+          "dimension": "product",
+          "segment": "Other"
+         },
+         "tier": "T1"
+        },
+        "proposal_id": "a2883af6-6a30-4b36-8be8-c0875909b655",
+        "trace_id": "1d09e564-5872-4ba8-b134-aad3f621f422"
+       },
+       {
+        "action_type": "notify_owner",
+        "actor": "llm:openai/gpt-oss-20b",
+        "created_at": "2026-11-12T17:52:20.347201+00:00",
+        "detail": "openai/gpt-oss-20b grounded; 3,065 tokens",
+        "event": "proposed",
+        "external_id": null,
+        "idempotency_key": null,
+        "log_id": 5,
+        "params": {
+         "dimension": "product",
+         "segment": "Other"
+        },
+        "payload": null,
+        "policy": null,
+        "proposal_id": "a2883af6-6a30-4b36-8be8-c0875909b655",
+        "trace_id": "1d09e564-5872-4ba8-b134-aad3f621f422"
+       },
+       {
+        "action_type": "notify_owner",
+        "actor": "action_agent",
+        "created_at": "2026-11-12T17:52:16.653373+00:00",
+        "detail": null,
+        "event": "policy_passed",
+        "external_id": null,
+        "idempotency_key": "0008dc67164e578f209072d366e5f7669345d8762fb1b739e9e19bbbde9520b8",
+        "log_id": 4,
+        "params": {
+         "dimension": "product",
+         "segment": "Other"
+        },
+        "payload": {
+         "body": "Order Count decreased 28.9% on 2018-08-25. Primary driver: Southeast (geography) contributed 92.9% of the change.\n\nEvidence -- product:\n\n| Segment | Previous | Current | Change | Contribution |\n|---|---:|---:|---:|---:|\n| **Other** | 37.00 | 15.00 | -22.00 | +73.3% |\n| Fashion & Sports | 9.00 | 2.00 | -7.00 | +23.3% |\n| Electronics | 12.00 | 8.00 | -4.00 | +13.3% |\n| Auto & Tools | 9.00 | 11.00 | +2.00 | -6.7% |\n| Kids & Toys | 5.00 | 7.00 | +2.00 | -6.7% |\n\nCited evidence:\n- product / Other (decomposition): The 'Other' product segment contributed 73.33% of the total change in order count.\n- product / Other (decomposition): The clear_driver flag indicates that this segment is the primary driver of the anomaly.\n\nAnomaly: olist / order_count / 2018-08-25 (id be284b988ba7)",
+         "subject": "[MetricPulse] order_count anomaly on 2018-08-25: Other (product)"
+        },
+        "policy": {
+         "action_type": "notify_owner",
+         "decision": "needs_approval",
+         "errors": [],
+         "params": {
+          "dimension": "product",
+          "segment": "Other"
+         },
+         "tier": "T1"
+        },
+        "proposal_id": "e2c6533a-bbe5-4c83-b6bd-da3dcd6b6e16",
+        "trace_id": "58e76d34-dff9-4444-95bc-22b3e0bededc"
+       },
+       {
+        "action_type": "notify_owner",
+        "actor": "llm:openai/gpt-oss-20b",
+        "created_at": "2026-11-12T17:52:16.650620+00:00",
+        "detail": "openai/gpt-oss-20b grounded; 2,990 tokens",
+        "event": "proposed",
+        "external_id": null,
+        "idempotency_key": null,
+        "log_id": 3,
+        "params": {
+         "dimension": "product",
+         "segment": "Other"
+        },
+        "payload": null,
+        "policy": null,
+        "proposal_id": "e2c6533a-bbe5-4c83-b6bd-da3dcd6b6e16",
+        "trace_id": "58e76d34-dff9-4444-95bc-22b3e0bededc"
+       },
+       {
+        "action_type": "annotate_anomaly",
+        "actor": "action_agent",
+        "created_at": "2026-11-12T17:52:12.933438+00:00",
+        "detail": null,
+        "event": "policy_passed",
+        "external_id": null,
+        "idempotency_key": "e1b54b96728a5c33b81d60e5aba5b92c7948eeebeec0a4b62cb3486bc61c32c0",
+        "log_id": 2,
+        "params": {
+         "category": "data_issue",
+         "cause": "Incomplete data: only 1 record vs median 247"
+        },
+        "payload": {
+         "anomaly_id": "5e25dcd9b0b58c65f47d2d2e672961650264bdf2669b7636e8f6e4dcb7283a01",
+         "category": "data_issue",
+         "cause": "Incomplete data: only 1 record vs median 247"
+        },
+        "policy": {
+         "action_type": "annotate_anomaly",
+         "decision": "needs_approval",
+         "errors": [],
+         "params": {
+          "category": "data_issue",
+          "cause": "Incomplete data: only 1 record vs median 247"
+         },
+         "tier": "T1"
+        },
+        "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+        "trace_id": "277c3470-0ce8-419c-9c98-f538d5d08a93"
+       },
+       {
+        "action_type": "annotate_anomaly",
+        "actor": "llm:openai/gpt-oss-20b",
+        "created_at": "2026-11-12T17:52:12.930874+00:00",
+        "detail": "openai/gpt-oss-20b grounded; 2,867 tokens",
+        "event": "proposed",
+        "external_id": null,
+        "idempotency_key": null,
+        "log_id": 1,
+        "params": {
+         "category": "data_issue",
+         "cause": "Incomplete data: only 1 record vs median 247"
+        },
+        "payload": null,
+        "policy": null,
+        "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+        "trace_id": "277c3470-0ce8-419c-9c98-f538d5d08a93"
+       }
+      ],
+      "proposals": [
+       {
+        "action_type": "annotate_anomaly",
+        "anomaly_date": "2018-09-03",
+        "anomaly_id": "5e25dcd9b0b58c65f47d2d2e672961650264bdf2669b7636e8f6e4dcb7283a01",
+        "created_at": "2026-11-12T17:52:12.930874+00:00",
+        "dataset_id": "olist",
+        "executed_action_type": "annotate_anomaly",
+        "expires_at": "2026-11-13T17:52:12.930874+00:00",
+        "metric": "total_revenue",
+        "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+        "proposer": "llm:openai/gpt-oss-20b",
+        "status": "undone",
+        "trace_id": "277c3470-0ce8-419c-9c98-f538d5d08a93",
+        "undoable": false
+       },
+       {
+        "action_type": "notify_owner",
+        "anomaly_date": "2018-08-23",
+        "anomaly_id": "8fb7e7d4f9999b01eb6649bcaa81d03ef8d33f9d0fb8dbd7fcd18860c7cc55a4",
+        "created_at": "2026-11-12T17:52:20.347201+00:00",
+        "dataset_id": "olist",
+        "executed_action_type": null,
+        "expires_at": "2026-11-13T17:52:20.347201+00:00",
+        "metric": "total_revenue",
+        "proposal_id": "a2883af6-6a30-4b36-8be8-c0875909b655",
+        "proposer": "llm:openai/gpt-oss-20b",
+        "status": "rejected",
+        "trace_id": "1d09e564-5872-4ba8-b134-aad3f621f422",
+        "undoable": false
+       },
+       {
+        "action_type": "notify_owner",
+        "anomaly_date": "2018-08-25",
+        "anomaly_id": "be284b988ba7695b3aa8c8048e62b6b6b9588de67f55d04d2455ad766bf6cca7",
+        "created_at": "2026-11-12T17:52:16.650620+00:00",
+        "dataset_id": "olist",
+        "executed_action_type": "notify_owner",
+        "expires_at": "2026-11-13T17:52:16.650620+00:00",
+        "metric": "order_count",
+        "proposal_id": "e2c6533a-bbe5-4c83-b6bd-da3dcd6b6e16",
+        "proposer": "llm:openai/gpt-oss-20b",
+        "status": "executed",
+        "trace_id": "58e76d34-dff9-4444-95bc-22b3e0bededc",
+        "undoable": false
+       }
+      ]
+     },
+     "status": "success"
+    },
+    "pending": {
+     "data": [],
+     "status": "success"
+    }
+   },
+   "body": {
+    "live": false,
+    "reason": "Reversed after review (recorded demo)."
+   },
+   "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+   "response": {
+    "body": {
+     "data": {
+      "action_type": "annotate_anomaly",
+      "external_id": "annotations:1",
+      "outcome": "effect_lifted",
+      "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+      "status": "undone",
+      "trace_id": "a1112107-cd3b-4f51-a57b-da2220fbf958"
+     },
+     "status": "success"
+    },
+    "status": 200
+   },
+   "verb": "undo"
+  }
+ ],
+ "validation": {
+  "reject": {
+   "body": {
+    "message": "a rejection needs a reason",
+    "status": "error"
+   },
+   "status": 400
+  },
+  "undo": {
+   "body": {
+    "message": "an undo needs a reason",
+    "status": "error"
+   },
+   "status": 400
+  }
+ }
+}

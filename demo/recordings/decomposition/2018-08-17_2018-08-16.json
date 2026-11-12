@@ -1,0 +1,163 @@
+{
+ "data": {
+  "current_date": "2018-08-17",
+  "dimensions": {
+   "geography": {
+    "segment_count": 5,
+    "top_contributors": [
+     {
+      "abs_contribution": 111.21,
+      "change": -4568.200000000001,
+      "change_pct": -15.33,
+      "contribution_pct": 111.21,
+      "current_value": 25229.0,
+      "previous_value": 29797.2,
+      "segment": "Southeast"
+     },
+     {
+      "abs_contribution": 46.44,
+      "change": -1907.5199999999995,
+      "change_pct": -41.37,
+      "contribution_pct": 46.44,
+      "current_value": 2703.05,
+      "previous_value": 4610.57,
+      "segment": "Northeast"
+     },
+     {
+      "abs_contribution": 44.98,
+      "change": 1847.5699999999997,
+      "change_pct": 33.48,
+      "contribution_pct": -44.98,
+      "current_value": 7365.9,
+      "previous_value": 5518.33,
+      "segment": "South"
+     },
+     {
+      "abs_contribution": 22.14,
+      "change": 909.3200000000002,
+      "change_pct": 67.83,
+      "contribution_pct": -22.14,
+      "current_value": 2249.92,
+      "previous_value": 1340.6,
+      "segment": "Central-West"
+     },
+     {
+      "abs_contribution": 9.47,
+      "change": -388.91999999999996,
+      "change_pct": -91.52,
+      "contribution_pct": 9.47,
+      "current_value": 36.04,
+      "previous_value": 424.96,
+      "segment": "North"
+     }
+    ],
+    "total_change": -4107.75,
+    "total_change_pct": -9.85,
+    "total_current": 37583.91,
+    "total_previous": 41691.66
+   },
+   "payment": {
+    "segment_count": 4,
+    "top_contributors": [
+     {
+      "abs_contribution": 66.98,
+      "change": -2751.41,
+      "change_pct": -8.48,
+      "contribution_pct": 66.98,
+      "current_value": 29685.57,
+      "previous_value": 32436.98,
+      "segment": "Credit Card"
+     },
+     {
+      "abs_contribution": 58.04,
+      "change": -2384.1900000000005,
+      "change_pct": -32.71,
+      "contribution_pct": 58.04,
+      "current_value": 4904.53,
+      "previous_value": 7288.72,
+      "segment": "Boleto"
+     },
+     {
+      "abs_contribution": 21.77,
+      "change": 894.1899999999998,
+      "change_pct": 48.1,
+      "contribution_pct": -21.77,
+      "current_value": 2753.22,
+      "previous_value": 1859.03,
+      "segment": "Debit Card"
+     },
+     {
+      "abs_contribution": 3.25,
+      "change": 133.66,
+      "change_pct": 125.0,
+      "contribution_pct": -3.25,
+      "current_value": 240.59,
+      "previous_value": 106.93,
+      "segment": "Voucher"
+     }
+    ],
+    "total_change": -4107.75,
+    "total_change_pct": -9.85,
+    "total_current": 37583.91,
+    "total_previous": 41691.66
+   },
+   "product": {
+    "segment_count": 7,
+    "top_contributors": [
+     {
+      "abs_contribution": 47.4,
+      "change": -1947.02,
+      "change_pct": -47.92,
+      "contribution_pct": 47.4,
+      "current_value": 2115.93,
+      "previous_value": 4062.95,
+      "segment": "Fashion & Sports"
+     },
+     {
+      "abs_contribution": 43.39,
+      "change": -1782.1899999999996,
+      "change_pct": -28.15,
+      "contribution_pct": 43.39,
+      "current_value": 4548.39,
+      "previous_value": 6330.58,
+      "segment": "Home & Furniture"
+     },
+     {
+      "abs_contribution": 28.45,
+      "change": 1168.83,
+      "change_pct": 18.93,
+      "contribution_pct": -28.45,
+      "current_value": 7342.99,
+      "previous_value": 6174.16,
+      "segment": "Auto & Tools"
+     },
+     {
+      "abs_contribution": 27.67,
+      "change": -1136.7000000000003,
+      "change_pct": -25.27,
+      "contribution_pct": 27.67,
+      "current_value": 3360.69,
+      "previous_value": 4497.39,
+      "segment": "Electronics"
+     },
+     {
+      "abs_contribution": 6.33,
+      "change": -259.8800000000001,
+      "change_pct": -13.39,
+      "contribution_pct": 6.33,
+      "current_value": 1680.36,
+      "previous_value": 1940.24,
+      "segment": "Kids & Toys"
+     }
+    ],
+    "total_change": -4107.75,
+    "total_change_pct": -9.85,
+    "total_current": 37583.91,
+    "total_previous": 41691.66
+   }
+  },
+  "metric": "total_revenue",
+  "previous_date": "2018-08-16"
+ },
+ "status": "success"
+}

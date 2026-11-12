@@ -290,7 +290,8 @@ R1–R5). It is prioritized ahead of Action Agent A3 (scope §9).
 Nothing is clickable: the Render deployment is gone and AWS was deleted. A static GitHub Pages site
 replays **real recorded outputs** (primary link), and the real app runs on a new Render free account
 in demo mode (no outside effects, capped LLM spend). **Scope approved 2026-11-12** (both proposed
-decisions accepted); H1 next — start with scope §11.
+decisions accepted). **H1 built 2026-11-12** (recorder, builder, replay shim, Pages workflow;
+checked in a browser locally); its box waits for the live Pages URL.
 
 - [ ] **H1** — Static replay site: `demo/record.py` (real views via the test client), `demo/build.py`
       + `replay.js`, Pages workflow, README link. Gate: every tab loads from recordings on the Pages

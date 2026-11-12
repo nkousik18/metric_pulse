@@ -1,0 +1,11 @@
+{
+ "data": {
+  "alert_status": null,
+  "anomaly_count": 2,
+  "duration_seconds": 0.068721,
+  "metric": "avg_order_value",
+  "pipeline_status": "failed",
+  "summary": ""
+ },
+ "status": "success"
+}

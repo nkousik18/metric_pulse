@@ -1,0 +1,118 @@
+{
+ "data": {
+  "current_date": "2018-09-03",
+  "dimensions": {
+   "geography": {
+    "segment_count": 2,
+    "top_contributors": [
+     {
+      "abs_contribution": 67.99,
+      "change": -1085.28,
+      "change_pct": -86.7,
+      "contribution_pct": 67.99,
+      "current_value": 166.46,
+      "previous_value": 1251.74,
+      "segment": "Southeast"
+     },
+     {
+      "abs_contribution": 32.01,
+      "change": -510.96,
+      "change_pct": -100.0,
+      "contribution_pct": 32.01,
+      "current_value": 0.0,
+      "previous_value": 510.96,
+      "segment": "South"
+     }
+    ],
+    "total_change": -1596.24,
+    "total_change_pct": -90.56,
+    "total_current": 166.46,
+    "total_previous": 1762.7
+   },
+   "payment": {
+    "segment_count": 2,
+    "top_contributors": [
+     {
+      "abs_contribution": 106.59,
+      "change": -1701.41,
+      "change_pct": -100.0,
+      "contribution_pct": 106.59,
+      "current_value": 0.0,
+      "previous_value": 1701.41,
+      "segment": "Credit Card"
+     },
+     {
+      "abs_contribution": 6.59,
+      "change": 105.17000000000002,
+      "change_pct": 171.59,
+      "contribution_pct": -6.59,
+      "current_value": 166.46,
+      "previous_value": 61.29,
+      "segment": "Voucher"
+     }
+    ],
+    "total_change": -1596.24,
+    "total_change_pct": -90.56,
+    "total_current": 166.46,
+    "total_previous": 1762.7
+   },
+   "product": {
+    "segment_count": 5,
+    "top_contributors": [
+     {
+      "abs_contribution": 49.01,
+      "change": -782.3499999999999,
+      "change_pct": -82.46,
+      "contribution_pct": 49.01,
+      "current_value": 166.46,
+      "previous_value": 948.81,
+      "segment": "Other"
+     },
+     {
+      "abs_contribution": 39.64,
+      "change": -632.75,
+      "change_pct": -100.0,
+      "contribution_pct": 39.64,
+      "current_value": 0.0,
+      "previous_value": 632.75,
+      "segment": "Health & Beauty"
+     },
+     {
+      "abs_contribution": 5.87,
+      "change": -93.75,
+      "change_pct": -100.0,
+      "contribution_pct": 5.87,
+      "current_value": 0.0,
+      "previous_value": 93.75,
+      "segment": "Electronics"
+     },
+     {
+      "abs_contribution": 4.58,
+      "change": -73.1,
+      "change_pct": -100.0,
+      "contribution_pct": 4.58,
+      "current_value": 0.0,
+      "previous_value": 73.1,
+      "segment": "Kids & Toys"
+     },
+     {
+      "abs_contribution": 0.9,
+      "change": -14.29,
+      "change_pct": -100.0,
+      "contribution_pct": 0.9,
+      "current_value": 0.0,
+      "previous_value": 14.29,
+      "segment": "Fashion & Sports"
+     }
+    ],
+    "total_change": -1596.24,
+    "total_change_pct": -90.56,
+    "total_current": 166.46,
+    "total_previous": 1762.7
+   }
+  },
+  "metric": "total_revenue",
+  "previous_date": "2018-08-29"
+ },
+ "status": "success"
+}

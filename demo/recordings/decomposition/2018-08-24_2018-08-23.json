@@ -1,0 +1,154 @@
+{
+ "data": {
+  "current_date": "2018-08-24",
+  "dimensions": {
+   "geography": {
+    "segment_count": 4,
+    "top_contributors": [
+     {
+      "abs_contribution": 79.11,
+      "change": -6553.219999999999,
+      "change_pct": -38.9,
+      "contribution_pct": 79.11,
+      "current_value": 10293.97,
+      "previous_value": 16847.19,
+      "segment": "Southeast"
+     },
+     {
+      "abs_contribution": 10.96,
+      "change": -907.7399999999999,
+      "change_pct": -58.8,
+      "contribution_pct": 10.96,
+      "current_value": 636.11,
+      "previous_value": 1543.85,
+      "segment": "South"
+     },
+     {
+      "abs_contribution": 10.44,
+      "change": -864.68,
+      "change_pct": -100.0,
+      "contribution_pct": 10.44,
+      "current_value": 0.0,
+      "previous_value": 864.68,
+      "segment": "Northeast"
+     },
+     {
+      "abs_contribution": 0.51,
+      "change": 42.07000000000005,
+      "change_pct": 14.77,
+      "contribution_pct": -0.51,
+      "current_value": 326.91,
+      "previous_value": 284.84,
+      "segment": "Central-West"
+     }
+    ],
+    "total_change": -8283.57,
+    "total_change_pct": -42.39,
+    "total_current": 11256.99,
+    "total_previous": 19540.56
+   },
+   "payment": {
+    "segment_count": 4,
+    "top_contributors": [
+     {
+      "abs_contribution": 70.9,
+      "change": -5872.6799999999985,
+      "change_pct": -38.08,
+      "contribution_pct": 70.9,
+      "current_value": 9550.37,
+      "previous_value": 15423.05,
+      "segment": "Credit Card"
+     },
+     {
+      "abs_contribution": 23.93,
+      "change": -1982.2199999999998,
+      "change_pct": -58.82,
+      "contribution_pct": 23.93,
+      "current_value": 1387.48,
+      "previous_value": 3369.7,
+      "segment": "Boleto"
+     },
+     {
+      "abs_contribution": 5.87,
+      "change": -486.10999999999996,
+      "change_pct": -65.0,
+      "contribution_pct": 5.87,
+      "current_value": 261.7,
+      "previous_value": 747.81,
+      "segment": "Debit Card"
+     },
+     {
+      "abs_contribution": 0.69,
+      "change": 57.44,
+      "change_pct": 0.0,
+      "contribution_pct": -0.69,
+      "current_value": 57.44,
+      "previous_value": 0.0,
+      "segment": "Voucher"
+     }
+    ],
+    "total_change": -8283.57,
+    "total_change_pct": -42.39,
+    "total_current": 11256.99,
+    "total_previous": 19540.56
+   },
+   "product": {
+    "segment_count": 7,
+    "top_contributors": [
+     {
+      "abs_contribution": 29.96,
+      "change": -2481.9500000000003,
+      "change_pct": -61.07,
+      "contribution_pct": 29.96,
+      "current_value": 1581.85,
+      "previous_value": 4063.8,
+      "segment": "Auto & Tools"
+     },
+     {
+      "abs_contribution": 28.85,
+      "change": -2389.61,
+      "change_pct": -60.44,
+      "contribution_pct": 28.85,
+      "current_value": 1564.29,
+      "previous_value": 3953.9,
+      "segment": "Health & Beauty"
+     },
+     {
+      "abs_contribution": 14.21,
+      "change": -1176.7599999999993,
+      "change_pct": -21.07,
+      "contribution_pct": 14.21,
+      "current_value": 4408.64,
+      "previous_value": 5585.4,
+      "segment": "Other"
+     },
+     {
+      "abs_contribution": 9.83,
+      "change": -814.42,
+      "change_pct": -46.97,
+      "contribution_pct": 9.83,
+      "current_value": 919.41,
+      "previous_value": 1733.83,
+      "segment": "Fashion & Sports"
+     },
+     {
+      "abs_contribution": 8.38,
+      "change": -693.75,
+      "change_pct": -55.99,
+      "contribution_pct": 8.38,
+      "current_value": 545.3,
+      "previous_value": 1239.05,
+      "segment": "Kids & Toys"
+     }
+    ],
+    "total_change": -8283.57,
+    "total_change_pct": -42.39,
+    "total_current": 11256.99,
+    "total_previous": 19540.56
+   }
+  },
+  "metric": "total_revenue",
+  "previous_date": "2018-08-23"
+ },
+ "status": "success"
+}

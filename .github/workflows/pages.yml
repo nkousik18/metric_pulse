@@ -1,0 +1,45 @@
+# Static replay site on GitHub Pages (docs/hosting-scope.md §6.3, H1).
+# Builds demo/_site from the committed recordings: no secrets, no LLM calls, no database.
+# Re-recording is a manual local step (python -m demo.record), committed like any other change.
+name: pages
+
+# Manual only for now: Pages is held until the UI redesign lands (Kousik, 2026-11-12). To publish
+# on every change again, restore:  push: {branches: [main], paths: ['demo/**', 'templates/**',
+# '.github/workflows/pages.yml']}
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install the template engine only
+        run: pip install "$(grep -i '^django==' requirements.txt)"
+      - name: Build the site
+        run: python -m demo.build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: demo/_site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

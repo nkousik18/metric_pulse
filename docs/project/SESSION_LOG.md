@@ -5,6 +5,61 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-12 (later still) — H1 merged, Pages held for a UI redesign
+
+**What happened:** Kousik saw the site locally and rejected the UI ("screams AI generated": Inter,
+indigo→violet gradients, template landing page). I gave a redesign game plan built around the
+Impeccable design skill (detector: overused font, AI colour palette, gradient text) plus a UX
+critique: breakdown bars capped at 100% misdraw "251% of change", the dashboard opens on bare
+date dropdowns, the hero numbers are hand-written, and the six-tab nav overflows on a phone.
+Kousik approved Phase 0: merge #50 and #51 and **hold Pages until the redesign lands**. Merged #50,
+merged main into #51's branch (a rebase needed a force-push, which was blocked), made `pages.yml`
+manual-only, and swapped the README's demo link for a "being rebuilt" note (a link to an
+unpublished site would be false, Q6).
+
+**Note:** the recording names `cca4d9c`, a branch commit the squash-merge leaves off `main`, so
+**re-record on `main` before enabling Pages** (`python -m demo.record`, then `--check`).
+
+**Next:** redesign Phase 1, the PRODUCT.md interview (three questions), then the direction cards.
+Optional first: update Impeccable (4.3.1 → 4.8.2, `npx impeccable update`).
+
+---
+
+## 2026-11-12 (late night) — H1 built: static replay site, checked locally
+
+**What happened:** Read scope §11's list. Checked §6.1 against the warehouse before coding and
+found it unbuildable as written (BUG_LOG H1-1). Kousik decided: investigations for real cases inside
+the dashboard's 60-day window only; decomposition/narrative for each day vs the previous one; Claude
+enables Pages via `gh` after merge. Picked d14 (Golden Case #1), d04 and d13 from
+`evals/detection/labels.yaml`. Built `demo/record.py`, `demo/build.py`, `demo/static/replay.js`,
+`demo/keys.py`, `.github/workflows/pages.yml`, `tests/test_demo_site.py` (12 tests, Node runs the
+JS side). Recorded for real three times (7 LLM calls, ~$0.003 each): the first stopped on H1-3,
+the second worked but the recorder changed after it; the committed one is at `cca4d9c`, all six
+LangSmith links resolved. Served the build under `/metric_pulse/` and drove it in Chrome: every
+tab renders, an investigation opens from the Recorded runs tab, an unrecorded pair shows the
+notice, the walk-through plays approve → edit → reject → undo and refuses an out-of-order click,
+and the page made **0** `/api/` network requests. That found H1-4 and H1-5 (fixed). `--check`
+(Q2) passes. README's dead Render link now points at the Pages URL.
+
+**Decisions:** recordings in `demo/recordings/`, site built to gitignored `demo/_site/`; Q2 masks
+only the narrative's generation stamp; LangSmith links kept in the manifest but not shown (private
+org). All in scope §10.
+
+**State:** branch `feat/static-replay-site`, stacked on #50 (open, green). H1 unchecked: its gate
+is the live Pages URL.
+
+**Next:** merge #50, rebase and PR this branch, CI green, squash-merge; enable Pages (source:
+GitHub Actions) with `gh`; check the live URL in a browser; then tick H1 and add a CHANGELOG entry.
+
+**Loose ends:** the nav overflows at ~500 px wide (5 tabs already tight, now 6); hero stat tiles
+(e.g. "<5s", "99.6%") and the Architecture tab (AWS/Redshift) are hand-written, not recordings, so
+Q1's "every visible number" isn't strictly true there; "Run Analysis" on AOV fails (A4-1, known);
+Golden Case #1's recorded investigation leads with Southeast, not the data gap (real output, shown
+as is); Kousik: share the LangSmith runs publicly if the site should link them; `.impeccable/`
+(local design-hook config) left untracked.
+
+---
+
 ## 2026-11-12 (night) — Hosting scope approved; H1 handoff written
 
 **What happened:** Merged #49. Kousik approved the scope and both proposed decisions (the 2.1 MB

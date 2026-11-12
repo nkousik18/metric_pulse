@@ -60,3 +60,6 @@ dbt_project/.user.yml
 
 # Local alert outbox (docs/local-stack-scope.md §6.4)
 outbox/
+
+# Static replay site build output (demo/build.py); built in CI by pages.yml
+demo/_site/

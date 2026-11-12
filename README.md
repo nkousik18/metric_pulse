@@ -4,7 +4,7 @@
 
 When business metrics move unexpectedly, MetricPulse automatically identifies what drove the change — before anyone asks.
 
-🔗 **Live Demo:** [metricpulse-h9lu.onrender.com](https://metricpulse-h9lu.onrender.com)
+🔗 **Demo:** a public demo site is being rebuilt (`docs/hosting-scope.md`); the old Render link is gone.
 
 **Status:** core pipeline (ingestion → dbt → detection → decomposition → narrative → alerting) is live and stable. A LangGraph-based agentic layer is currently in design — see `docs/ROADMAP.md` for what's built vs. planned.
 

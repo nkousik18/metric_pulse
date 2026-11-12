@@ -1,0 +1,119 @@
+{
+ "actions": {
+  "proposals": [
+   {
+    "case": "d14",
+    "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+    "trace_url": "https://aws.smith.langchain.com/o/716f3aa7-91e5-4e6f-aaad-2b6f8daa7f10/projects/p/b7077ade-ea75-4faf-b1e6-8c7e03849aa5/r/277c3470-0ce8-419c-9c98-f538d5d08a93?poll=true"
+   },
+   {
+    "case": "d04",
+    "proposal_id": "e2c6533a-bbe5-4c83-b6bd-da3dcd6b6e16",
+    "trace_url": "https://aws.smith.langchain.com/o/716f3aa7-91e5-4e6f-aaad-2b6f8daa7f10/projects/p/b7077ade-ea75-4faf-b1e6-8c7e03849aa5/r/58e76d34-dff9-4444-95bc-22b3e0bededc?poll=true"
+   },
+   {
+    "case": "d13",
+    "proposal_id": "a2883af6-6a30-4b36-8be8-c0875909b655",
+    "trace_url": "https://aws.smith.langchain.com/o/716f3aa7-91e5-4e6f-aaad-2b6f8daa7f10/projects/p/b7077ade-ea75-4faf-b1e6-8c7e03849aa5/r/1d09e564-5872-4ba8-b134-aad3f621f422?poll=true"
+   }
+  ],
+  "walkthrough": [
+   {
+    "proposal_id": "e2c6533a-bbe5-4c83-b6bd-da3dcd6b6e16",
+    "verb": "approve"
+   },
+   {
+    "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+    "verb": "edit"
+   },
+   {
+    "proposal_id": "a2883af6-6a30-4b36-8be8-c0875909b655",
+    "verb": "reject"
+   },
+   {
+    "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+    "verb": "undo"
+   }
+  ]
+ },
+ "command": "python -m demo.record",
+ "dates": {
+  "count": 60,
+  "newest": "2018-09-03",
+  "oldest": "2018-07-02"
+ },
+ "deterministic": [
+  "metrics",
+  "anomalies",
+  "decomposition",
+  "narrative",
+  "onboarding",
+  "evals"
+ ],
+ "git_sha": "cca4d9c",
+ "investigations": [
+  {
+   "current_date": "2018-09-03",
+   "grounding_failed": false,
+   "id": "d14",
+   "labelled_event": true,
+   "metric": "total_revenue",
+   "note": "One order on the final day of Olist: an incomplete-data tail, not a business event.",
+   "previous_date": "2018-08-29",
+   "status": "completed",
+   "title": "Golden Case #1: the last day of data",
+   "trace_url": "https://aws.smith.langchain.com/o/716f3aa7-91e5-4e6f-aaad-2b6f8daa7f10/projects/p/b7077ade-ea75-4faf-b1e6-8c7e03849aa5/r/01a1d0e3-37e7-7e01-8a68-8fd32850a504?poll=true"
+  },
+  {
+   "current_date": "2018-08-25",
+   "grounding_failed": false,
+   "id": "d04",
+   "labelled_event": true,
+   "metric": "order_count",
+   "note": "Labelled a real event in the detection eval.",
+   "previous_date": "2018-08-24",
+   "status": "completed",
+   "title": "Order count, 25 Aug 2018",
+   "trace_url": "https://aws.smith.langchain.com/o/716f3aa7-91e5-4e6f-aaad-2b6f8daa7f10/projects/p/b7077ade-ea75-4faf-b1e6-8c7e03849aa5/r/01a1d0e3-5a71-7eb2-bc9a-8933d62f9911?poll=true"
+  },
+  {
+   "current_date": "2018-08-23",
+   "grounding_failed": false,
+   "id": "d13",
+   "labelled_event": false,
+   "metric": "total_revenue",
+   "note": "Labelled not an event: how the agent handles an ordinary day.",
+   "previous_date": "2018-08-22",
+   "status": "completed",
+   "title": "Revenue, 23 Aug 2018",
+   "trace_url": "https://aws.smith.langchain.com/o/716f3aa7-91e5-4e6f-aaad-2b6f8daa7f10/projects/p/b7077ade-ea75-4faf-b1e6-8c7e03849aa5/r/01a1d0e3-6adf-73f1-958c-28e62bc11623?poll=true"
+  }
+ ],
+ "live_effects": false,
+ "llm_calls": {
+  "cost_usd": 0.003357,
+  "count": 7,
+  "models": [
+   "openai/gpt-oss-120b",
+   "openai/gpt-oss-20b"
+  ],
+  "prompt_hashes": [
+   "propose_action:526b5299281b",
+   "propose_action:55b4c65ca550",
+   "propose_action:da65a2c670f8",
+   "synthesize:5d9eec3cadf5",
+   "synthesize:6f1bd2dbf5e9",
+   "synthesize:bbbdf584d524",
+   "synthesize:c384f6a9091c"
+  ],
+  "total_tokens": 16070
+ },
+ "models": {
+  "action_large": "openai/gpt-oss-120b",
+  "action_small": "openai/gpt-oss-20b",
+  "investigation": "openai/gpt-oss-120b"
+ },
+ "olist_attribution": "Olist Brazilian E-Commerce Public Dataset, CC BY-NC-SA 4.0",
+ "recorded_at": "2026-11-12T17:51:44+00:00",
+ "warehouse": "duckdb"
+}
