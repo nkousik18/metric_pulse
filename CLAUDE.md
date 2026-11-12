@@ -17,6 +17,7 @@ Don't re-derive architecture from scratch in chat; it's already written down.
 - `docs/README.md` — index of one doc per pipeline layer.
 - `docs/MetricPulse_resume_project_doc.md` — single full source of truth (stats, decisions, known gaps). Renamed from `resume_project_doc.md` on 2026-11-02; older docs and session-log entries still use the old name.
 - `docs/local-stack-scope.md` — design spec for running everything locally (DuckDB, dbt-duckdb, alert outbox) after the AWS resources were deleted (milestones L1–L3). **All AWS code is kept, never deleted**; local is the default backend and AWS is a switch.
+- `docs/hosting-scope.md` — design spec for public hosting (milestones H1–H3): a static GitHub Pages site that replays real recorded outputs, then the real app on Render in demo mode.
 - `docs/ROADMAP.md` — which phase the agentic-layer initiative is in, checkbox per milestone.
 - `docs/scoping.md` — the section-by-section design spec for that initiative (goals, non-goals, decision log). `ROADMAP.md` tracks whether each part is *built*; this is the *design record* — don't assume a section being designed here means it's implemented.
 - `docs/action-agent-scope.md` — design spec for the follow-on Action Agent initiative (milestones A1–A7 in `ROADMAP.md`); its §11 decisions are fixed for the build, and §13 specifies LangSmith tracing and replay.

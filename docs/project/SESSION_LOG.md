@@ -5,6 +5,26 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-12 (evening) — Hosting scoped (H1–H3), tracing back on
+
+**What happened:** Merged #47 (screenshots) and #48 (logs). Kousik chose to keep every LangSmith
+project. Turned on `LANGSMITH_TRACING=true` in `.env` (local only). Scoped hosting in
+`docs/hosting-scope.md`, after measuring: the app reads only the `staging` schema (a 2.1 MB
+snapshot), the app uses ~185 MB of memory once every module is imported, the SPA's data comes from
+10 `fetch('/api/...')` calls, and the action endpoints accept `"live": true` with no auth (a public
+host could open real GitHub issues).
+
+**Decisions (Kousik):** static GitHub Pages site first, replaying real recorded outputs rather than
+mock data; then the real app on Render's free tier, on a new account since the old one doesn't
+work. Proposed, to confirm on approval: a committed staging snapshot of full Olist as demo data,
+and a `DEMO_MODE` with live effects off server-side and a daily LLM cap.
+
+**State:** scope drafted, H1–H3 added to `ROADMAP.md` unchecked. Nothing built.
+
+**Next:** Kousik reviews and approves the scope; then build H1.
+
+---
+
 ## 2026-11-12 (later) — Credentials and repo cleanup after A7
 
 **What happened:** Merged #46 (A7). Kousik approved and I ran: deleted the `metric-pulse-alerts` SNS
