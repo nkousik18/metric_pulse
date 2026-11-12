@@ -150,7 +150,7 @@ def test_action_replay_refuses_out_of_order_live_and_unrecorded_steps_and_plays_
     assert 'live effects off' in results['live']['notRecorded']
     assert results['noReason']['status'] == 400
     assert results['played'] == [200, 200, 200, 200]
-    assert results['pendingAfter'] == flow['steps'][-1]['after']['pending']
+    assert results['pendingAfter'] == {'status': 200, 'body': flow['steps'][-1]['after']['pending']}
     assert 'complete' in results['finished']['notRecorded']
 
 

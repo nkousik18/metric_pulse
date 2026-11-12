@@ -34,7 +34,7 @@ REPO_URL = 'https://github.com/nkousik18/metric_pulse'
 # H2's demo-mode app (hosting-scope §6.5). None until it exists, so the site never links to nothing.
 LIVE_URL = None
 
-NAV_ANCHOR = '<button onclick="showTab(\'architecture\')"'
+NAV_ANCHOR = '<button onclick="showTab(\'architecture\')" id="tab-architecture"'
 NAV_BUTTON = ('<button onclick="showTab(\'recorded\')" id="tab-recorded" class="tab-btn py-2 px-1 font-medium '
               'opacity-80 hover:opacity-100 transition">Recorded runs</button>\n                    ')
 FOOTER_ANCHOR = '    <!-- Footer -->'

@@ -65,8 +65,8 @@
         // -> {status, body} for a recorded answer, or {notRecorded: message}.
         function handle(method, url, body) {
             const path = new URL(url, 'http://replay.invalid').pathname;
-            if (method === 'GET' && path === '/api/actions/pending/') return state.pending;
-            if (method === 'GET' && path === '/api/actions/log/') return state.log;
+            if (method === 'GET' && path === '/api/actions/pending/') return { status: 200, body: state.pending };
+            if (method === 'GET' && path === '/api/actions/log/') return { status: 200, body: state.log };
             const match = method === 'POST' && path.match(/^\/api\/actions\/([^/]+)\/(approve|edit|reject|undo)\/$/);
             if (!match) return { notRecorded: `${method} ${path} wasn't recorded.` };
             const [, proposalId, verb] = match;
@@ -189,11 +189,10 @@
             ready.then(({ actions }) => {
                 const step = actions.nextStep();
                 const guide = document.getElementById('replay-actions-guide');
-                if (guide) {
-                    guide.textContent = step
-                        ? `Next recorded step: ${actions.describe(step)}. Its reason${step.verb === 'edit' ? ' and edited params are' : ' is'} pre-filled on the card.`
-                        : 'The recorded walk-through is complete. Reload the page to replay it.';
-                }
+                const text = step
+                    ? `Next recorded step: ${actions.describe(step)}. Its reason${step.verb === 'edit' ? ' and edited params are' : ' is'} pre-filled on the card.`
+                    : 'The recorded walk-through is complete. Reload the page to replay it.';
+                if (guide && guide.textContent !== text) guide.textContent = text;   // no mutation unless it changed
                 document.querySelectorAll('.replay-next').forEach(b => b.classList.remove('replay-next', 'ring-4', 'ring-amber-300'));
                 if (!step) return;
                 const id = step.proposal_id;
@@ -348,9 +347,13 @@
                 guide.className = 'bg-amber-50 border border-amber-200 text-amber-900 text-sm rounded-xl p-4 mb-4';
                 guide.textContent = 'This tab replays a recorded approval flow: approve, edit, reject, then undo, all with live effects off.';
                 pending.parentNode.insertBefore(guide, pending);
-                new window.MutationObserver(() => {
-                    if (!document.querySelector('.replay-next')) annotateActions();
-                }).observe(document.getElementById('content-actions'), { childList: true, subtree: true });
+                // Watch only the two card lists the SPA re-renders. The guide lives outside them, so
+                // annotateActions() writing to it can't re-trigger this observer (no feedback loop).
+                const observer = new window.MutationObserver(() => annotateActions());
+                for (const id of ['pending-actions', 'undoable-actions']) {
+                    const el = document.getElementById(id);
+                    if (el) observer.observe(el, { childList: true });
+                }
             }
             renderRecorded();
         });

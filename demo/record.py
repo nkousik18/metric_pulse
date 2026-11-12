@@ -177,16 +177,24 @@ def record_investigations(rec: Recorder) -> List[Dict]:
     return out
 
 
-def _trace_url(run_id) -> Optional[str]:
+def _trace_url(run_id, attempts: int = 6, wait_s: float = 2.0) -> Optional[str]:
+    """The LangSmith link for a root run, or None. LangSmith ingests runs a few seconds after they
+    end, so the lookup is retried; a missing link never fails a recording."""
+    import time
     from observability.tracing import trace_url, tracing_enabled
     if not tracing_enabled() or run_id is None:
         return None
     try:
         from langchain_core.tracers.langchain import wait_for_all_tracers
         wait_for_all_tracers()
-    except Exception:   # best effort: a missing link never fails a recording
+    except Exception:
         pass
-    return trace_url(run_id)
+    for attempt in range(attempts):
+        url = trace_url(run_id)
+        if url:
+            return url
+        time.sleep(wait_s)
+    return None
 
 
 # --- the Action Agent: real proposals, then one approval walk-through ---
@@ -239,7 +247,6 @@ def record_actions(rec: Recorder) -> Dict:
     from action_agent.evidence import build_case
     from action_agent.llm_proposer import make_llm_proposer
     from action_agent.runner import ActionAgent
-    from observability.tracing import trace_url
 
     proposals = []
     for case in CASES:
@@ -251,7 +258,7 @@ def record_actions(rec: Recorder) -> Dict:
         if started.get('status') != 'awaiting_approval':
             raise RuntimeError(f'proposal for {case["id"]} is {started.get("status")}, not awaiting approval')
         proposals.append({'case': case['id'], 'proposal_id': started['proposal_id'],
-                          'trace_url': trace_url(started.get('trace_id'))})
+                          'trace_url': _trace_url(started.get('trace_id'))})
 
     def snapshot():
         _, pending = rec.call('GET', '/api/actions/pending/', auth=True)
