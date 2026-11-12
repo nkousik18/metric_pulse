@@ -1,0 +1,245 @@
+{
+ "data": {
+  "ambiguous_dimensions": [
+   {
+    "dimension": "product",
+    "reason": "close_contributors"
+   },
+   {
+    "dimension": "payment",
+    "reason": "offsetting_segments"
+   }
+  ],
+  "current_date": "2018-09-03",
+  "dataset_config": null,
+  "decomposition_results": {
+   "current_date": "2018-09-03",
+   "dimensions": {
+    "geography": {
+     "segment_count": 2,
+     "top_contributors": [
+      {
+       "abs_contribution": 67.99,
+       "change": -1085.28,
+       "change_pct": -86.7,
+       "contribution_pct": 67.99,
+       "current_value": 166.46,
+       "previous_value": 1251.74,
+       "segment": "Southeast"
+      },
+      {
+       "abs_contribution": 32.01,
+       "change": -510.96,
+       "change_pct": -100.0,
+       "contribution_pct": 32.01,
+       "current_value": 0.0,
+       "previous_value": 510.96,
+       "segment": "South"
+      }
+     ],
+     "total_change": -1596.24,
+     "total_change_pct": -90.56,
+     "total_current": 166.46,
+     "total_previous": 1762.7
+    },
+    "payment": {
+     "segment_count": 2,
+     "top_contributors": [
+      {
+       "abs_contribution": 106.59,
+       "change": -1701.41,
+       "change_pct": -100.0,
+       "contribution_pct": 106.59,
+       "current_value": 0.0,
+       "previous_value": 1701.41,
+       "segment": "Credit Card"
+      },
+      {
+       "abs_contribution": 6.59,
+       "change": 105.17000000000002,
+       "change_pct": 171.59,
+       "contribution_pct": -6.59,
+       "current_value": 166.46,
+       "previous_value": 61.29,
+       "segment": "Voucher"
+      }
+     ],
+     "total_change": -1596.24,
+     "total_change_pct": -90.56,
+     "total_current": 166.46,
+     "total_previous": 1762.7
+    },
+    "product": {
+     "segment_count": 5,
+     "top_contributors": [
+      {
+       "abs_contribution": 49.01,
+       "change": -782.3499999999999,
+       "change_pct": -82.46,
+       "contribution_pct": 49.01,
+       "current_value": 166.46,
+       "previous_value": 948.81,
+       "segment": "Other"
+      },
+      {
+       "abs_contribution": 39.64,
+       "change": -632.75,
+       "change_pct": -100.0,
+       "contribution_pct": 39.64,
+       "current_value": 0.0,
+       "previous_value": 632.75,
+       "segment": "Health & Beauty"
+      },
+      {
+       "abs_contribution": 5.87,
+       "change": -93.75,
+       "change_pct": -100.0,
+       "contribution_pct": 5.87,
+       "current_value": 0.0,
+       "previous_value": 93.75,
+       "segment": "Electronics"
+      },
+      {
+       "abs_contribution": 4.58,
+       "change": -73.1,
+       "change_pct": -100.0,
+       "contribution_pct": 4.58,
+       "current_value": 0.0,
+       "previous_value": 73.1,
+       "segment": "Kids & Toys"
+      },
+      {
+       "abs_contribution": 0.9,
+       "change": -14.29,
+       "change_pct": -100.0,
+       "contribution_pct": 0.9,
+       "current_value": 0.0,
+       "previous_value": 14.29,
+       "segment": "Fashion & Sports"
+      }
+     ],
+     "total_change": -1596.24,
+     "total_change_pct": -90.56,
+     "total_current": 166.46,
+     "total_previous": 1762.7
+    }
+   },
+   "metric": "total_revenue",
+   "previous_date": "2018-08-29"
+  },
+  "detection_result": {
+   "all_anomalies": [],
+   "anomaly_count": 0,
+   "freshness": {
+    "date": "2018-09-03",
+    "median": 247.0,
+    "ratio": 0.004,
+    "reason": "1 record vs. a median of 247 over the previous 28 rows (0%, under 25%): the data looks incomplete",
+    "status": "stale",
+    "thresholds": {
+     "min_base_volume": 50.0,
+     "min_volume_ratio": 0.25,
+     "window": 28
+    },
+    "volume": 1.0,
+    "volume_column": "order_count",
+    "window_rows": 28
+   },
+   "latest_anomaly": null,
+   "lookback_days": 30,
+   "metric": "total_revenue",
+   "statistics": {
+    "max": 63129.89,
+    "mean": 33238.0,
+    "min": 166.46,
+    "std": 17870.71
+   },
+   "status": "completed",
+   "total_days_analyzed": 30
+  },
+  "drill_down_results": {
+   "product": {
+    "segment_count": 4,
+    "top_contributors": [
+     {
+      "abs_contribution": 44.03,
+      "change": -344.5,
+      "change_pct": -67.42,
+      "contribution_pct": 44.03,
+      "current_value": 166.46,
+      "previous_value": 510.96,
+      "segment": "kitchen_dining_laundry_garden_furniture"
+     },
+     {
+      "abs_contribution": 36.45,
+      "change": -285.2,
+      "change_pct": -100.0,
+      "contribution_pct": 36.45,
+      "current_value": 0.0,
+      "previous_value": 285.2,
+      "segment": "watches_gifts"
+     },
+     {
+      "abs_contribution": 15.26,
+      "change": -119.42,
+      "change_pct": -100.0,
+      "contribution_pct": 15.26,
+      "current_value": 0.0,
+      "previous_value": 119.42,
+      "segment": "food"
+     },
+     {
+      "abs_contribution": 4.25,
+      "change": -33.23,
+      "change_pct": -100.0,
+      "contribution_pct": 4.25,
+      "current_value": 0.0,
+      "previous_value": 33.23,
+      "segment": "party_supplies"
+     }
+    ],
+    "total_change": -782.35,
+    "total_change_pct": -82.46,
+    "total_current": 166.46,
+    "total_previous": 948.81
+   }
+  },
+  "drilled_dimensions": [
+   "product"
+  ],
+  "error": null,
+  "force_investigate": true,
+  "grounding_failed": false,
+  "investigation_log": [
+   "detect: 0 anomalies found for total_revenue",
+   "decompose_all: decomposed all dimensions",
+   "assess_ambiguity: flagged ['product', 'payment']",
+   "drill_down: drilled ['product']",
+   "synthesize: first attempt failed validation: [\"'Credit Card / Voucher' is not a valid segment for 'payment' (source=decomposition); valid segments are: Credit Card, Voucher\"]",
+   "synthesize: grounded after retry",
+   "finalize: investigation complete"
+  ],
+  "investigation_summary": "Major driver of the decline: **kitchen_dining_laundry_garden_furniture** (Product) contributed **44.03%** of the change ($510.96 -> $166.46).\n\nContributing factors:\n- significant regional decline: Southeast (67.99%)\n- mixed payment method impact: Credit Card (106.59%)\n\n\n\nwarning: Payment segments moved in opposite directions: Credit Card fell sharply while Voucher rose, so the net effect is ambiguous and cannot be isolated as a single driver.",
+  "iteration_count": 1,
+  "metric": "total_revenue",
+  "narratives": {
+   "email_subject": "MetricPulse: Total Revenue decrease 90.6% on 2018-09-03",
+   "full": "📊 **MetricPulse Alert: Total Revenue decrease**\n\n**2018-09-03** vs **2018-08-29**\n\nTotal Revenue decreased **90.6%** ($1,762.70 → $166.46), a change of **$1,596.24**.\n\n**Primary Driver:**\nThe decrease was primarily driven by **Payment** — specifically **Credit Card**, which accounted for **106.59%** of the total change.\n\n**Breakdown by Dimension:**\n\n- **Geography**: Top contributor was **Southeast** (68.0% of change)\n\n- **Product**: Top contributor was **Other** (49.0% of change)\n\n- **Payment**: Top contributor was **Credit Card** (106.6% of change)\n\n\n---\n*Generated by MetricPulse at 2026-11-12 17:52:00*",
+   "investigation_summary": "Major driver of the decline: **kitchen_dining_laundry_garden_furniture** (Product) contributed **44.03%** of the change ($510.96 -> $166.46).\n\nContributing factors:\n- significant regional decline: Southeast (67.99%)\n- mixed payment method impact: Credit Card (106.59%)\n\n\n\nwarning: Payment segments moved in opposite directions: Credit Card fell sharply while Voucher rose, so the net effect is ambiguous and cannot be isolated as a single driver.",
+   "slack": ":chart_with_downwards_trend: *MetricPulse Alert*\n\n*Total Revenue* decreased *90.6%* on 2018-09-03\n\n:mag: *Root Cause:* Credit Card (payment) drove 106.59% of the change\n\n:bar_chart: Breakdown:\n• Geography: Southeast (68.0%)\n• Product: Other (49.0%)\n• Payment: Credit Card (106.6%)",
+   "summary": "Total Revenue decreased 90.6% on 2018-09-03. Primary driver: Credit Card (payment) contributed 106.6% of the change."
+  },
+  "previous_date": "2018-08-29",
+  "should_continue": false,
+  "status": "completed",
+  "threshold": null,
+  "top_driver": {
+   "change": -1701.41,
+   "change_pct": -100.0,
+   "contribution_pct": 106.59,
+   "dimension": "payment",
+   "segment": "Credit Card"
+  }
+ },
+ "status": "success"
+}

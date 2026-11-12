@@ -1,0 +1,132 @@
+{
+ "data": {
+  "all_anomalies": [
+   {
+    "anomaly_direction": "high",
+    "avg_order_value": 171.55,
+    "change_pct": 50.03,
+    "change_value": 21050.54,
+    "customer_count": 368,
+    "is_anomaly": true,
+    "metric_date": "2018-08-06",
+    "order_count": 368,
+    "prev_value": 42079.35,
+    "total_revenue": 63129.89,
+    "zscore": 1.6726750158441777
+   },
+   {
+    "anomaly_direction": "high",
+    "avg_order_value": 158.78,
+    "change_pct": -9.2,
+    "change_value": -5809.550000000003,
+    "customer_count": 361,
+    "is_anomaly": true,
+    "metric_date": "2018-08-07",
+    "order_count": 361,
+    "prev_value": 63129.89,
+    "total_revenue": 57320.34,
+    "zscore": 1.3475872139952567
+   },
+   {
+    "anomaly_direction": "low",
+    "avg_order_value": 127.85,
+    "change_pct": -20.49,
+    "change_value": -2404.6000000000004,
+    "customer_count": 73,
+    "is_anomaly": true,
+    "metric_date": "2018-08-26",
+    "order_count": 73,
+    "prev_value": 11737.76,
+    "total_revenue": 9333.16,
+    "zscore": -1.3376546486496124
+   },
+   {
+    "anomaly_direction": "low",
+    "avg_order_value": 92.6,
+    "change_pct": -34.52,
+    "change_value": -3221.55,
+    "customer_count": 66,
+    "is_anomaly": true,
+    "metric_date": "2018-08-27",
+    "order_count": 66,
+    "prev_value": 9333.16,
+    "total_revenue": 6111.61,
+    "zscore": -1.5179244816050719
+   },
+   {
+    "anomaly_direction": "low",
+    "avg_order_value": 105.67,
+    "change_pct": -32.57,
+    "change_value": -1990.3899999999994,
+    "customer_count": 39,
+    "is_anomaly": true,
+    "metric_date": "2018-08-28",
+    "order_count": 39,
+    "prev_value": 6111.61,
+    "total_revenue": 4121.22,
+    "zscore": -1.629301698415681
+   },
+   {
+    "anomaly_direction": "low",
+    "avg_order_value": 160.25,
+    "change_pct": -57.23,
+    "change_value": -2358.5200000000004,
+    "customer_count": 11,
+    "is_anomaly": true,
+    "metric_date": "2018-08-29",
+    "order_count": 11,
+    "prev_value": 4121.22,
+    "total_revenue": 1762.7,
+    "zscore": -1.7612785438540912
+   },
+   {
+    "anomaly_direction": "low",
+    "avg_order_value": 166.46,
+    "change_pct": -90.56,
+    "change_value": -1596.24,
+    "customer_count": 1,
+    "is_anomaly": true,
+    "metric_date": "2018-09-03",
+    "order_count": 1,
+    "prev_value": 1762.7,
+    "total_revenue": 166.46,
+    "zscore": -1.8506001183001881
+   }
+  ],
+  "anomaly_count": 7,
+  "freshness": {
+   "date": "2018-09-03",
+   "median": 247.0,
+   "ratio": 0.004,
+   "reason": "1 record vs. a median of 247 over the previous 28 rows (0%, under 25%): the data looks incomplete",
+   "status": "stale",
+   "thresholds": {
+    "min_base_volume": 50.0,
+    "min_volume_ratio": 0.25,
+    "window": 28
+   },
+   "volume": 1.0,
+   "volume_column": "order_count",
+   "window_rows": 28
+  },
+  "latest_anomaly": {
+   "change_pct": -90.56,
+   "change_value": -1596.24,
+   "direction": "low",
+   "metric_date": "2018-09-03",
+   "metric_value": 166.46,
+   "zscore": -1.85
+  },
+  "lookback_days": 30,
+  "metric": "total_revenue",
+  "statistics": {
+   "max": 63129.89,
+   "mean": 33238.0,
+   "min": 166.46,
+   "std": 17870.71
+  },
+  "status": "completed",
+  "total_days_analyzed": 30
+ },
+ "status": "success"
+}

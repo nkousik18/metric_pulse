@@ -1,0 +1,234 @@
+{
+ "data": {
+  "ambiguous_dimensions": [],
+  "current_date": "2018-08-25",
+  "dataset_config": null,
+  "decomposition_results": {
+   "current_date": "2018-08-25",
+   "dimensions": {
+    "geography": {
+     "segment_count": 3,
+     "top_contributors": [
+      {
+       "abs_contribution": 92.86,
+       "change": -26,
+       "change_pct": -28.89,
+       "contribution_pct": 92.86,
+       "current_value": 64,
+       "previous_value": 90,
+       "segment": "Southeast"
+      },
+      {
+       "abs_contribution": 7.14,
+       "change": -2,
+       "change_pct": -100.0,
+       "contribution_pct": 7.14,
+       "current_value": 0,
+       "previous_value": 2,
+       "segment": "Central-West"
+      },
+      {
+       "abs_contribution": 0.0,
+       "change": 0,
+       "change_pct": 0.0,
+       "contribution_pct": -0.0,
+       "current_value": 5,
+       "previous_value": 5,
+       "segment": "South"
+      }
+     ],
+     "total_change": -28,
+     "total_change_pct": -28.87,
+     "total_current": 69,
+     "total_previous": 97
+    },
+    "payment": {
+     "segment_count": 4,
+     "top_contributors": [
+      {
+       "abs_contribution": 78.57,
+       "change": -22,
+       "change_pct": -27.85,
+       "contribution_pct": 78.57,
+       "current_value": 57,
+       "previous_value": 79,
+       "segment": "Credit Card"
+      },
+      {
+       "abs_contribution": 21.43,
+       "change": -6,
+       "change_pct": -42.86,
+       "contribution_pct": 21.43,
+       "current_value": 8,
+       "previous_value": 14,
+       "segment": "Boleto"
+      },
+      {
+       "abs_contribution": 0.0,
+       "change": 0,
+       "change_pct": 0.0,
+       "contribution_pct": -0.0,
+       "current_value": 3,
+       "previous_value": 3,
+       "segment": "Debit Card"
+      },
+      {
+       "abs_contribution": 0.0,
+       "change": 0,
+       "change_pct": 0.0,
+       "contribution_pct": -0.0,
+       "current_value": 1,
+       "previous_value": 1,
+       "segment": "Voucher"
+      }
+     ],
+     "total_change": -28,
+     "total_change_pct": -28.87,
+     "total_current": 69,
+     "total_previous": 97
+    },
+    "product": {
+     "segment_count": 7,
+     "top_contributors": [
+      {
+       "abs_contribution": 73.33,
+       "change": -22,
+       "change_pct": -59.46,
+       "contribution_pct": 73.33,
+       "current_value": 15,
+       "previous_value": 37,
+       "segment": "Other"
+      },
+      {
+       "abs_contribution": 23.33,
+       "change": -7,
+       "change_pct": -77.78,
+       "contribution_pct": 23.33,
+       "current_value": 2,
+       "previous_value": 9,
+       "segment": "Fashion & Sports"
+      },
+      {
+       "abs_contribution": 13.33,
+       "change": -4,
+       "change_pct": -33.33,
+       "contribution_pct": 13.33,
+       "current_value": 8,
+       "previous_value": 12,
+       "segment": "Electronics"
+      },
+      {
+       "abs_contribution": 6.67,
+       "change": 2,
+       "change_pct": 22.22,
+       "contribution_pct": -6.67,
+       "current_value": 11,
+       "previous_value": 9,
+       "segment": "Auto & Tools"
+      },
+      {
+       "abs_contribution": 6.67,
+       "change": 2,
+       "change_pct": 40.0,
+       "contribution_pct": -6.67,
+       "current_value": 7,
+       "previous_value": 5,
+       "segment": "Kids & Toys"
+      }
+     ],
+     "total_change": -30,
+     "total_change_pct": -30.0,
+     "total_current": 70,
+     "total_previous": 100
+    }
+   },
+   "metric": "order_count",
+   "previous_date": "2018-08-24"
+  },
+  "detection_result": {
+   "all_anomalies": [
+    {
+     "anomaly_direction": "low",
+     "avg_order_value": 166.46,
+     "change_pct": -90.91,
+     "change_value": -10.0,
+     "customer_count": 1,
+     "is_anomaly": true,
+     "metric_date": "2018-09-03",
+     "order_count": 1,
+     "prev_value": 11.0,
+     "total_revenue": 166.46,
+     "zscore": -2.008522878714632
+    }
+   ],
+   "anomaly_count": 1,
+   "freshness": {
+    "date": "2018-09-03",
+    "median": 247.0,
+    "ratio": 0.004,
+    "reason": "1 record vs. a median of 247 over the previous 28 rows (0%, under 25%): the data looks incomplete",
+    "status": "stale",
+    "thresholds": {
+     "min_base_volume": 50.0,
+     "min_volume_ratio": 0.25,
+     "window": 28
+    },
+    "volume": 1.0,
+    "volume_column": "order_count",
+    "window_rows": 28
+   },
+   "latest_anomaly": {
+    "change_pct": -90.91,
+    "change_value": -10.0,
+    "direction": "low",
+    "metric_date": "2018-09-03",
+    "metric_value": 1,
+    "zscore": -2.01
+   },
+   "lookback_days": 30,
+   "metric": "order_count",
+   "statistics": {
+    "max": 368,
+    "mean": 214.07,
+    "min": 1,
+    "std": 106.08
+   },
+   "status": "completed",
+   "total_days_analyzed": 30
+  },
+  "drill_down_results": {},
+  "drilled_dimensions": [],
+  "error": null,
+  "force_investigate": true,
+  "grounding_failed": false,
+  "investigation_log": [
+   "detect: 1 anomalies found for order_count",
+   "decompose_all: decomposed all dimensions",
+   "assess_ambiguity: flagged []",
+   "synthesize: grounded on first attempt",
+   "finalize: investigation complete"
+  ],
+  "investigation_summary": "Southeast region was the main driver of the decline: **Southeast** (Geography) contributed **92.86%** of the change ($90.00 -> $64.00).\n\nContributing factors:\n- Other product category contributed heavily to the decline: Other (73.33%)\n- Credit Card payments were the primary payment‑type driver of the decline: Credit Card (78.57%)",
+  "iteration_count": 1,
+  "metric": "order_count",
+  "narratives": {
+   "email_subject": "MetricPulse: Order Count decrease 28.9% on 2018-08-25",
+   "full": "📊 **MetricPulse Alert: Order Count decrease**\n\n**2018-08-25** vs **2018-08-24**\n\nOrder Count decreased **28.9%** ($97.00 → $69.00), a change of **$28.00**.\n\n**Primary Driver:**\nThe decrease was primarily driven by **Geography** — specifically **Southeast**, which accounted for **92.86%** of the total change.\n\n**Breakdown by Dimension:**\n\n- **Geography**: Top contributor was **Southeast** (92.9% of change)\n\n- **Product**: Top contributor was **Other** (73.3% of change)\n\n- **Payment**: Top contributor was **Credit Card** (78.6% of change)\n\n\n---\n*Generated by MetricPulse at 2026-11-12 17:52:04*",
+   "investigation_summary": "Southeast region was the main driver of the decline: **Southeast** (Geography) contributed **92.86%** of the change ($90.00 -> $64.00).\n\nContributing factors:\n- Other product category contributed heavily to the decline: Other (73.33%)\n- Credit Card payments were the primary payment‑type driver of the decline: Credit Card (78.57%)",
+   "slack": ":chart_with_downwards_trend: *MetricPulse Alert*\n\n*Order Count* decreased *28.9%* on 2018-08-25\n\n:mag: *Root Cause:* Southeast (geography) drove 92.86% of the change\n\n:bar_chart: Breakdown:\n• Geography: Southeast (92.9%)\n• Product: Other (73.3%)\n• Payment: Credit Card (78.6%)",
+   "summary": "Order Count decreased 28.9% on 2018-08-25. Primary driver: Southeast (geography) contributed 92.9% of the change."
+  },
+  "previous_date": "2018-08-24",
+  "should_continue": false,
+  "status": "completed",
+  "threshold": null,
+  "top_driver": {
+   "change": -26,
+   "change_pct": -28.89,
+   "contribution_pct": 92.86,
+   "dimension": "geography",
+   "segment": "Southeast"
+  }
+ },
+ "status": "success"
+}

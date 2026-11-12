@@ -1,0 +1,11 @@
+{
+ "data": {
+  "alert_status": "dry_run",
+  "anomaly_count": 0,
+  "duration_seconds": 0.084057,
+  "metric": "total_revenue",
+  "pipeline_status": "completed",
+  "summary": "Data looks incomplete on 2018-09-03: 1 record vs. a typical 247 (0%). The segment breakdown below is likely an artefact of missing data, not a business change. Total Revenue decreased 90.6% on 2018-09-03. Primary driver: Credit Card (payment) contributed 106.6% of the change."
+ },
+ "status": "success"
+}

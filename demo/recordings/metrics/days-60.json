@@ -1,0 +1,426 @@
+{
+ "count": 60,
+ "data": [
+  {
+   "avg_order_value": 166.46,
+   "customer_count": 1,
+   "metric_date": "2018-09-03",
+   "order_count": 1,
+   "total_revenue": 166.46
+  },
+  {
+   "avg_order_value": 160.25,
+   "customer_count": 11,
+   "metric_date": "2018-08-29",
+   "order_count": 11,
+   "total_revenue": 1762.7
+  },
+  {
+   "avg_order_value": 105.67,
+   "customer_count": 39,
+   "metric_date": "2018-08-28",
+   "order_count": 39,
+   "total_revenue": 4121.22
+  },
+  {
+   "avg_order_value": 92.6,
+   "customer_count": 66,
+   "metric_date": "2018-08-27",
+   "order_count": 66,
+   "total_revenue": 6111.61
+  },
+  {
+   "avg_order_value": 127.85,
+   "customer_count": 73,
+   "metric_date": "2018-08-26",
+   "order_count": 73,
+   "total_revenue": 9333.16
+  },
+  {
+   "avg_order_value": 170.11,
+   "customer_count": 69,
+   "metric_date": "2018-08-25",
+   "order_count": 69,
+   "total_revenue": 11737.76
+  },
+  {
+   "avg_order_value": 116.05,
+   "customer_count": 97,
+   "metric_date": "2018-08-24",
+   "order_count": 97,
+   "total_revenue": 11256.99
+  },
+  {
+   "avg_order_value": 137.61,
+   "customer_count": 142,
+   "metric_date": "2018-08-23",
+   "order_count": 142,
+   "total_revenue": 19540.56
+  },
+  {
+   "avg_order_value": 130.44,
+   "customer_count": 186,
+   "metric_date": "2018-08-22",
+   "order_count": 186,
+   "total_revenue": 24262.61
+  },
+  {
+   "avg_order_value": 129.0,
+   "customer_count": 239,
+   "metric_date": "2018-08-21",
+   "order_count": 239,
+   "total_revenue": 30830.69
+  },
+  {
+   "avg_order_value": 158.14,
+   "customer_count": 252,
+   "metric_date": "2018-08-20",
+   "order_count": 252,
+   "total_revenue": 39851.87
+  },
+  {
+   "avg_order_value": 146.89,
+   "customer_count": 204,
+   "metric_date": "2018-08-19",
+   "order_count": 204,
+   "total_revenue": 29966.5
+  },
+  {
+   "avg_order_value": 146.42,
+   "customer_count": 196,
+   "metric_date": "2018-08-18",
+   "order_count": 196,
+   "total_revenue": 28698.1
+  },
+  {
+   "avg_order_value": 147.97,
+   "customer_count": 254,
+   "metric_date": "2018-08-17",
+   "order_count": 254,
+   "total_revenue": 37583.91
+  },
+  {
+   "avg_order_value": 131.94,
+   "customer_count": 316,
+   "metric_date": "2018-08-16",
+   "order_count": 316,
+   "total_revenue": 41691.66
+  },
+  {
+   "avg_order_value": 184.22,
+   "customer_count": 283,
+   "metric_date": "2018-08-15",
+   "order_count": 283,
+   "total_revenue": 52134.87
+  },
+  {
+   "avg_order_value": 164.36,
+   "customer_count": 312,
+   "metric_date": "2018-08-14",
+   "order_count": 312,
+   "total_revenue": 51280.42
+  },
+  {
+   "avg_order_value": 159.62,
+   "customer_count": 287,
+   "metric_date": "2018-08-13",
+   "order_count": 287,
+   "total_revenue": 45811.29
+  },
+  {
+   "avg_order_value": 186.5,
+   "customer_count": 197,
+   "metric_date": "2018-08-12",
+   "order_count": 197,
+   "total_revenue": 36739.75
+  },
+  {
+   "avg_order_value": 164.33,
+   "customer_count": 186,
+   "metric_date": "2018-08-11",
+   "order_count": 186,
+   "total_revenue": 30565.73
+  },
+  {
+   "avg_order_value": 156.57,
+   "customer_count": 252,
+   "metric_date": "2018-08-10",
+   "order_count": 252,
+   "total_revenue": 39454.44
+  },
+  {
+   "avg_order_value": 165.14,
+   "customer_count": 283,
+   "metric_date": "2018-08-09",
+   "order_count": 283,
+   "total_revenue": 46734.86
+  },
+  {
+   "avg_order_value": 161.87,
+   "customer_count": 314,
+   "metric_date": "2018-08-08",
+   "order_count": 314,
+   "total_revenue": 50828.01
+  },
+  {
+   "avg_order_value": 158.78,
+   "customer_count": 361,
+   "metric_date": "2018-08-07",
+   "order_count": 361,
+   "total_revenue": 57320.34
+  },
+  {
+   "avg_order_value": 171.55,
+   "customer_count": 368,
+   "metric_date": "2018-08-06",
+   "order_count": 368,
+   "total_revenue": 63129.89
+  },
+  {
+   "avg_order_value": 153.57,
+   "customer_count": 274,
+   "metric_date": "2018-08-05",
+   "order_count": 274,
+   "total_revenue": 42079.35
+  },
+  {
+   "avg_order_value": 169.68,
+   "customer_count": 242,
+   "metric_date": "2018-08-04",
+   "order_count": 242,
+   "total_revenue": 41063.27
+  },
+  {
+   "avg_order_value": 157.72,
+   "customer_count": 312,
+   "metric_date": "2018-08-03",
+   "order_count": 312,
+   "total_revenue": 49209.12
+  },
+  {
+   "avg_order_value": 152.99,
+   "customer_count": 298,
+   "metric_date": "2018-08-02",
+   "order_count": 298,
+   "total_revenue": 45590.57
+  },
+  {
+   "avg_order_value": 156.76,
+   "customer_count": 308,
+   "metric_date": "2018-08-01",
+   "order_count": 308,
+   "total_revenue": 48282.26
+  },
+  {
+   "avg_order_value": 167.94,
+   "customer_count": 316,
+   "metric_date": "2018-07-31",
+   "order_count": 316,
+   "total_revenue": 53070.25
+  },
+  {
+   "avg_order_value": 158.79,
+   "customer_count": 280,
+   "metric_date": "2018-07-30",
+   "order_count": 280,
+   "total_revenue": 44460.73
+  },
+  {
+   "avg_order_value": 187.37,
+   "customer_count": 184,
+   "metric_date": "2018-07-29",
+   "order_count": 184,
+   "total_revenue": 34476.11
+  },
+  {
+   "avg_order_value": 171.8,
+   "customer_count": 175,
+   "metric_date": "2018-07-28",
+   "order_count": 175,
+   "total_revenue": 30065.12
+  },
+  {
+   "avg_order_value": 176.36,
+   "customer_count": 189,
+   "metric_date": "2018-07-27",
+   "order_count": 189,
+   "total_revenue": 33331.13
+  },
+  {
+   "avg_order_value": 168.67,
+   "customer_count": 245,
+   "metric_date": "2018-07-26",
+   "order_count": 245,
+   "total_revenue": 41323.09
+  },
+  {
+   "avg_order_value": 179.12,
+   "customer_count": 267,
+   "metric_date": "2018-07-25",
+   "order_count": 267,
+   "total_revenue": 47825.69
+  },
+  {
+   "avg_order_value": 178.09,
+   "customer_count": 270,
+   "metric_date": "2018-07-24",
+   "order_count": 270,
+   "total_revenue": 48083.44
+  },
+  {
+   "avg_order_value": 157.54,
+   "customer_count": 304,
+   "metric_date": "2018-07-23",
+   "order_count": 304,
+   "total_revenue": 47890.82
+  },
+  {
+   "avg_order_value": 144.92,
+   "customer_count": 214,
+   "metric_date": "2018-07-22",
+   "order_count": 214,
+   "total_revenue": 31012.06
+  },
+  {
+   "avg_order_value": 136.15,
+   "customer_count": 185,
+   "metric_date": "2018-07-21",
+   "order_count": 185,
+   "total_revenue": 25187.34
+  },
+  {
+   "avg_order_value": 153.46,
+   "customer_count": 247,
+   "metric_date": "2018-07-20",
+   "order_count": 247,
+   "total_revenue": 37905.62
+  },
+  {
+   "avg_order_value": 177.51,
+   "customer_count": 253,
+   "metric_date": "2018-07-19",
+   "order_count": 253,
+   "total_revenue": 44911.24
+  },
+  {
+   "avg_order_value": 160.6,
+   "customer_count": 305,
+   "metric_date": "2018-07-18",
+   "order_count": 305,
+   "total_revenue": 48984.15
+  },
+  {
+   "avg_order_value": 159.96,
+   "customer_count": 219,
+   "metric_date": "2018-07-17",
+   "order_count": 219,
+   "total_revenue": 35030.37
+  },
+  {
+   "avg_order_value": 154.2,
+   "customer_count": 243,
+   "metric_date": "2018-07-16",
+   "order_count": 243,
+   "total_revenue": 37471.59
+  },
+  {
+   "avg_order_value": 228.03,
+   "customer_count": 151,
+   "metric_date": "2018-07-15",
+   "order_count": 151,
+   "total_revenue": 34432.93
+  },
+  {
+   "avg_order_value": 179.41,
+   "customer_count": 146,
+   "metric_date": "2018-07-14",
+   "order_count": 146,
+   "total_revenue": 26194.27
+  },
+  {
+   "avg_order_value": 194.79,
+   "customer_count": 167,
+   "metric_date": "2018-07-13",
+   "order_count": 167,
+   "total_revenue": 32529.4
+  },
+  {
+   "avg_order_value": 194.5,
+   "customer_count": 118,
+   "metric_date": "2018-07-12",
+   "order_count": 118,
+   "total_revenue": 22950.83
+  },
+  {
+   "avg_order_value": 174.83,
+   "customer_count": 126,
+   "metric_date": "2018-07-11",
+   "order_count": 126,
+   "total_revenue": 22028.64
+  },
+  {
+   "avg_order_value": 168.54,
+   "customer_count": 132,
+   "metric_date": "2018-07-10",
+   "order_count": 132,
+   "total_revenue": 22246.77
+  },
+  {
+   "avg_order_value": 156.23,
+   "customer_count": 148,
+   "metric_date": "2018-07-09",
+   "order_count": 148,
+   "total_revenue": 23122.17
+  },
+  {
+   "avg_order_value": 144.12,
+   "customer_count": 120,
+   "metric_date": "2018-07-08",
+   "order_count": 120,
+   "total_revenue": 17294.28
+  },
+  {
+   "avg_order_value": 123.93,
+   "customer_count": 91,
+   "metric_date": "2018-07-07",
+   "order_count": 91,
+   "total_revenue": 11277.24
+  },
+  {
+   "avg_order_value": 182.72,
+   "customer_count": 121,
+   "metric_date": "2018-07-06",
+   "order_count": 121,
+   "total_revenue": 22108.67
+  },
+  {
+   "avg_order_value": 173.79,
+   "customer_count": 194,
+   "metric_date": "2018-07-05",
+   "order_count": 194,
+   "total_revenue": 33715.61
+  },
+  {
+   "avg_order_value": 162.67,
+   "customer_count": 254,
+   "metric_date": "2018-07-04",
+   "order_count": 254,
+   "total_revenue": 41318.53
+  },
+  {
+   "avg_order_value": 145.87,
+   "customer_count": 215,
+   "metric_date": "2018-07-03",
+   "order_count": 215,
+   "total_revenue": 31361.38
+  },
+  {
+   "avg_order_value": 150.85,
+   "customer_count": 193,
+   "metric_date": "2018-07-02",
+   "order_count": 193,
+   "total_revenue": 29113.41
+  }
+ ],
+ "status": "success"
+}

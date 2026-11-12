@@ -1,0 +1,2213 @@
+{
+ "classification": {
+  "classification": {
+   "date_column": "Order Date",
+   "dimension_columns": [
+    {
+     "cardinality": 5,
+     "column": "Order Priority",
+     "confidence": 0.95,
+     "reasoning": "Very low cardinality (5 distinct values) and non‑numeric, suitable for grouping."
+    },
+    {
+     "cardinality": 3,
+     "column": "Ship Mode",
+     "confidence": 0.96,
+     "reasoning": "Extremely low cardinality (3) and categorical, ideal for dimension."
+    },
+    {
+     "cardinality": 795,
+     "column": "Customer Name",
+     "confidence": 0.65,
+     "reasoning": "Moderate cardinality (~9.5% of rows) and non‑numeric; can be used for grouping but may be high‑cardinality."
+    },
+    {
+     "cardinality": 13,
+     "column": "Province",
+     "confidence": 0.93,
+     "reasoning": "Low cardinality (13) and categorical, appropriate dimension."
+    },
+    {
+     "cardinality": 8,
+     "column": "Region",
+     "confidence": 0.94,
+     "reasoning": "Low cardinality (8) and categorical, suitable for grouping."
+    },
+    {
+     "cardinality": 4,
+     "column": "Customer Segment",
+     "confidence": 0.96,
+     "reasoning": "Very low cardinality (4) and categorical, clear dimension."
+    },
+    {
+     "cardinality": 3,
+     "column": "Product Category",
+     "confidence": 0.96,
+     "reasoning": "Very low cardinality (3) and categorical, ideal dimension."
+    },
+    {
+     "cardinality": 17,
+     "column": "Product Sub-Category",
+     "confidence": 0.88,
+     "reasoning": "Low‑moderate cardinality (17) and categorical, useful dimension."
+    },
+    {
+     "cardinality": 7,
+     "column": "Product Container",
+     "confidence": 0.95,
+     "reasoning": "Low cardinality (7) and categorical, appropriate dimension."
+    }
+   ],
+   "grain": "other",
+   "metric_columns": [
+    "Order Quantity",
+    "Sales",
+    "Discount",
+    "Profit",
+    "Unit Price",
+    "Shipping Cost",
+    "Product Base Margin"
+   ],
+   "rejected_columns": [
+    {
+     "column": "Row ID",
+     "reason": "Identifier column (is_likely_id=True) with cardinality equal to row count."
+    },
+    {
+     "column": "Order ID",
+     "reason": "Likely identifier; high cardinality numeric column not suitable as metric or dimension."
+    },
+    {
+     "column": "Product Name",
+     "reason": "High‑cardinality free‑text column (cardinality 1263, 15% of rows) unsuitable for dimension."
+    }
+   ],
+   "requires_human_review": false,
+   "validation_errors": []
+  },
+  "schema_fingerprint": "8b58a054e80aa4f5b75e53f802ca188177efdc7b814c5cdba2f9d18df2f03880"
+ },
+ "dataset_id": "superstore_sales",
+ "results": {
+  "order_quantity": {
+   "current_date": "2012-12-30",
+   "decomposition": {
+    "current_date": "2012-12-30",
+    "dimensions": {
+     "Customer Name": {
+      "segment_count": 10,
+      "top_contributors": [
+       {
+        "abs_contribution": 136.96,
+        "change": -63,
+        "change_pct": -100.0,
+        "contribution_pct": 136.96,
+        "current_value": 0,
+        "previous_value": 63,
+        "segment": "Jennifer Jackson"
+       },
+       {
+        "abs_contribution": 97.83,
+        "change": 45,
+        "change_pct": 0.0,
+        "contribution_pct": -97.83,
+        "current_value": 45,
+        "previous_value": 0,
+        "segment": "Jim Epp"
+       },
+       {
+        "abs_contribution": 97.83,
+        "change": -45,
+        "change_pct": -100.0,
+        "contribution_pct": 97.83,
+        "current_value": 0,
+        "previous_value": 45,
+        "segment": "Quincy Jones"
+       },
+       {
+        "abs_contribution": 89.13,
+        "change": 41,
+        "change_pct": 0.0,
+        "contribution_pct": -89.13,
+        "current_value": 41,
+        "previous_value": 0,
+        "segment": "Tony Molinari"
+       },
+       {
+        "abs_contribution": 86.96,
+        "change": -40,
+        "change_pct": -100.0,
+        "contribution_pct": 86.96,
+        "current_value": 0,
+        "previous_value": 40,
+        "segment": "Shirley Schmidt"
+       }
+      ],
+      "total_change": -46,
+      "total_change_pct": -21.8,
+      "total_current": 165,
+      "total_previous": 211
+     },
+     "Customer Segment": {
+      "segment_count": 4,
+      "top_contributors": [
+       {
+        "abs_contribution": 173.91,
+        "change": -80,
+        "change_pct": -66.12,
+        "contribution_pct": 173.91,
+        "current_value": 41,
+        "previous_value": 121,
+        "segment": "Corporate"
+       },
+       {
+        "abs_contribution": 39.13,
+        "change": 18,
+        "change_pct": 66.67,
+        "contribution_pct": -39.13,
+        "current_value": 45,
+        "previous_value": 27,
+        "segment": "Small Business"
+       },
+       {
+        "abs_contribution": 21.74,
+        "change": 10,
+        "change_pct": 0.0,
+        "contribution_pct": -21.74,
+        "current_value": 10,
+        "previous_value": 0,
+        "segment": "Consumer"
+       },
+       {
+        "abs_contribution": 13.04,
+        "change": 6,
+        "change_pct": 9.52,
+        "contribution_pct": -13.04,
+        "current_value": 69,
+        "previous_value": 63,
+        "segment": "Home Office"
+       }
+      ],
+      "total_change": -46,
+      "total_change_pct": -21.8,
+      "total_current": 165,
+      "total_previous": 211
+     },
+     "Order Priority": {
+      "segment_count": 5,
+      "top_contributors": [
+       {
+        "abs_contribution": 150.0,
+        "change": 69,
+        "change_pct": 0.0,
+        "contribution_pct": -150.0,
+        "current_value": 69,
+        "previous_value": 0,
+        "segment": "Low"
+       },
+       {
+        "abs_contribution": 136.96,
+        "change": -63,
+        "change_pct": -100.0,
+        "contribution_pct": 136.96,
+        "current_value": 0,
+        "previous_value": 63,
+        "segment": "Critical"
+       },
+       {
+        "abs_contribution": 115.22,
+        "change": -53,
+        "change_pct": -84.13,
+        "contribution_pct": 115.22,
+        "current_value": 10,
+        "previous_value": 63,
+        "segment": "Medium"
+       },
+       {
+        "abs_contribution": 89.13,
+        "change": 41,
+        "change_pct": 91.11,
+        "contribution_pct": -89.13,
+        "current_value": 86,
+        "previous_value": 45,
+        "segment": "Not Specified"
+       },
+       {
+        "abs_contribution": 86.96,
+        "change": -40,
+        "change_pct": -100.0,
+        "contribution_pct": 86.96,
+        "current_value": 0,
+        "previous_value": 40,
+        "segment": "High"
+       }
+      ],
+      "total_change": -46,
+      "total_change_pct": -21.8,
+      "total_current": 165,
+      "total_previous": 211
+     },
+     "Product Category": {
+      "segment_count": 3,
+      "top_contributors": [
+       {
+        "abs_contribution": 141.3,
+        "change": -65,
+        "change_pct": -43.92,
+        "contribution_pct": 141.3,
+        "current_value": 83,
+        "previous_value": 148,
+        "segment": "Office Supplies"
+       },
+       {
+        "abs_contribution": 73.91,
+        "change": 34,
+        "change_pct": 200.0,
+        "contribution_pct": -73.91,
+        "current_value": 51,
+        "previous_value": 17,
+        "segment": "Furniture"
+       },
+       {
+        "abs_contribution": 32.61,
+        "change": -15,
+        "change_pct": -32.61,
+        "contribution_pct": 32.61,
+        "current_value": 31,
+        "previous_value": 46,
+        "segment": "Technology"
+       }
+      ],
+      "total_change": -46,
+      "total_change_pct": -21.8,
+      "total_current": 165,
+      "total_previous": 211
+     },
+     "Product Container": {
+      "segment_count": 5,
+      "top_contributors": [
+       {
+        "abs_contribution": 278.26,
+        "change": -128,
+        "change_pct": -65.98,
+        "contribution_pct": 278.26,
+        "current_value": 66,
+        "previous_value": 194,
+        "segment": "Small Box"
+       },
+       {
+        "abs_contribution": 200.0,
+        "change": 92,
+        "change_pct": 0.0,
+        "contribution_pct": -200.0,
+        "current_value": 92,
+        "previous_value": 0,
+        "segment": "Wrap Bag"
+       },
+       {
+        "abs_contribution": 36.96,
+        "change": -17,
+        "change_pct": -100.0,
+        "contribution_pct": 36.96,
+        "current_value": 0,
+        "previous_value": 17,
+        "segment": "Jumbo Box"
+       },
+       {
+        "abs_contribution": 13.04,
+        "change": 6,
+        "change_pct": 0.0,
+        "contribution_pct": -13.04,
+        "current_value": 6,
+        "previous_value": 0,
+        "segment": "Jumbo Drum"
+       },
+       {
+        "abs_contribution": 2.17,
+        "change": 1,
+        "change_pct": 0.0,
+        "contribution_pct": -2.17,
+        "current_value": 1,
+        "previous_value": 0,
+        "segment": "Medium Box"
+       }
+      ],
+      "total_change": -46,
+      "total_change_pct": -21.8,
+      "total_current": 165,
+      "total_previous": 211
+     },
+     "Product Sub-Category": {
+      "segment_count": 10,
+      "top_contributors": [
+       {
+        "abs_contribution": 165.22,
+        "change": -76,
+        "change_pct": -100.0,
+        "contribution_pct": 165.22,
+        "current_value": 0,
+        "previous_value": 76,
+        "segment": "Binders and Binder Accessories"
+       },
+       {
+        "abs_contribution": 97.83,
+        "change": 45,
+        "change_pct": 0.0,
+        "contribution_pct": -97.83,
+        "current_value": 45,
+        "previous_value": 0,
+        "segment": "Office Furnishings"
+       },
+       {
+        "abs_contribution": 97.83,
+        "change": -45,
+        "change_pct": -100.0,
+        "contribution_pct": 97.83,
+        "current_value": 0,
+        "previous_value": 45,
+        "segment": "Appliances"
+       },
+       {
+        "abs_contribution": 76.09,
+        "change": 35,
+        "change_pct": 0.0,
+        "contribution_pct": -76.09,
+        "current_value": 35,
+        "previous_value": 0,
+        "segment": "Storage & Organization"
+       },
+       {
+        "abs_contribution": 36.96,
+        "change": -17,
+        "change_pct": -100.0,
+        "contribution_pct": 36.96,
+        "current_value": 0,
+        "previous_value": 17,
+        "segment": "Tables"
+       }
+      ],
+      "total_change": -46,
+      "total_change_pct": -21.8,
+      "total_current": 165,
+      "total_previous": 211
+     },
+     "Province": {
+      "segment_count": 7,
+      "top_contributors": [
+       {
+        "abs_contribution": 165.22,
+        "change": -76,
+        "change_pct": -100.0,
+        "contribution_pct": 165.22,
+        "current_value": 0,
+        "previous_value": 76,
+        "segment": "Quebec"
+       },
+       {
+        "abs_contribution": 97.83,
+        "change": 45,
+        "change_pct": 0.0,
+        "contribution_pct": -97.83,
+        "current_value": 45,
+        "previous_value": 0,
+        "segment": "New Brunswick"
+       },
+       {
+        "abs_contribution": 97.83,
+        "change": -45,
+        "change_pct": -100.0,
+        "contribution_pct": 97.83,
+        "current_value": 0,
+        "previous_value": 45,
+        "segment": "Alberta"
+       },
+       {
+        "abs_contribution": 80.43,
+        "change": 37,
+        "change_pct": 0.0,
+        "contribution_pct": -80.43,
+        "current_value": 37,
+        "previous_value": 0,
+        "segment": "Ontario"
+       },
+       {
+        "abs_contribution": 67.39,
+        "change": -31,
+        "change_pct": -49.21,
+        "contribution_pct": 67.39,
+        "current_value": 32,
+        "previous_value": 63,
+        "segment": "Saskachewan"
+       }
+      ],
+      "total_change": -46,
+      "total_change_pct": -21.8,
+      "total_current": 165,
+      "total_previous": 211
+     },
+     "Region": {
+      "segment_count": 5,
+      "top_contributors": [
+       {
+        "abs_contribution": 165.22,
+        "change": -76,
+        "change_pct": -100.0,
+        "contribution_pct": 165.22,
+        "current_value": 0,
+        "previous_value": 76,
+        "segment": "Quebec"
+       },
+       {
+        "abs_contribution": 97.83,
+        "change": 45,
+        "change_pct": 0.0,
+        "contribution_pct": -97.83,
+        "current_value": 45,
+        "previous_value": 0,
+        "segment": "Atlantic"
+       },
+       {
+        "abs_contribution": 80.43,
+        "change": 37,
+        "change_pct": 0.0,
+        "contribution_pct": -80.43,
+        "current_value": 37,
+        "previous_value": 0,
+        "segment": "Ontario"
+       },
+       {
+        "abs_contribution": 67.39,
+        "change": -31,
+        "change_pct": -43.06,
+        "contribution_pct": 67.39,
+        "current_value": 41,
+        "previous_value": 72,
+        "segment": "West"
+       },
+       {
+        "abs_contribution": 45.65,
+        "change": -21,
+        "change_pct": -33.33,
+        "contribution_pct": 45.65,
+        "current_value": 42,
+        "previous_value": 63,
+        "segment": "Prarie"
+       }
+      ],
+      "total_change": -46,
+      "total_change_pct": -21.8,
+      "total_current": 165,
+      "total_previous": 211
+     },
+     "Ship Mode": {
+      "segment_count": 3,
+      "top_contributors": [
+       {
+        "abs_contribution": 154.35,
+        "change": -71,
+        "change_pct": -44.94,
+        "contribution_pct": 154.35,
+        "current_value": 87,
+        "previous_value": 158,
+        "segment": "Regular Air"
+       },
+       {
+        "abs_contribution": 78.26,
+        "change": 36,
+        "change_pct": 100.0,
+        "contribution_pct": -78.26,
+        "current_value": 72,
+        "previous_value": 36,
+        "segment": "Express Air"
+       },
+       {
+        "abs_contribution": 23.91,
+        "change": -11,
+        "change_pct": -64.71,
+        "contribution_pct": 23.91,
+        "current_value": 6,
+        "previous_value": 17,
+        "segment": "Delivery Truck"
+       }
+      ],
+      "total_change": -46,
+      "total_change_pct": -21.8,
+      "total_current": 165,
+      "total_previous": 211
+     }
+    },
+    "metric": "order_quantity",
+    "previous_date": "2012-12-29"
+   },
+   "detection": {
+    "all_anomalies": [
+     {
+      "anomaly_direction": "high",
+      "change_pct": 719.61,
+      "change_value": 367.0,
+      "discount": 0.83,
+      "is_anomaly": true,
+      "metric_date": "2012-12-09",
+      "order_quantity": 418,
+      "prev_value": 51.0,
+      "product_base_margin": 6.81,
+      "profit": 4805.92,
+      "row_count": 14,
+      "sales": 44483.818,
+      "shipping_cost": 252.29000000000002,
+      "unit_price": 3101.93,
+      "zscore": 3.0505997178412088
+     }
+    ],
+    "anomaly_count": 1,
+    "freshness": {
+     "date": "2012-12-30",
+     "median": 5.0,
+     "ratio": null,
+     "reason": "too sparse to judge (median 5 < 50 records/day)",
+     "status": "not_applicable",
+     "thresholds": {
+      "min_base_volume": 50.0,
+      "min_volume_ratio": 0.25,
+      "window": 28
+     },
+     "volume": 7.0,
+     "volume_column": "row_count",
+     "window_rows": 28
+    },
+    "latest_anomaly": {
+     "change_pct": 719.61,
+     "change_value": 367.0,
+     "direction": "high",
+     "metric_date": "2012-12-09",
+     "metric_value": 418,
+     "zscore": 3.05
+    },
+    "lookback_days": 30,
+    "metric": "order_quantity",
+    "statistics": {
+     "max": 418,
+     "mean": 132.0,
+     "min": 2,
+     "std": 93.75
+    },
+    "status": "completed",
+    "total_days_analyzed": 30
+   },
+   "narratives": {
+    "email_subject": "MetricPulse: Order Quantity decrease 21.8% on 2012-12-30",
+    "full": "📊 **MetricPulse Alert: Order Quantity decrease**\n\n**2012-12-30** vs **2012-12-29**\n\nOrder Quantity decreased **21.8%** ($211.00 → $165.00), a change of **$46.00**.\n\n**Primary Driver:**\nThe decrease was primarily driven by **Product Container** — specifically **Small Box**, which accounted for **278.26%** of the total change.\n\n**Breakdown by Dimension:**\n\n- **Order Priority**: Top contributor was **Low** (-150.0% of change)\n\n- **Ship Mode**: Top contributor was **Regular Air** (154.3% of change)\n\n- **Customer Name**: Top contributor was **Jennifer Jackson** (137.0% of change)\n\n- **Province**: Top contributor was **Quebec** (165.2% of change)\n\n- **Region**: Top contributor was **Quebec** (165.2% of change)\n\n- **Customer Segment**: Top contributor was **Corporate** (173.9% of change)\n\n- **Product Category**: Top contributor was **Office Supplies** (141.3% of change)\n\n- **Product Sub-Category**: Top contributor was **Binders and Binder Accessories** (165.2% of change)\n\n- **Product Container**: Top contributor was **Small Box** (278.3% of change)\n\n\n---\n*Generated by MetricPulse at 2026-11-12 17:51:53*",
+    "slack": ":chart_with_downwards_trend: *MetricPulse Alert*\n\n*Order Quantity* decreased *21.8%* on 2012-12-30\n\n:mag: *Root Cause:* Small Box (Product Container) drove 278.26% of the change\n\n:bar_chart: Breakdown:\n• Order Priority: Low (-150.0%)\n• Ship Mode: Regular Air (154.3%)\n• Customer Name: Jennifer Jackson (137.0%)\n• Province: Quebec (165.2%)\n• Region: Quebec (165.2%)\n• Customer Segment: Corporate (173.9%)\n• Product Category: Office Supplies (141.3%)\n• Product Sub-Category: Binders and Binder Accessories (165.2%)\n• Product Container: Small Box (278.3%)",
+    "summary": "Order Quantity decreased 21.8% on 2012-12-30. Primary driver: Small Box (Product Container) contributed 278.3% of the change."
+   },
+   "previous_date": "2012-12-29"
+  },
+  "profit": {
+   "current_date": "2012-12-30",
+   "decomposition": {
+    "current_date": "2012-12-30",
+    "dimensions": {
+     "Customer Name": {
+      "segment_count": 10,
+      "top_contributors": [
+       {
+        "abs_contribution": 98.04,
+        "change": -5045.3,
+        "change_pct": -100.0,
+        "contribution_pct": 98.04,
+        "current_value": 0.0,
+        "previous_value": 5045.3,
+        "segment": "Logan Haushalter"
+       },
+       {
+        "abs_contribution": 13.94,
+        "change": -717.35,
+        "change_pct": 0.0,
+        "contribution_pct": 13.94,
+        "current_value": -717.35,
+        "previous_value": 0.0,
+        "segment": "Maribeth Yedwab"
+       },
+       {
+        "abs_contribution": 9.07,
+        "change": 466.60999999999996,
+        "change_pct": -100.0,
+        "contribution_pct": -9.07,
+        "current_value": 0.0,
+        "previous_value": -466.60999999999996,
+        "segment": "Jennifer Jackson"
+       },
+       {
+        "abs_contribution": 3.54,
+        "change": -182.03,
+        "change_pct": 0.0,
+        "contribution_pct": 3.54,
+        "current_value": -182.03,
+        "previous_value": 0.0,
+        "segment": "Tony Molinari"
+       },
+       {
+        "abs_contribution": 3.2,
+        "change": 164.92,
+        "change_pct": -100.0,
+        "contribution_pct": -3.2,
+        "current_value": 0.0,
+        "previous_value": -164.92,
+        "segment": "Quincy Jones"
+       }
+      ],
+      "total_change": -5146.12,
+      "total_change_pct": -122.72,
+      "total_current": -952.8,
+      "total_previous": 4193.32
+     },
+     "Customer Segment": {
+      "segment_count": 4,
+      "top_contributors": [
+       {
+        "abs_contribution": 95.56,
+        "change": -4917.67,
+        "change_pct": -103.84,
+        "contribution_pct": 95.56,
+        "current_value": -182.03,
+        "previous_value": 4735.64,
+        "segment": "Corporate"
+       },
+       {
+        "abs_contribution": 5.24,
+        "change": -269.40000000000003,
+        "change_pct": 57.74,
+        "contribution_pct": 5.24,
+        "current_value": -736.01,
+        "previous_value": -466.60999999999996,
+        "segment": "Home Office"
+       },
+       {
+        "abs_contribution": 0.82,
+        "change": 42.239999999999995,
+        "change_pct": -55.79,
+        "contribution_pct": -0.82,
+        "current_value": -33.47,
+        "previous_value": -75.71,
+        "segment": "Small Business"
+       },
+       {
+        "abs_contribution": 0.03,
+        "change": -1.29,
+        "change_pct": 0.0,
+        "contribution_pct": 0.03,
+        "current_value": -1.29,
+        "previous_value": 0.0,
+        "segment": "Consumer"
+       }
+      ],
+      "total_change": -5146.12,
+      "total_change_pct": -122.72,
+      "total_current": -952.8,
+      "total_previous": 4193.32
+     },
+     "Order Priority": {
+      "segment_count": 5,
+      "top_contributors": [
+       {
+        "abs_contribution": 96.59,
+        "change": -4970.88,
+        "change_pct": -100.03,
+        "contribution_pct": 96.59,
+        "current_value": -1.29,
+        "previous_value": 4969.59,
+        "segment": "Medium"
+       },
+       {
+        "abs_contribution": 14.3,
+        "change": -736.01,
+        "change_pct": 0.0,
+        "contribution_pct": 14.3,
+        "current_value": -736.01,
+        "previous_value": 0.0,
+        "segment": "Low"
+       },
+       {
+        "abs_contribution": 9.07,
+        "change": 466.60999999999996,
+        "change_pct": -100.0,
+        "contribution_pct": -9.07,
+        "current_value": 0.0,
+        "previous_value": -466.60999999999996,
+        "segment": "Critical"
+       },
+       {
+        "abs_contribution": 2.81,
+        "change": 144.74,
+        "change_pct": -100.0,
+        "contribution_pct": -2.81,
+        "current_value": 0.0,
+        "previous_value": -144.74,
+        "segment": "High"
+       },
+       {
+        "abs_contribution": 0.98,
+        "change": -50.58000000000001,
+        "change_pct": 30.67,
+        "contribution_pct": 0.98,
+        "current_value": -215.5,
+        "previous_value": -164.92,
+        "segment": "Not Specified"
+       }
+      ],
+      "total_change": -5146.12,
+      "total_change_pct": -122.72,
+      "total_current": -952.8,
+      "total_previous": 4193.32
+     },
+     "Product Category": {
+      "segment_count": 3,
+      "top_contributors": [
+       {
+        "abs_contribution": 105.71,
+        "change": -5440.150000000001,
+        "change_pct": -116.74,
+        "contribution_pct": 105.71,
+        "current_value": -780.2200000000001,
+        "previous_value": 4659.93,
+        "segment": "Office Supplies"
+       },
+       {
+        "abs_contribution": 11.14,
+        "change": 573.3499999999999,
+        "change_pct": -74.1,
+        "contribution_pct": -11.14,
+        "current_value": -200.43,
+        "previous_value": -773.78,
+        "segment": "Furniture"
+       },
+       {
+        "abs_contribution": 5.43,
+        "change": -279.32,
+        "change_pct": -90.93,
+        "contribution_pct": 5.43,
+        "current_value": 27.85,
+        "previous_value": 307.17,
+        "segment": "Technology"
+       }
+      ],
+      "total_change": -5146.12,
+      "total_change_pct": -122.72,
+      "total_current": -952.8,
+      "total_previous": 4193.32
+     },
+     "Product Container": {
+      "segment_count": 5,
+      "top_contributors": [
+       {
+        "abs_contribution": 96.27,
+        "change": -4954.320000000001,
+        "change_pct": -99.74,
+        "contribution_pct": 96.27,
+        "current_value": 12.780000000000001,
+        "previous_value": 4967.1,
+        "segment": "Small Box"
+       },
+       {
+        "abs_contribution": 15.04,
+        "change": 773.78,
+        "change_pct": -100.0,
+        "contribution_pct": -15.04,
+        "current_value": 0.0,
+        "previous_value": -773.78,
+        "segment": "Jumbo Box"
+       },
+       {
+        "abs_contribution": 14.48,
+        "change": -745.2,
+        "change_pct": 0.0,
+        "contribution_pct": 14.48,
+        "current_value": -745.2,
+        "previous_value": 0.0,
+        "segment": "Medium Box"
+       },
+       {
+        "abs_contribution": 3.24,
+        "change": -166.96,
+        "change_pct": 0.0,
+        "contribution_pct": 3.24,
+        "current_value": -166.96,
+        "previous_value": 0.0,
+        "segment": "Jumbo Drum"
+       },
+       {
+        "abs_contribution": 1.04,
+        "change": -53.42,
+        "change_pct": 0.0,
+        "contribution_pct": 1.04,
+        "current_value": -53.42,
+        "previous_value": 0.0,
+        "segment": "Wrap Bag"
+       }
+      ],
+      "total_change": -5146.12,
+      "total_change_pct": -122.72,
+      "total_current": -952.8,
+      "total_previous": 4193.32
+     },
+     "Product Sub-Category": {
+      "segment_count": 10,
+      "top_contributors": [
+       {
+        "abs_contribution": 95.23,
+        "change": -4900.56,
+        "change_pct": -100.0,
+        "contribution_pct": 95.23,
+        "current_value": 0.0,
+        "previous_value": 4900.56,
+        "segment": "Binders and Binder Accessories"
+       },
+       {
+        "abs_contribution": 15.04,
+        "change": 773.78,
+        "change_pct": -100.0,
+        "contribution_pct": -15.04,
+        "current_value": 0.0,
+        "previous_value": -773.78,
+        "segment": "Tables"
+       },
+       {
+        "abs_contribution": 14.48,
+        "change": -745.2,
+        "change_pct": 0.0,
+        "contribution_pct": 14.48,
+        "current_value": -745.2,
+        "previous_value": 0.0,
+        "segment": "Scissors, Rulers and Trimmers"
+       },
+       {
+        "abs_contribution": 5.43,
+        "change": -279.32,
+        "change_pct": -90.93,
+        "contribution_pct": 5.43,
+        "current_value": 27.85,
+        "previous_value": 307.17,
+        "segment": "Computer Peripherals"
+       },
+       {
+        "abs_contribution": 3.24,
+        "change": -166.96,
+        "change_pct": 0.0,
+        "contribution_pct": 3.24,
+        "current_value": -166.96,
+        "previous_value": 0.0,
+        "segment": "Chairs & Chairmats"
+       }
+      ],
+      "total_change": -5146.12,
+      "total_change_pct": -122.72,
+      "total_current": -952.8,
+      "total_previous": 4193.32
+     },
+     "Province": {
+      "segment_count": 7,
+      "top_contributors": [
+       {
+        "abs_contribution": 95.23,
+        "change": -4900.56,
+        "change_pct": -100.0,
+        "contribution_pct": 95.23,
+        "current_value": 0.0,
+        "previous_value": 4900.56,
+        "segment": "Quebec"
+       },
+       {
+        "abs_contribution": 4.87,
+        "change": -250.74000000000007,
+        "change_pct": 53.74,
+        "contribution_pct": 4.87,
+        "current_value": -717.35,
+        "previous_value": -466.60999999999996,
+        "segment": "Saskachewan"
+       },
+       {
+        "abs_contribution": 3.2,
+        "change": 164.92,
+        "change_pct": -100.0,
+        "contribution_pct": -3.2,
+        "current_value": 0.0,
+        "previous_value": -164.92,
+        "segment": "Alberta"
+       },
+       {
+        "abs_contribution": 2.07,
+        "change": -106.32000000000001,
+        "change_pct": 140.43,
+        "contribution_pct": 2.07,
+        "current_value": -182.03,
+        "previous_value": -75.71,
+        "segment": "British Columbia"
+       },
+       {
+        "abs_contribution": 0.65,
+        "change": -33.47,
+        "change_pct": 0.0,
+        "contribution_pct": 0.65,
+        "current_value": -33.47,
+        "previous_value": 0.0,
+        "segment": "New Brunswick"
+       }
+      ],
+      "total_change": -5146.12,
+      "total_change_pct": -122.72,
+      "total_current": -952.8,
+      "total_previous": 4193.32
+     },
+     "Region": {
+      "segment_count": 5,
+      "top_contributors": [
+       {
+        "abs_contribution": 95.23,
+        "change": -4900.56,
+        "change_pct": -100.0,
+        "contribution_pct": 95.23,
+        "current_value": 0.0,
+        "previous_value": 4900.56,
+        "segment": "Quebec"
+       },
+       {
+        "abs_contribution": 4.9,
+        "change": -252.03000000000014,
+        "change_pct": 54.01,
+        "contribution_pct": 4.9,
+        "current_value": -718.6400000000001,
+        "previous_value": -466.60999999999996,
+        "segment": "Prarie"
+       },
+       {
+        "abs_contribution": 1.14,
+        "change": 58.599999999999994,
+        "change_pct": -24.35,
+        "contribution_pct": -1.14,
+        "current_value": -182.03,
+        "previous_value": -240.63,
+        "segment": "West"
+       },
+       {
+        "abs_contribution": 0.65,
+        "change": -33.47,
+        "change_pct": 0.0,
+        "contribution_pct": 0.65,
+        "current_value": -33.47,
+        "previous_value": 0.0,
+        "segment": "Atlantic"
+       },
+       {
+        "abs_contribution": 0.36,
+        "change": -18.66,
+        "change_pct": 0.0,
+        "contribution_pct": 0.36,
+        "current_value": -18.66,
+        "previous_value": 0.0,
+        "segment": "Ontario"
+       }
+      ],
+      "total_change": -5146.12,
+      "total_change_pct": -122.72,
+      "total_current": -952.8,
+      "total_previous": 4193.32
+     },
+     "Ship Mode": {
+      "segment_count": 3,
+      "top_contributors": [
+       {
+        "abs_contribution": 98.7,
+        "change": -5079.03,
+        "change_pct": -100.67,
+        "contribution_pct": 98.7,
+        "current_value": -33.730000000000004,
+        "previous_value": 5045.3,
+        "segment": "Express Air"
+       },
+       {
+        "abs_contribution": 13.1,
+        "change": -673.9100000000002,
+        "change_pct": 861.78,
+        "contribution_pct": 13.1,
+        "current_value": -752.1100000000001,
+        "previous_value": -78.19999999999996,
+        "segment": "Regular Air"
+       },
+       {
+        "abs_contribution": 11.79,
+        "change": 606.8199999999999,
+        "change_pct": -78.42,
+        "contribution_pct": -11.79,
+        "current_value": -166.96,
+        "previous_value": -773.78,
+        "segment": "Delivery Truck"
+       }
+      ],
+      "total_change": -5146.12,
+      "total_change_pct": -122.72,
+      "total_current": -952.8,
+      "total_previous": 4193.32
+     }
+    },
+    "metric": "profit",
+    "previous_date": "2012-12-29"
+   },
+   "detection": {
+    "all_anomalies": [
+     {
+      "anomaly_direction": "high",
+      "change_pct": 122.49,
+      "change_value": 4695.6900000000005,
+      "discount": 0.43,
+      "is_anomaly": true,
+      "metric_date": "2012-12-02",
+      "order_quantity": 302,
+      "prev_value": 3833.4799999999996,
+      "product_base_margin": 5.27,
+      "profit": 8529.17,
+      "row_count": 10,
+      "sales": 71821.472,
+      "shipping_cost": 206.94,
+      "unit_price": 2191.81,
+      "zscore": 2.5022763615627124
+     },
+     {
+      "anomaly_direction": "low",
+      "change_pct": 2627.77,
+      "change_value": -8027.5599999999995,
+      "discount": 0.38,
+      "is_anomaly": true,
+      "metric_date": "2012-12-12",
+      "order_quantity": 205,
+      "prev_value": -305.49,
+      "product_base_margin": 3.3499999999999996,
+      "profit": -8333.05,
+      "row_count": 7,
+      "sales": 31668.03,
+      "shipping_cost": 109.21,
+      "unit_price": 1188.53,
+      "zscore": -2.89377777692804
+     }
+    ],
+    "anomaly_count": 2,
+    "freshness": {
+     "date": "2012-12-30",
+     "median": 5.0,
+     "ratio": null,
+     "reason": "too sparse to judge (median 5 < 50 records/day)",
+     "status": "not_applicable",
+     "thresholds": {
+      "min_base_volume": 50.0,
+      "min_volume_ratio": 0.25,
+      "window": 28
+     },
+     "volume": 7.0,
+     "volume_column": "row_count",
+     "window_rows": 28
+    },
+    "latest_anomaly": {
+     "change_pct": 2627.77,
+     "change_value": -8027.5599999999995,
+     "direction": "low",
+     "metric_date": "2012-12-12",
+     "metric_value": -8333.05,
+     "zscore": -2.89
+    },
+    "lookback_days": 30,
+    "metric": "profit",
+    "statistics": {
+     "max": 8529.17,
+     "mean": 709.76,
+     "min": -8333.05,
+     "std": 3124.92
+    },
+    "status": "completed",
+    "total_days_analyzed": 30
+   },
+   "narratives": {
+    "email_subject": "MetricPulse: Profit decrease 122.7% on 2012-12-30",
+    "full": "📊 **MetricPulse Alert: Profit decrease**\n\n**2012-12-30** vs **2012-12-29**\n\nProfit decreased **122.7%** ($4,193.32 → $952.80), a change of **$5,146.12**.\n\n**Primary Driver:**\nThe decrease was primarily driven by **Product Category** — specifically **Office Supplies**, which accounted for **105.71%** of the total change.\n\n**Breakdown by Dimension:**\n\n- **Order Priority**: Top contributor was **Medium** (96.6% of change)\n\n- **Ship Mode**: Top contributor was **Express Air** (98.7% of change)\n\n- **Customer Name**: Top contributor was **Logan Haushalter** (98.0% of change)\n\n- **Province**: Top contributor was **Quebec** (95.2% of change)\n\n- **Region**: Top contributor was **Quebec** (95.2% of change)\n\n- **Customer Segment**: Top contributor was **Corporate** (95.6% of change)\n\n- **Product Category**: Top contributor was **Office Supplies** (105.7% of change)\n\n- **Product Sub-Category**: Top contributor was **Binders and Binder Accessories** (95.2% of change)\n\n- **Product Container**: Top contributor was **Small Box** (96.3% of change)\n\n\n---\n*Generated by MetricPulse at 2026-11-12 17:51:53*",
+    "slack": ":chart_with_downwards_trend: *MetricPulse Alert*\n\n*Profit* decreased *122.7%* on 2012-12-30\n\n:mag: *Root Cause:* Office Supplies (Product Category) drove 105.71% of the change\n\n:bar_chart: Breakdown:\n• Order Priority: Medium (96.6%)\n• Ship Mode: Express Air (98.7%)\n• Customer Name: Logan Haushalter (98.0%)\n• Province: Quebec (95.2%)\n• Region: Quebec (95.2%)\n• Customer Segment: Corporate (95.6%)\n• Product Category: Office Supplies (105.7%)\n• Product Sub-Category: Binders and Binder Accessories (95.2%)\n• Product Container: Small Box (96.3%)",
+    "summary": "Profit decreased 122.7% on 2012-12-30. Primary driver: Office Supplies (Product Category) contributed 105.7% of the change."
+   },
+   "previous_date": "2012-12-29"
+  },
+  "sales": {
+   "current_date": "2012-12-30",
+   "decomposition": {
+    "current_date": "2012-12-30",
+    "dimensions": {
+     "Customer Name": {
+      "segment_count": 10,
+      "top_contributors": [
+       {
+        "abs_contribution": 80.8,
+        "change": -12690.33,
+        "change_pct": -100.0,
+        "contribution_pct": 80.8,
+        "current_value": 0.0,
+        "previous_value": 12690.33,
+        "segment": "Logan Haushalter"
+       },
+       {
+        "abs_contribution": 35.96,
+        "change": -5647.49,
+        "change_pct": -100.0,
+        "contribution_pct": 35.96,
+        "current_value": 0.0,
+        "previous_value": 5647.49,
+        "segment": "Jennifer Jackson"
+       },
+       {
+        "abs_contribution": 9.4,
+        "change": 1476.26,
+        "change_pct": 0.0,
+        "contribution_pct": -9.4,
+        "current_value": 1476.26,
+        "previous_value": 0.0,
+        "segment": "Maribeth Yedwab"
+       },
+       {
+        "abs_contribution": 5.34,
+        "change": 839.22,
+        "change_pct": 0.0,
+        "contribution_pct": -5.34,
+        "current_value": 839.22,
+        "previous_value": 0.0,
+        "segment": "Tony Molinari"
+       },
+       {
+        "abs_contribution": 3.7,
+        "change": 580.96,
+        "change_pct": 0.0,
+        "contribution_pct": -3.7,
+        "current_value": 580.96,
+        "previous_value": 0.0,
+        "segment": "Jim Epp"
+       }
+      ],
+      "total_change": -15706.37,
+      "total_change_pct": -83.22,
+      "total_current": 3168.05,
+      "total_previous": 18874.42
+     },
+     "Customer Segment": {
+      "segment_count": 4,
+      "top_contributors": [
+       {
+        "abs_contribution": 77.75,
+        "change": -12211.61,
+        "change_pct": -93.57,
+        "contribution_pct": 77.75,
+        "current_value": 839.22,
+        "previous_value": 13050.83,
+        "segment": "Corporate"
+       },
+       {
+        "abs_contribution": 24.92,
+        "change": -3913.7699999999995,
+        "change_pct": -69.3,
+        "contribution_pct": 24.92,
+        "current_value": 1733.72,
+        "previous_value": 5647.49,
+        "segment": "Home Office"
+       },
+       {
+        "abs_contribution": 2.58,
+        "change": 404.86,
+        "change_pct": 229.9,
+        "contribution_pct": -2.58,
+        "current_value": 580.96,
+        "previous_value": 176.1,
+        "segment": "Small Business"
+       },
+       {
+        "abs_contribution": 0.09,
+        "change": 14.15,
+        "change_pct": 0.0,
+        "contribution_pct": -0.09,
+        "current_value": 14.15,
+        "previous_value": 0.0,
+        "segment": "Consumer"
+       }
+      ],
+      "total_change": -15706.37,
+      "total_change_pct": -83.22,
+      "total_current": 3168.05,
+      "total_previous": 18874.42
+     },
+     "Order Priority": {
+      "segment_count": 5,
+      "top_contributors": [
+       {
+        "abs_contribution": 81.83,
+        "change": -12852.28,
+        "change_pct": -99.89,
+        "contribution_pct": 81.83,
+        "current_value": 14.15,
+        "previous_value": 12866.43,
+        "segment": "Medium"
+       },
+       {
+        "abs_contribution": 35.96,
+        "change": -5647.49,
+        "change_pct": -100.0,
+        "contribution_pct": 35.96,
+        "current_value": 0.0,
+        "previous_value": 5647.49,
+        "segment": "Critical"
+       },
+       {
+        "abs_contribution": 11.04,
+        "change": 1733.72,
+        "change_pct": 0.0,
+        "contribution_pct": -11.04,
+        "current_value": 1733.72,
+        "previous_value": 0.0,
+        "segment": "Low"
+       },
+       {
+        "abs_contribution": 7.9,
+        "change": 1241.48,
+        "change_pct": 694.73,
+        "contribution_pct": -7.9,
+        "current_value": 1420.18,
+        "previous_value": 178.7,
+        "segment": "Not Specified"
+       },
+       {
+        "abs_contribution": 1.16,
+        "change": -181.8,
+        "change_pct": -100.0,
+        "contribution_pct": 1.16,
+        "current_value": 0.0,
+        "previous_value": 181.8,
+        "segment": "High"
+       }
+      ],
+      "total_change": -15706.37,
+      "total_change_pct": -83.22,
+      "total_current": 3168.05,
+      "total_previous": 18874.42
+     },
+     "Product Category": {
+      "segment_count": 3,
+      "top_contributors": [
+       {
+        "abs_contribution": 74.52,
+        "change": -11703.89,
+        "change_pct": -88.49,
+        "contribution_pct": 74.52,
+        "current_value": 1523.04,
+        "previous_value": 13226.93,
+        "segment": "Office Supplies"
+       },
+       {
+        "abs_contribution": 17.44,
+        "change": -2738.96,
+        "change_pct": -73.81,
+        "contribution_pct": 17.44,
+        "current_value": 972.08,
+        "previous_value": 3711.04,
+        "segment": "Furniture"
+       },
+       {
+        "abs_contribution": 8.04,
+        "change": -1263.52,
+        "change_pct": -65.25,
+        "contribution_pct": 8.04,
+        "current_value": 672.93,
+        "previous_value": 1936.45,
+        "segment": "Technology"
+       }
+      ],
+      "total_change": -15706.37,
+      "total_change_pct": -83.22,
+      "total_current": 3168.05,
+      "total_previous": 18874.42
+     },
+     "Product Container": {
+      "segment_count": 5,
+      "top_contributors": [
+       {
+        "abs_contribution": 89.41,
+        "change": -14042.35,
+        "change_pct": -92.61,
+        "contribution_pct": 89.41,
+        "current_value": 1121.03,
+        "previous_value": 15163.380000000001,
+        "segment": "Small Box"
+       },
+       {
+        "abs_contribution": 23.63,
+        "change": -3711.04,
+        "change_pct": -100.0,
+        "contribution_pct": 23.63,
+        "current_value": 0.0,
+        "previous_value": 3711.04,
+        "segment": "Jumbo Box"
+       },
+       {
+        "abs_contribution": 5.43,
+        "change": 852.5699999999999,
+        "change_pct": 0.0,
+        "contribution_pct": -5.43,
+        "current_value": 852.5699999999999,
+        "previous_value": 0.0,
+        "segment": "Wrap Bag"
+       },
+       {
+        "abs_contribution": 5.11,
+        "change": 803.33,
+        "change_pct": 0.0,
+        "contribution_pct": -5.11,
+        "current_value": 803.33,
+        "previous_value": 0.0,
+        "segment": "Medium Box"
+       },
+       {
+        "abs_contribution": 2.49,
+        "change": 391.12,
+        "change_pct": 0.0,
+        "contribution_pct": -2.49,
+        "current_value": 391.12,
+        "previous_value": 0.0,
+        "segment": "Jumbo Drum"
+       }
+      ],
+      "total_change": -15706.37,
+      "total_change_pct": -83.22,
+      "total_current": 3168.05,
+      "total_previous": 18874.42
+     },
+     "Product Sub-Category": {
+      "segment_count": 10,
+      "top_contributors": [
+       {
+        "abs_contribution": 81.95,
+        "change": -12872.13,
+        "change_pct": -100.0,
+        "contribution_pct": 81.95,
+        "current_value": 0.0,
+        "previous_value": 12872.13,
+        "segment": "Binders and Binder Accessories"
+       },
+       {
+        "abs_contribution": 23.63,
+        "change": -3711.04,
+        "change_pct": -100.0,
+        "contribution_pct": 23.63,
+        "current_value": 0.0,
+        "previous_value": 3711.04,
+        "segment": "Tables"
+       },
+       {
+        "abs_contribution": 8.04,
+        "change": -1263.52,
+        "change_pct": -65.25,
+        "contribution_pct": 8.04,
+        "current_value": 672.93,
+        "previous_value": 1936.45,
+        "segment": "Computer Peripherals"
+       },
+       {
+        "abs_contribution": 5.11,
+        "change": 803.33,
+        "change_pct": 0.0,
+        "contribution_pct": -5.11,
+        "current_value": 803.33,
+        "previous_value": 0.0,
+        "segment": "Scissors, Rulers and Trimmers"
+       },
+       {
+        "abs_contribution": 3.7,
+        "change": 580.96,
+        "change_pct": 0.0,
+        "contribution_pct": -3.7,
+        "current_value": 580.96,
+        "previous_value": 0.0,
+        "segment": "Office Furnishings"
+       }
+      ],
+      "total_change": -15706.37,
+      "total_change_pct": -83.22,
+      "total_current": 3168.05,
+      "total_previous": 18874.42
+     },
+     "Province": {
+      "segment_count": 7,
+      "top_contributors": [
+       {
+        "abs_contribution": 81.95,
+        "change": -12872.13,
+        "change_pct": -100.0,
+        "contribution_pct": 81.95,
+        "current_value": 0.0,
+        "previous_value": 12872.13,
+        "segment": "Quebec"
+       },
+       {
+        "abs_contribution": 26.56,
+        "change": -4171.23,
+        "change_pct": -73.86,
+        "contribution_pct": 26.56,
+        "current_value": 1476.26,
+        "previous_value": 5647.49,
+        "segment": "Saskachewan"
+       },
+       {
+        "abs_contribution": 4.22,
+        "change": 663.12,
+        "change_pct": 376.56,
+        "contribution_pct": -4.22,
+        "current_value": 839.22,
+        "previous_value": 176.1,
+        "segment": "British Columbia"
+       },
+       {
+        "abs_contribution": 3.7,
+        "change": 580.96,
+        "change_pct": 0.0,
+        "contribution_pct": -3.7,
+        "current_value": 580.96,
+        "previous_value": 0.0,
+        "segment": "New Brunswick"
+       },
+       {
+        "abs_contribution": 1.64,
+        "change": 257.46,
+        "change_pct": 0.0,
+        "contribution_pct": -1.64,
+        "current_value": 257.46,
+        "previous_value": 0.0,
+        "segment": "Ontario"
+       }
+      ],
+      "total_change": -15706.37,
+      "total_change_pct": -83.22,
+      "total_current": 3168.05,
+      "total_previous": 18874.42
+     },
+     "Region": {
+      "segment_count": 5,
+      "top_contributors": [
+       {
+        "abs_contribution": 81.95,
+        "change": -12872.13,
+        "change_pct": -100.0,
+        "contribution_pct": 81.95,
+        "current_value": 0.0,
+        "previous_value": 12872.13,
+        "segment": "Quebec"
+       },
+       {
+        "abs_contribution": 26.47,
+        "change": -4157.08,
+        "change_pct": -73.61,
+        "contribution_pct": 26.47,
+        "current_value": 1490.4099999999999,
+        "previous_value": 5647.49,
+        "segment": "Prarie"
+       },
+       {
+        "abs_contribution": 3.7,
+        "change": 580.96,
+        "change_pct": 0.0,
+        "contribution_pct": -3.7,
+        "current_value": 580.96,
+        "previous_value": 0.0,
+        "segment": "Atlantic"
+       },
+       {
+        "abs_contribution": 3.08,
+        "change": 484.4200000000001,
+        "change_pct": 136.53,
+        "contribution_pct": -3.08,
+        "current_value": 839.22,
+        "previous_value": 354.79999999999995,
+        "segment": "West"
+       },
+       {
+        "abs_contribution": 1.64,
+        "change": 257.46,
+        "change_pct": 0.0,
+        "contribution_pct": -1.64,
+        "current_value": 257.46,
+        "previous_value": 0.0,
+        "segment": "Ontario"
+       }
+      ],
+      "total_change": -15706.37,
+      "total_change_pct": -83.22,
+      "total_current": 3168.05,
+      "total_previous": 18874.42
+     },
+     "Ship Mode": {
+      "segment_count": 3,
+      "top_contributors": [
+       {
+        "abs_contribution": 76.31,
+        "change": -11984.77,
+        "change_pct": -94.44,
+        "contribution_pct": 76.31,
+        "current_value": 705.56,
+        "previous_value": 12690.33,
+        "segment": "Express Air"
+       },
+       {
+        "abs_contribution": 21.14,
+        "change": -3319.92,
+        "change_pct": -89.46,
+        "contribution_pct": 21.14,
+        "current_value": 391.12,
+        "previous_value": 3711.04,
+        "segment": "Delivery Truck"
+       },
+       {
+        "abs_contribution": 2.56,
+        "change": -401.6800000000003,
+        "change_pct": -16.24,
+        "contribution_pct": 2.56,
+        "current_value": 2071.37,
+        "previous_value": 2473.05,
+        "segment": "Regular Air"
+       }
+      ],
+      "total_change": -15706.37,
+      "total_change_pct": -83.22,
+      "total_current": 3168.05,
+      "total_previous": 18874.42
+     }
+    },
+    "metric": "sales",
+    "previous_date": "2012-12-29"
+   },
+   "detection": {
+    "all_anomalies": [
+     {
+      "anomaly_direction": "high",
+      "change_pct": 83.31,
+      "change_value": 32640.85199999999,
+      "discount": 0.43,
+      "is_anomaly": true,
+      "metric_date": "2012-12-02",
+      "order_quantity": 302,
+      "prev_value": 39180.62,
+      "product_base_margin": 5.27,
+      "profit": 8529.17,
+      "row_count": 10,
+      "sales": 71821.472,
+      "shipping_cost": 206.94,
+      "unit_price": 2191.81,
+      "zscore": 3.7451340751093065
+     },
+     {
+      "anomaly_direction": "high",
+      "change_pct": 1945.0,
+      "change_value": 42308.568,
+      "discount": 0.83,
+      "is_anomaly": true,
+      "metric_date": "2012-12-09",
+      "order_quantity": 418,
+      "prev_value": 2175.25,
+      "product_base_margin": 6.81,
+      "profit": 4805.92,
+      "row_count": 14,
+      "sales": 44483.818,
+      "shipping_cost": 252.29000000000002,
+      "unit_price": 3101.93,
+      "zscore": 2.0386859591405573
+     }
+    ],
+    "anomaly_count": 2,
+    "freshness": {
+     "date": "2012-12-30",
+     "median": 5.0,
+     "ratio": null,
+     "reason": "too sparse to judge (median 5 < 50 records/day)",
+     "status": "not_applicable",
+     "thresholds": {
+      "min_base_volume": 50.0,
+      "min_volume_ratio": 0.25,
+      "window": 28
+     },
+     "volume": 7.0,
+     "volume_column": "row_count",
+     "window_rows": 28
+    },
+    "latest_anomaly": {
+     "change_pct": 1945.0,
+     "change_value": 42308.568,
+     "direction": "high",
+     "metric_date": "2012-12-09",
+     "metric_value": 44483.818,
+     "zscore": 2.04
+    },
+    "lookback_days": 30,
+    "metric": "sales",
+    "statistics": {
+     "max": 71821.47,
+     "mean": 11823.64,
+     "min": 19.81,
+     "std": 16020.21
+    },
+    "status": "completed",
+    "total_days_analyzed": 30
+   },
+   "narratives": {
+    "email_subject": "MetricPulse: Sales decrease 83.2% on 2012-12-30",
+    "full": "📊 **MetricPulse Alert: Sales decrease**\n\n**2012-12-30** vs **2012-12-29**\n\nSales decreased **83.2%** ($18,874.42 → $3,168.05), a change of **$15,706.37**.\n\n**Primary Driver:**\nThe decrease was primarily driven by **Product Container** — specifically **Small Box**, which accounted for **89.41%** of the total change.\n\n**Breakdown by Dimension:**\n\n- **Order Priority**: Top contributor was **Medium** (81.8% of change)\n\n- **Ship Mode**: Top contributor was **Express Air** (76.3% of change)\n\n- **Customer Name**: Top contributor was **Logan Haushalter** (80.8% of change)\n\n- **Province**: Top contributor was **Quebec** (82.0% of change)\n\n- **Region**: Top contributor was **Quebec** (82.0% of change)\n\n- **Customer Segment**: Top contributor was **Corporate** (77.8% of change)\n\n- **Product Category**: Top contributor was **Office Supplies** (74.5% of change)\n\n- **Product Sub-Category**: Top contributor was **Binders and Binder Accessories** (82.0% of change)\n\n- **Product Container**: Top contributor was **Small Box** (89.4% of change)\n\n\n---\n*Generated by MetricPulse at 2026-11-12 17:51:52*",
+    "slack": ":chart_with_downwards_trend: *MetricPulse Alert*\n\n*Sales* decreased *83.2%* on 2012-12-30\n\n:mag: *Root Cause:* Small Box (Product Container) drove 89.41% of the change\n\n:bar_chart: Breakdown:\n• Order Priority: Medium (81.8%)\n• Ship Mode: Express Air (76.3%)\n• Customer Name: Logan Haushalter (80.8%)\n• Province: Quebec (82.0%)\n• Region: Quebec (82.0%)\n• Customer Segment: Corporate (77.8%)\n• Product Category: Office Supplies (74.5%)\n• Product Sub-Category: Binders and Binder Accessories (82.0%)\n• Product Container: Small Box (89.4%)",
+    "summary": "Sales decreased 83.2% on 2012-12-30. Primary driver: Small Box (Product Container) contributed 89.4% of the change."
+   },
+   "previous_date": "2012-12-29"
+  },
+  "shipping_cost": {
+   "current_date": "2012-12-30",
+   "decomposition": {
+    "current_date": "2012-12-30",
+    "dimensions": {
+     "Customer Name": {
+      "segment_count": 10,
+      "top_contributors": [
+       {
+        "abs_contribution": 204.61,
+        "change": -73.64,
+        "change_pct": -100.0,
+        "contribution_pct": 204.61,
+        "current_value": 0.0,
+        "previous_value": 73.64,
+        "segment": "Jennifer Jackson"
+       },
+       {
+        "abs_contribution": 95.89,
+        "change": 34.51,
+        "change_pct": 0.0,
+        "contribution_pct": -95.89,
+        "current_value": 34.51,
+        "previous_value": 0.0,
+        "segment": "Tony Molinari"
+       },
+       {
+        "abs_contribution": 79.16,
+        "change": 28.49,
+        "change_pct": 0.0,
+        "contribution_pct": -79.16,
+        "current_value": 28.49,
+        "previous_value": 0.0,
+        "segment": "Maribeth Yedwab"
+       },
+       {
+        "abs_contribution": 55.54,
+        "change": -19.99,
+        "change_pct": -100.0,
+        "contribution_pct": 55.54,
+        "current_value": 0.0,
+        "previous_value": 19.99,
+        "segment": "Logan Haushalter"
+       },
+       {
+        "abs_contribution": 19.03,
+        "change": 6.85,
+        "change_pct": 0.0,
+        "contribution_pct": -19.03,
+        "current_value": 6.85,
+        "previous_value": 0.0,
+        "segment": "Jim Epp"
+       }
+      ],
+      "total_change": -35.99,
+      "total_change_pct": -32.49,
+      "total_current": 74.78,
+      "total_previous": 110.77
+     },
+     "Customer Segment": {
+      "segment_count": 4,
+      "top_contributors": [
+       {
+        "abs_contribution": 113.7,
+        "change": -40.92,
+        "change_pct": -55.57,
+        "contribution_pct": 113.7,
+        "current_value": 32.72,
+        "previous_value": 73.64,
+        "segment": "Home Office"
+       },
+       {
+        "abs_contribution": 9.89,
+        "change": 3.5599999999999987,
+        "change_pct": 11.5,
+        "contribution_pct": -9.89,
+        "current_value": 34.51,
+        "previous_value": 30.95,
+        "segment": "Corporate"
+       },
+       {
+        "abs_contribution": 1.94,
+        "change": 0.7,
+        "change_pct": 0.0,
+        "contribution_pct": -1.94,
+        "current_value": 0.7,
+        "previous_value": 0.0,
+        "segment": "Consumer"
+       },
+       {
+        "abs_contribution": 1.86,
+        "change": 0.6699999999999999,
+        "change_pct": 10.84,
+        "contribution_pct": -1.86,
+        "current_value": 6.85,
+        "previous_value": 6.18,
+        "segment": "Small Business"
+       }
+      ],
+      "total_change": -35.99,
+      "total_change_pct": -32.49,
+      "total_current": 74.78,
+      "total_previous": 110.77
+     },
+     "Order Priority": {
+      "segment_count": 5,
+      "top_contributors": [
+       {
+        "abs_contribution": 204.61,
+        "change": -73.64,
+        "change_pct": -100.0,
+        "contribution_pct": 204.61,
+        "current_value": 0.0,
+        "previous_value": 73.64,
+        "segment": "Critical"
+       },
+       {
+        "abs_contribution": 100.67,
+        "change": 36.23,
+        "change_pct": 706.24,
+        "contribution_pct": -100.67,
+        "current_value": 41.36,
+        "previous_value": 5.13,
+        "segment": "Not Specified"
+       },
+       {
+        "abs_contribution": 90.91,
+        "change": 32.72,
+        "change_pct": 0.0,
+        "contribution_pct": -90.91,
+        "current_value": 32.72,
+        "previous_value": 0.0,
+        "segment": "Low"
+       },
+       {
+        "abs_contribution": 70.77,
+        "change": -25.47,
+        "change_pct": -97.33,
+        "contribution_pct": 70.77,
+        "current_value": 0.7,
+        "previous_value": 26.169999999999998,
+        "segment": "Medium"
+       },
+       {
+        "abs_contribution": 16.2,
+        "change": -5.83,
+        "change_pct": -100.0,
+        "contribution_pct": 16.2,
+        "current_value": 0.0,
+        "previous_value": 5.83,
+        "segment": "High"
+       }
+      ],
+      "total_change": -35.99,
+      "total_change_pct": -32.49,
+      "total_current": 74.78,
+      "total_previous": 110.77
+     },
+     "Product Category": {
+      "segment_count": 3,
+      "top_contributors": [
+       {
+        "abs_contribution": 91.11,
+        "change": -32.79,
+        "change_pct": -47.09,
+        "contribution_pct": 91.11,
+        "current_value": 36.85,
+        "previous_value": 69.64,
+        "segment": "Furniture"
+       },
+       {
+        "abs_contribution": 8.89,
+        "change": -3.1999999999999957,
+        "change_pct": -8.62,
+        "contribution_pct": 8.89,
+        "current_value": 33.93,
+        "previous_value": 37.129999999999995,
+        "segment": "Office Supplies"
+       },
+       {
+        "abs_contribution": 0.0,
+        "change": 0.0,
+        "change_pct": 0.0,
+        "contribution_pct": -0.0,
+        "current_value": 4.0,
+        "previous_value": 4.0,
+        "segment": "Technology"
+       }
+      ],
+      "total_change": -35.99,
+      "total_change_pct": -32.49,
+      "total_current": 74.78,
+      "total_previous": 110.77
+     },
+     "Product Container": {
+      "segment_count": 5,
+      "top_contributors": [
+       {
+        "abs_contribution": 193.5,
+        "change": -69.64,
+        "change_pct": -100.0,
+        "contribution_pct": 193.5,
+        "current_value": 0.0,
+        "previous_value": 69.64,
+        "segment": "Jumbo Box"
+       },
+       {
+        "abs_contribution": 90.64,
+        "change": -32.62,
+        "change_pct": -79.31,
+        "contribution_pct": 90.64,
+        "current_value": 8.51,
+        "previous_value": 41.129999999999995,
+        "segment": "Small Box"
+       },
+       {
+        "abs_contribution": 83.36,
+        "change": 30.0,
+        "change_pct": 0.0,
+        "contribution_pct": -83.36,
+        "current_value": 30.0,
+        "previous_value": 0.0,
+        "segment": "Jumbo Drum"
+       },
+       {
+        "abs_contribution": 68.05,
+        "change": 24.49,
+        "change_pct": 0.0,
+        "contribution_pct": -68.05,
+        "current_value": 24.49,
+        "previous_value": 0.0,
+        "segment": "Medium Box"
+       },
+       {
+        "abs_contribution": 32.73,
+        "change": 11.780000000000001,
+        "change_pct": 0.0,
+        "contribution_pct": -32.73,
+        "current_value": 11.780000000000001,
+        "previous_value": 0.0,
+        "segment": "Wrap Bag"
+       }
+      ],
+      "total_change": -35.99,
+      "total_change_pct": -32.49,
+      "total_current": 74.78,
+      "total_previous": 110.77
+     },
+     "Product Sub-Category": {
+      "segment_count": 10,
+      "top_contributors": [
+       {
+        "abs_contribution": 193.5,
+        "change": -69.64,
+        "change_pct": -100.0,
+        "contribution_pct": 193.5,
+        "current_value": 0.0,
+        "previous_value": 69.64,
+        "segment": "Tables"
+       },
+       {
+        "abs_contribution": 83.36,
+        "change": 30.0,
+        "change_pct": 0.0,
+        "contribution_pct": -83.36,
+        "current_value": 30.0,
+        "previous_value": 0.0,
+        "segment": "Chairs & Chairmats"
+       },
+       {
+        "abs_contribution": 71.74,
+        "change": -25.82,
+        "change_pct": -100.0,
+        "contribution_pct": 71.74,
+        "current_value": 0.0,
+        "previous_value": 25.82,
+        "segment": "Binders and Binder Accessories"
+       },
+       {
+        "abs_contribution": 68.05,
+        "change": 24.49,
+        "change_pct": 0.0,
+        "contribution_pct": -68.05,
+        "current_value": 24.49,
+        "previous_value": 0.0,
+        "segment": "Scissors, Rulers and Trimmers"
+       },
+       {
+        "abs_contribution": 19.03,
+        "change": 6.85,
+        "change_pct": 0.0,
+        "contribution_pct": -19.03,
+        "current_value": 6.85,
+        "previous_value": 0.0,
+        "segment": "Office Furnishings"
+       }
+      ],
+      "total_change": -35.99,
+      "total_change_pct": -32.49,
+      "total_current": 74.78,
+      "total_previous": 110.77
+     },
+     "Province": {
+      "segment_count": 7,
+      "top_contributors": [
+       {
+        "abs_contribution": 125.45,
+        "change": -45.150000000000006,
+        "change_pct": -61.31,
+        "contribution_pct": 125.45,
+        "current_value": 28.49,
+        "previous_value": 73.64,
+        "segment": "Saskachewan"
+       },
+       {
+        "abs_contribution": 78.72,
+        "change": 28.33,
+        "change_pct": 458.41,
+        "contribution_pct": -78.72,
+        "current_value": 34.51,
+        "previous_value": 6.18,
+        "segment": "British Columbia"
+       },
+       {
+        "abs_contribution": 71.74,
+        "change": -25.82,
+        "change_pct": -100.0,
+        "contribution_pct": 71.74,
+        "current_value": 0.0,
+        "previous_value": 25.82,
+        "segment": "Quebec"
+       },
+       {
+        "abs_contribution": 19.03,
+        "change": 6.85,
+        "change_pct": 0.0,
+        "contribution_pct": -19.03,
+        "current_value": 6.85,
+        "previous_value": 0.0,
+        "segment": "New Brunswick"
+       },
+       {
+        "abs_contribution": 14.25,
+        "change": -5.13,
+        "change_pct": -100.0,
+        "contribution_pct": 14.25,
+        "current_value": 0.0,
+        "previous_value": 5.13,
+        "segment": "Alberta"
+       }
+      ],
+      "total_change": -35.99,
+      "total_change_pct": -32.49,
+      "total_current": 74.78,
+      "total_previous": 110.77
+     },
+     "Region": {
+      "segment_count": 5,
+      "top_contributors": [
+       {
+        "abs_contribution": 123.51,
+        "change": -44.45,
+        "change_pct": -60.36,
+        "contribution_pct": 123.51,
+        "current_value": 29.189999999999998,
+        "previous_value": 73.64,
+        "segment": "Prarie"
+       },
+       {
+        "abs_contribution": 71.74,
+        "change": -25.82,
+        "change_pct": -100.0,
+        "contribution_pct": 71.74,
+        "current_value": 0.0,
+        "previous_value": 25.82,
+        "segment": "Quebec"
+       },
+       {
+        "abs_contribution": 64.46,
+        "change": 23.2,
+        "change_pct": 205.13,
+        "contribution_pct": -64.46,
+        "current_value": 34.51,
+        "previous_value": 11.309999999999999,
+        "segment": "West"
+       },
+       {
+        "abs_contribution": 19.03,
+        "change": 6.85,
+        "change_pct": 0.0,
+        "contribution_pct": -19.03,
+        "current_value": 6.85,
+        "previous_value": 0.0,
+        "segment": "Atlantic"
+       },
+       {
+        "abs_contribution": 11.75,
+        "change": 4.23,
+        "change_pct": 0.0,
+        "contribution_pct": -11.75,
+        "current_value": 4.23,
+        "previous_value": 0.0,
+        "segment": "Ontario"
+       }
+      ],
+      "total_change": -35.99,
+      "total_change_pct": -32.49,
+      "total_current": 74.78,
+      "total_previous": 110.77
+     },
+     "Ship Mode": {
+      "segment_count": 3,
+      "top_contributors": [
+       {
+        "abs_contribution": 110.14,
+        "change": -39.64,
+        "change_pct": -56.92,
+        "contribution_pct": 110.14,
+        "current_value": 30.0,
+        "previous_value": 69.64,
+        "segment": "Delivery Truck"
+       },
+       {
+        "abs_contribution": 41.4,
+        "change": 14.899999999999999,
+        "change_pct": 70.48,
+        "contribution_pct": -41.4,
+        "current_value": 36.04,
+        "previous_value": 21.14,
+        "segment": "Regular Air"
+       },
+       {
+        "abs_contribution": 31.26,
+        "change": -11.249999999999998,
+        "change_pct": -56.28,
+        "contribution_pct": 31.26,
+        "current_value": 8.74,
+        "previous_value": 19.99,
+        "segment": "Express Air"
+       }
+      ],
+      "total_change": -35.99,
+      "total_change_pct": -32.49,
+      "total_current": 74.78,
+      "total_previous": 110.77
+     }
+    },
+    "metric": "shipping_cost",
+    "previous_date": "2012-12-29"
+   },
+   "detection": {
+    "all_anomalies": [
+     {
+      "anomaly_direction": "high",
+      "change_pct": 154.76,
+      "change_value": 125.71,
+      "discount": 0.43,
+      "is_anomaly": true,
+      "metric_date": "2012-12-02",
+      "order_quantity": 302,
+      "prev_value": 81.23,
+      "product_base_margin": 5.27,
+      "profit": 8529.17,
+      "row_count": 10,
+      "sales": 71821.472,
+      "shipping_cost": 206.94,
+      "unit_price": 2191.81,
+      "zscore": 2.085693618109943
+     },
+     {
+      "anomaly_direction": "high",
+      "change_pct": 7.35,
+      "change_value": 15.219999999999999,
+      "discount": 0.36000000000000004,
+      "is_anomaly": true,
+      "metric_date": "2012-12-03",
+      "order_quantity": 107,
+      "prev_value": 206.94,
+      "product_base_margin": 3.7,
+      "profit": -1168.5,
+      "row_count": 7,
+      "sales": 4827.352,
+      "shipping_cost": 222.16,
+      "unit_price": 641.49,
+      "zscore": 2.3380748333178336
+     },
+     {
+      "anomaly_direction": "high",
+      "change_pct": 259.95,
+      "change_value": 182.20000000000002,
+      "discount": 0.83,
+      "is_anomaly": true,
+      "metric_date": "2012-12-09",
+      "order_quantity": 418,
+      "prev_value": 70.09,
+      "product_base_margin": 6.81,
+      "profit": 4805.92,
+      "row_count": 14,
+      "sales": 44483.818,
+      "shipping_cost": 252.29000000000002,
+      "unit_price": 3101.93,
+      "zscore": 2.837696779061182
+     }
+    ],
+    "anomaly_count": 3,
+    "freshness": {
+     "date": "2012-12-30",
+     "median": 5.0,
+     "ratio": null,
+     "reason": "too sparse to judge (median 5 < 50 records/day)",
+     "status": "not_applicable",
+     "thresholds": {
+      "min_base_volume": 50.0,
+      "min_volume_ratio": 0.25,
+      "window": 28
+     },
+     "volume": 7.0,
+     "volume_column": "row_count",
+     "window_rows": 28
+    },
+    "latest_anomaly": {
+     "change_pct": 259.95,
+     "change_value": 182.20000000000002,
+     "direction": "high",
+     "metric_date": "2012-12-09",
+     "metric_value": 252.29000000000002,
+     "zscore": 2.84
+    },
+    "lookback_days": 30,
+    "metric": "shipping_cost",
+    "statistics": {
+     "max": 252.29,
+     "mean": 81.16,
+     "min": 3.87,
+     "std": 60.31
+    },
+    "status": "completed",
+    "total_days_analyzed": 30
+   },
+   "narratives": {
+    "email_subject": "MetricPulse: Shipping Cost decrease 32.5% on 2012-12-30",
+    "full": "📊 **MetricPulse Alert: Shipping Cost decrease**\n\n**2012-12-30** vs **2012-12-29**\n\nShipping Cost decreased **32.5%** ($110.77 → $74.78), a change of **$35.99**.\n\n**Primary Driver:**\nThe decrease was primarily driven by **Order Priority** — specifically **Critical**, which accounted for **204.61%** of the total change.\n\n**Breakdown by Dimension:**\n\n- **Order Priority**: Top contributor was **Critical** (204.6% of change)\n\n- **Ship Mode**: Top contributor was **Delivery Truck** (110.1% of change)\n\n- **Customer Name**: Top contributor was **Jennifer Jackson** (204.6% of change)\n\n- **Province**: Top contributor was **Saskachewan** (125.5% of change)\n\n- **Region**: Top contributor was **Prarie** (123.5% of change)\n\n- **Customer Segment**: Top contributor was **Home Office** (113.7% of change)\n\n- **Product Category**: Top contributor was **Furniture** (91.1% of change)\n\n- **Product Sub-Category**: Top contributor was **Tables** (193.5% of change)\n\n- **Product Container**: Top contributor was **Jumbo Box** (193.5% of change)\n\n\n---\n*Generated by MetricPulse at 2026-11-12 17:51:53*",
+    "slack": ":chart_with_downwards_trend: *MetricPulse Alert*\n\n*Shipping Cost* decreased *32.5%* on 2012-12-30\n\n:mag: *Root Cause:* Critical (Order Priority) drove 204.61% of the change\n\n:bar_chart: Breakdown:\n• Order Priority: Critical (204.6%)\n• Ship Mode: Delivery Truck (110.1%)\n• Customer Name: Jennifer Jackson (204.6%)\n• Province: Saskachewan (125.5%)\n• Region: Prarie (123.5%)\n• Customer Segment: Home Office (113.7%)\n• Product Category: Furniture (91.1%)\n• Product Sub-Category: Tables (193.5%)\n• Product Container: Jumbo Box (193.5%)",
+    "summary": "Shipping Cost decreased 32.5% on 2012-12-30. Primary driver: Critical (Order Priority) contributed 204.6% of the change."
+   },
+   "previous_date": "2012-12-29"
+  }
+ }
+}

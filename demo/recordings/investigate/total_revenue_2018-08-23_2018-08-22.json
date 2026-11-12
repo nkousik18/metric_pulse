@@ -1,0 +1,222 @@
+{
+ "data": {
+  "ambiguous_dimensions": [],
+  "current_date": "2018-08-23",
+  "dataset_config": null,
+  "decomposition_results": {
+   "current_date": "2018-08-23",
+   "dimensions": {
+    "geography": {
+     "segment_count": 4,
+     "top_contributors": [
+      {
+       "abs_contribution": 64.88,
+       "change": -3063.7800000000025,
+       "change_pct": -15.39,
+       "contribution_pct": 64.88,
+       "current_value": 16847.19,
+       "previous_value": 19910.97,
+       "segment": "Southeast"
+      },
+      {
+       "abs_contribution": 24.51,
+       "change": -1157.31,
+       "change_pct": -42.84,
+       "contribution_pct": 24.51,
+       "current_value": 1543.85,
+       "previous_value": 2701.16,
+       "segment": "South"
+      },
+      {
+       "abs_contribution": 16.99,
+       "change": -802.46,
+       "change_pct": -73.8,
+       "contribution_pct": 16.99,
+       "current_value": 284.84,
+       "previous_value": 1087.3,
+       "segment": "Central-West"
+      },
+      {
+       "abs_contribution": 6.38,
+       "change": 301.5,
+       "change_pct": 53.54,
+       "contribution_pct": -6.38,
+       "current_value": 864.68,
+       "previous_value": 563.18,
+       "segment": "Northeast"
+      }
+     ],
+     "total_change": -4722.05,
+     "total_change_pct": -19.46,
+     "total_current": 19540.56,
+     "total_previous": 24262.61
+    },
+    "payment": {
+     "segment_count": 4,
+     "top_contributors": [
+      {
+       "abs_contribution": 71.86,
+       "change": -3393.350000000002,
+       "change_pct": -18.03,
+       "contribution_pct": 71.86,
+       "current_value": 15423.05,
+       "previous_value": 18816.4,
+       "segment": "Credit Card"
+      },
+      {
+       "abs_contribution": 30.14,
+       "change": -1423.21,
+       "change_pct": -29.69,
+       "contribution_pct": 30.14,
+       "current_value": 3369.7,
+       "previous_value": 4792.91,
+       "segment": "Boleto"
+      },
+      {
+       "abs_contribution": 2.71,
+       "change": 127.7399999999999,
+       "change_pct": 20.6,
+       "contribution_pct": -2.71,
+       "current_value": 747.81,
+       "previous_value": 620.07,
+       "segment": "Debit Card"
+      },
+      {
+       "abs_contribution": 0.7,
+       "change": -33.23,
+       "change_pct": -100.0,
+       "contribution_pct": 0.7,
+       "current_value": 0.0,
+       "previous_value": 33.23,
+       "segment": "Voucher"
+      }
+     ],
+     "total_change": -4722.05,
+     "total_change_pct": -19.46,
+     "total_current": 19540.56,
+     "total_previous": 24262.61
+    },
+    "product": {
+     "segment_count": 7,
+     "top_contributors": [
+      {
+       "abs_contribution": 67.06,
+       "change": -3166.6499999999996,
+       "change_pct": -36.18,
+       "contribution_pct": 67.06,
+       "current_value": 5585.4,
+       "previous_value": 8752.05,
+       "segment": "Other"
+      },
+      {
+       "abs_contribution": 34.48,
+       "change": -1628.34,
+       "change_pct": -50.85,
+       "contribution_pct": 34.48,
+       "current_value": 1573.84,
+       "previous_value": 3202.18,
+       "segment": "Home & Furniture"
+      },
+      {
+       "abs_contribution": 33.99,
+       "change": 1605.1800000000003,
+       "change_pct": 65.29,
+       "contribution_pct": -33.99,
+       "current_value": 4063.8,
+       "previous_value": 2458.62,
+       "segment": "Auto & Tools"
+      },
+      {
+       "abs_contribution": 25.26,
+       "change": -1192.61,
+       "change_pct": -46.17,
+       "contribution_pct": 25.26,
+       "current_value": 1390.74,
+       "previous_value": 2583.35,
+       "segment": "Electronics"
+      },
+      {
+       "abs_contribution": 15.46,
+       "change": -729.9199999999996,
+       "change_pct": -15.58,
+       "contribution_pct": 15.46,
+       "current_value": 3953.9,
+       "previous_value": 4683.82,
+       "segment": "Health & Beauty"
+      }
+     ],
+     "total_change": -4722.05,
+     "total_change_pct": -19.46,
+     "total_current": 19540.56,
+     "total_previous": 24262.61
+    }
+   },
+   "metric": "total_revenue",
+   "previous_date": "2018-08-22"
+  },
+  "detection_result": {
+   "all_anomalies": [],
+   "anomaly_count": 0,
+   "freshness": {
+    "date": "2018-09-03",
+    "median": 247.0,
+    "ratio": 0.004,
+    "reason": "1 record vs. a median of 247 over the previous 28 rows (0%, under 25%): the data looks incomplete",
+    "status": "stale",
+    "thresholds": {
+     "min_base_volume": 50.0,
+     "min_volume_ratio": 0.25,
+     "window": 28
+    },
+    "volume": 1.0,
+    "volume_column": "order_count",
+    "window_rows": 28
+   },
+   "latest_anomaly": null,
+   "lookback_days": 30,
+   "metric": "total_revenue",
+   "statistics": {
+    "max": 63129.89,
+    "mean": 33238.0,
+    "min": 166.46,
+    "std": 17870.71
+   },
+   "status": "completed",
+   "total_days_analyzed": 30
+  },
+  "drill_down_results": {},
+  "drilled_dimensions": [],
+  "error": null,
+  "force_investigate": true,
+  "grounding_failed": false,
+  "investigation_log": [
+   "detect: 0 anomalies found for total_revenue",
+   "decompose_all: decomposed all dimensions",
+   "assess_ambiguity: flagged []",
+   "synthesize: grounded on first attempt",
+   "finalize: investigation complete"
+  ],
+  "investigation_summary": "Major contributor to the decline: **Southeast** (Geography) contributed **64.88%** of the change ($19,910.97 -> $16,847.19).\n\nContributing factors:\n- significant negative impact from payment method: Credit Card (71.86%)",
+  "iteration_count": 1,
+  "metric": "total_revenue",
+  "narratives": {
+   "email_subject": "MetricPulse: Total Revenue decrease 19.5% on 2018-08-23",
+   "full": "📊 **MetricPulse Alert: Total Revenue decrease**\n\n**2018-08-23** vs **2018-08-22**\n\nTotal Revenue decreased **19.5%** ($24,262.61 → $19,540.56), a change of **$4,722.05**.\n\n**Primary Driver:**\nThe decrease was primarily driven by **Payment** — specifically **Credit Card**, which accounted for **71.86%** of the total change.\n\n**Breakdown by Dimension:**\n\n- **Geography**: Top contributor was **Southeast** (64.9% of change)\n\n- **Product**: Top contributor was **Other** (67.1% of change)\n\n- **Payment**: Top contributor was **Credit Card** (71.9% of change)\n\n\n---\n*Generated by MetricPulse at 2026-11-12 17:52:08*",
+   "investigation_summary": "Major contributor to the decline: **Southeast** (Geography) contributed **64.88%** of the change ($19,910.97 -> $16,847.19).\n\nContributing factors:\n- significant negative impact from payment method: Credit Card (71.86%)",
+   "slack": ":chart_with_downwards_trend: *MetricPulse Alert*\n\n*Total Revenue* decreased *19.5%* on 2018-08-23\n\n:mag: *Root Cause:* Credit Card (payment) drove 71.86% of the change\n\n:bar_chart: Breakdown:\n• Geography: Southeast (64.9%)\n• Product: Other (67.1%)\n• Payment: Credit Card (71.9%)",
+   "summary": "Total Revenue decreased 19.5% on 2018-08-23. Primary driver: Credit Card (payment) contributed 71.9% of the change."
+  },
+  "previous_date": "2018-08-22",
+  "should_continue": false,
+  "status": "completed",
+  "threshold": null,
+  "top_driver": {
+   "change": -3393.350000000002,
+   "change_pct": -18.03,
+   "contribution_pct": 71.86,
+   "dimension": "payment",
+   "segment": "Credit Card"
+  }
+ },
+ "status": "success"
+}
