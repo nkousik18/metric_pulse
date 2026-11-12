@@ -5,6 +5,40 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-12 (later) — Credentials and repo cleanup after A7
+
+**What happened:** Merged #46 (A7). Kousik approved and I ran: deleted the `metric-pulse-alerts` SNS
+topic (irreversible), set the AWS access key `…4MWT` (IAM user `metric-pulse-dev`) to Inactive, and
+changed `main`'s required checks from `lint-and-test` + `dbt-check` to `lint-and-test` +
+`dbt-build-local` (strict kept). Audited `.env` by variable name only: never committed (gitignored);
+`REDSHIFT_*`, `S3_BUCKET_NAME`, `SNS_TOPIC_ARN` (listed twice) point at deleted resources;
+`EMAIL_HOST_PASSWORD` is a Gmail app password nothing uses (contact form's `send_mail` is commented
+out); `GROQ_API_KEY` in use. **`LANGSMITH_API_KEY` works now** (200 on `/api/v1/sessions`; it was
+403 during A2). Opened #47 with the four demo screenshots. Updated `CLAUDE.md` (SNS/AWS no longer
+work, Render gone, required checks) and `CHANGELOG.md`.
+
+**Decisions:** Kousik plans to re-host the app (Render, GitHub, or elsewhere), so the "live on
+Render" claims in the other docs wait until the new URL exists. Hosting is new work and needs a
+`docs/scoping.md` section first.
+
+**State:** A1–A7 and L1–L3 done. #47 open, CI green.
+
+**LangSmith test projects (loose end closed):** listed the account: `metricpulse-a2-verify`,
+`metricpulse-a3-verify`, 7 `action-*` experiments (5 referenced from `evals/ledger.jsonl`, the two
+`b83a11e` ones not), `metricpulse-evals`, `evaluators`, and the golden (15) and adversarial (10)
+datasets. Kousik chose to keep everything; nothing deleted. Note: `LANGSMITH_TRACING` defaults to
+off and `.env` doesn't set it, so evals since 11-04 recorded no LangSmith experiments; set
+`LANGSMITH_TRACING=true` for a run that should.
+
+**Next / loose ends:** merge #47; Kousik: delete the inactive key and `metric-pulse-dev` user in
+the IAM console, remove the dead vars from `.env` and `~/.aws/credentials`, revoke the Gmail app
+password unless the contact form is coming back; decide on `docs/project/demos/m6_onboarding_demo.cast`
+(still untracked) and `brag-output*/`; scope hosting, then fix the 8 remaining "live on Render" lines
+in `docs/`; Golden Case #1 / d04 labels; optional weekly drift job;
+onboarding column-classification quality.
+
+---
+
 ## 2026-11-12 — A7 gate passed: clean drift run, 0 regressions
 
 **What happened:** Merged PR #45 (A5 gate + action baseline) as `06a58bf`. Ran a full
