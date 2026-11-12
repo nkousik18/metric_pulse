@@ -5,6 +5,51 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-12 (redesign, cont.) — Kousik's U1 feedback applied
+
+**What happened:** Kousik asked for no purple shades, no emoji, more spacing between tiles, a
+shadow so tiles look raised, and a small intro so visitors know what they're looking at. Rebuilt
+`partials/dashboard.html` now rather than in U2: an intro (heading, two sentences, the four stages
+detect → decompose → explain → act, data source and author), raised tiles (`--shadow-tile`, 28 px
+gaps), KPI deltas as +/− (no arrow glyphs), breakdown bars on one scale (the largest share shown,
+not capped at 100%) and coloured by whether each segment rose or fell. First version coloured by
+the share's sign and showed a falling Southeast in green: caught in the screenshot, fixed. Chart
+colours read from the tokens; narratives render bold and drop emoji on display only; the copy
+button no longer uses `alert()`. Approvals, architecture and the replay's Recorded runs tab
+swapped indigo→blue and purple→slate and share the tile shadow until U3. Checked in Chrome at
+1440 px and 375 px: tiles aligned, every tab within 375 px (the onboarding table needed
+containing), 0 purple elements by computed colour, no emoji; 393 tests pass.
+
+**Next:** Kousik reviews; merge #52 then #53 with his OK; U2 now covers the flagged-days list,
+the eval scorecard beside the anomaly, and folding Recorded runs into Investigate.
+
+---
+
+## 2026-11-12 (redesign) — Product brief, direction chosen, U1 built
+
+**What happened:** Ran the Impeccable skill's flow. Phase 1: three-question interview →
+`PRODUCT.md` (hiring managers, 30 seconds; the AI and the evals should shine, plus end-to-end
+ownership; LinkedIn is the main action; keep the name, contact links, architecture content).
+Kousik confirmed the MS finished May 2026. Phase 2: a surface round (structure: short intro, then
+the explained anomaly with the eval scorecard beside it), then the direction decision page. The
+roll assigned "The Incident Record"; Kousik chose **the category standard** instead, benchmarks
+Linear and Stripe Dashboard + docs. Wrote the direction contract
+(`.impeccable/surfaces/templates-base-html.md`) and `docs/ui-redesign-scope.md` (approved); PR #52
+is green but **not merged**: the merge was blocked pending Kousik's explicit OK.
+
+U1 on `feat/ui-foundation` (branched from #52's branch): `partials/styles.html` (tokens, base,
+header, buttons, About, footer, replay banner), new `base.html` shell (four tabs, LinkedIn button,
+system fonts, Chart.js pinned to 4.4.1, Inter removed), About rebuilt (facts unchanged except the
+confirmed May 2026 date; one new line restating the end-to-end claim from PRODUCT.md, flagged for
+Kousik), Home tab and contact form removed, Investigate opens first. Checked in Chrome at 500 px,
+375 px (no overflow on any tab) and 1440 px; detector: 0 findings in U1's files; 393 tests pass.
+
+**Decision:** Tailwind and Font Awesome stay until U3 (the old partials need them); dark mode too.
+
+**Next:** Kousik's OK to merge #52 and U1's PR; then U2 (Investigate), with the dataviz skill.
+
+---
+
 ## 2026-11-12 (later still) — H1 merged, Pages held for a UI redesign
 
 **What happened:** Kousik saw the site locally and rejected the UI ("screams AI generated": Inter,

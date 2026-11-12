@@ -35,10 +35,11 @@ REPO_URL = 'https://github.com/nkousik18/metric_pulse'
 LIVE_URL = None
 
 NAV_ANCHOR = '<button onclick="showTab(\'architecture\')" id="tab-architecture"'
-NAV_BUTTON = ('<button onclick="showTab(\'recorded\')" id="tab-recorded" class="tab-btn py-2 px-1 font-medium '
-              'opacity-80 hover:opacity-100 transition">Recorded runs</button>\n                    ')
+NAV_BUTTON = ('<button onclick="showTab(\'recorded\')" id="tab-recorded" class="nav-tab tab-btn">'
+              'Recorded runs</button>\n                ')
 FOOTER_ANCHOR = '    <!-- Footer -->'
 SCRIPTS_ANCHOR = '<script>\n    // Tab switching'
+BODY_ANCHOR = '<body class="site">'
 
 
 class BuildError(RuntimeError):
@@ -64,15 +65,15 @@ def insert_once(page: str, anchor: str, text: str, *, before: bool = True) -> st
 def banner(manifest: dict) -> str:
     date = manifest['recorded_at'][:10]
     sha = manifest['git_sha']
-    live = (f' <a href="{html.escape(LIVE_URL)}" class="underline font-semibold">Try it live →</a>'
+    live = (f' <a href="{html.escape(LIVE_URL)}">Try it live</a>'
             if LIVE_URL else
-            f' To run it yourself, see the <a href="{REPO_URL}#readme" class="underline font-semibold">README</a>.')
+            f' To run it yourself, see the <a href="{REPO_URL}#readme">README</a>.')
     return f'''
-    <div id="replay-banner" class="bg-amber-50 border-b border-amber-200 text-amber-900 text-sm">
-        <div class="container mx-auto px-6 py-2">
-            <i class="fas fa-circle-play mr-1"></i> Replaying real outputs recorded on <strong>{html.escape(date)}</strong>
-            at commit <a href="{REPO_URL}/commit/{html.escape(sha.replace('-dirty', ''))}" class="font-mono underline">{html.escape(sha)}</a>
-            with <code>{html.escape(manifest['command'])}</code>. Nothing on this page calls a server or an LLM.{live}
+    <div id="replay-banner" class="replay-banner">
+        <div class="replay-banner-inner">
+            Replaying real outputs recorded on <strong>{html.escape(date)}</strong>
+            at commit <a href="{REPO_URL}/commit/{html.escape(sha.replace('-dirty', ''))}" class="mono">{html.escape(sha)}</a>.
+            Nothing on this page calls a server or an LLM.{live}
         </div>
     </div>
 '''
@@ -99,7 +100,7 @@ def build(recordings: Path = RECORDINGS_DIR, out: Path = SITE_DIR) -> Path:
     manifest = json.loads(manifest_path.read_text())
 
     page = render_spa()
-    page = insert_once(page, '<body class="bg-gray-50 min-h-screen">', banner(manifest), before=False)
+    page = insert_once(page, BODY_ANCHOR, banner(manifest), before=False)
     page = insert_once(page, NAV_ANCHOR, NAV_BUTTON)
     page = insert_once(page, FOOTER_ANCHOR, RECORDED_TAB)
     page = insert_once(page, SCRIPTS_ANCHOR, '<script src="replay.js"></script>\n')

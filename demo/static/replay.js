@@ -251,7 +251,7 @@
             return (manifest.investigations || []).map((c, i) => `
                 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
                     <div class="flex flex-wrap items-center gap-2 mb-2">
-                        <span class="text-xs font-semibold bg-indigo-50 text-indigo-700 px-2 py-1 rounded">${esc(c.metric)}</span>
+                        <span class="text-xs font-semibold bg-blue-50 text-blue-700 px-2 py-1 rounded">${esc(c.metric)}</span>
                         <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">${esc(c.current_date)} vs ${esc(c.previous_date)}</span>
                         <span class="text-xs ${c.labelled_event ? 'bg-amber-50 text-amber-700' : 'bg-gray-100 text-gray-600'} px-2 py-1 rounded">labelled ${c.labelled_event ? 'an event' : 'not an event'}</span>
                     </div>

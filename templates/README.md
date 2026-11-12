@@ -6,20 +6,20 @@ The Django templates powering the single-page app served at `/`. This is a **sta
 
 | File | Purpose |
 |------|---------|
-| `base.html` | The actual page shell — `<head>` with CDN imports, nav bar, includes all 5 partials + footer + `scripts.html`. **This file contains the real page content**, not `index.html`. |
+| `base.html` | The page shell: `<head>` (Chart.js pinned, plus Tailwind and Font Awesome until U3 of `docs/ui-redesign-scope.md`), `partials/styles.html`, the top bar (wordmark, four tabs, LinkedIn), the four content partials, footer, `scripts.html`. **This file holds the page**, not `index.html`. |
+| `partials/styles.html` | The design tokens (light, plus dark behind `html.dark-ready`) and base CSS, as one inline `<style>` so the Django app and the static replay get it with no build step. New markup uses these classes, not Tailwind. |
 | `index.html` | `{% extends 'base.html' %}` and nothing else — no blocks defined in either file, so this just renders `base.html` verbatim. This is what `metric_pulse_web/urls.py`'s `TemplateView` actually points at. |
-| `partials/hero.html` | Tab 1 (`#content-hero`, visible by default) — marketing/portfolio landing content: headline, 4 hardcoded stat tiles (451K rows / 37 tests / <5s / 99.6%), before/after comparison, 4-step "How It Works", tech pill badges, CTA buttons. Static — no `id`s that JS touches, no API calls. |
 | `partials/dashboard.html` | Tab 2 (`#content-dashboard`, hidden by default) — the real interactive UI: date/metric/threshold controls, 4 KPI cards, Chart.js canvas (`#revenueChart`), 3 decomposition panels (geography/product/payment) with drill-down toggles, narrative panel (with an "Investigate with AI Agent" button and a distinct `#investigation-result` block, Phase 1), pipeline control buttons. Every dynamic element has an `id` that `scripts.html` looks up. |
 | `partials/actions.html` | Tab "Pending actions" (`#content-actions`, hidden; A6). The approver-token field, the pending proposals (`#pending-actions`, one card each with the dry run, editable params, reason, `live` checkbox and approve / edit / reject), executed reversible actions with undo (`#undoable-actions`), and the action log table (`#action-log-rows`). Rendered by `scripts.html`. |
 | `partials/architecture.html` | Tab 3 (`#content-architecture`, hidden) — static visual architecture diagram (icon flow: Source → S3 → Redshift → dbt → Python → Dashboard) and hardcoded dbt model/tech-stack lists. No API calls; content can drift from actual pipeline (e.g. lists 4 marts / 3 metrics tables here — cross-check against `dbt_project/README.md` for the live count). |
-| `partials/about.html` | Tab 4 (`#content-about`, hidden) — author bio, education/experience, skills, and the contact form (`#contact-name`, `#contact-email`, `#contact-message`, `#contact-status`) that posts to `/api/contact/`. |
+| `partials/about.html` | About (`#content-about`): bio, experience, education, skills, contact links. No contact form since the UI redesign (`/api/contact/` still exists, unused by the page). |
 | `partials/scripts.html` | All JavaScript for the SPA (~460 lines), one `<script>` block, no separate `.js` files, no build step. |
 
 ## `partials/scripts.html` — function inventory
 
 | Function | Triggers on | Does |
 |----------|------------|------|
-| `showTab(tabName)` | nav clicks, in-page CTA buttons | Toggles `.hidden` on `.tab-content` divs; on first switch to `dashboard`, fires all 4 loaders below |
+| `showTab(tabName)` | nav clicks; once on `DOMContentLoaded` with `dashboard` (Investigate is the first screen) | Toggles `.hidden` on `.tab-content` divs and `.tab-active` / `aria-current` on the tab; on first switch to `dashboard`, fires all 4 loaders below |
 | `loadMetrics()` | dashboard tab open, `refreshData()` | `GET /api/metrics/?days=60` → populates date `<select>`s, KPI cards, and the trend chart |
 | `populateDateDropdowns(data)` | called by `loadMetrics()` | Fills `#current-date`/`#previous-date` selects |
 | `updateKPIs(latest, previous)` | `loadMetrics()`, `applyFilters()` | Computes % change client-side from two rows already in `metricsData` — does **not** call `/api/decomposition/` or any diff endpoint for this |
@@ -33,7 +33,6 @@ The Django templates powering the single-page app served at `/`. This is a **sta
 | `copyNarrative()` / `downloadNarrative()` | Copy/Download buttons | Clipboard API / Blob download of the narrative's `innerText` |
 | `runPipeline(forceAlert)` | "Run Analysis" / "Run & Send Alert" buttons | `POST /api/pipeline/` with `{metric, force_alert, dry_run: !forceAlert}`, then calls `refreshData()` |
 | `investigateWithAgent()` | "Investigate with AI Agent" button | `POST /api/investigate/` with `{metric, current_date, previous_date}`. **Manual trigger only** — not part of `applyFilters()`'s auto-refresh (this one costs a real LLM call). Disables the button and shows a spinner while in flight; renders `investigation_summary` into `#investigation-content` (a distinct block beneath, not replacing, the Tier-1 `#narrative` div), or a status-specific message for `skipped_no_anomaly`/`failed`/`grounding_failed`. |
-| `sendContactForm()` | Contact form submit | `POST /api/contact/` with `{name, email, message}` |
 | `loadActions()` | opening the Pending actions tab, Refresh, after a decision | `GET /api/actions/pending/` and `/api/actions/log/` with the approver token, then `renderPendingActions` / `renderUndoable` / `renderActionLog` |
 | `decideAction(id, decision)` / `undoAction(id)` | the card buttons | `POST /api/actions/<id>/approve\|edit\|reject\|undo/`. Results and errors show inline; an edit that fails policy re-renders the card with the policy errors |
 | `escapeHtml()` | every server value rendered by the actions tab | Segment names and narratives are untrusted data (N3); nothing from the API is inserted unescaped |
@@ -58,4 +57,3 @@ Tailwind CSS (latest), Chart.js (latest), Font Awesome 6.4.0, Google Fonts (Inte
 - **`index.html` is a decoy** — if you're looking for the SPA markup, it's in `base.html`, not `index.html`. This is backwards from the usual Django convention (base defines blocks, children fill them in) — here `base.html` holds 100% of the content and `index.html` exists only because `TemplateView` needs a template name to point at.
 - **Drill-down toggles don't populate data** — `toggleDrilldown()` reveals an empty div; the state → detail expansion (region → state, category-group → category) described in `docs/dashboard_layer.md` is not implemented in the current JS.
 - `architecture.html`'s dbt model/table counts are hand-written HTML, not generated from `dbt_project/` — verify against `dbt_project/README.md` before trusting the numbers shown in that tab.
-- The contact form's "Your Email" field is never validated as an email format client-side; the API (`ContactView`) doesn't validate it either.

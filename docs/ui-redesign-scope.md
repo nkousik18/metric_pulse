@@ -74,15 +74,19 @@ a scrollable segmented control; nothing overflows at 375 px.
 
 ## 7. Milestones
 
-- **U1 — Foundation.** Tokens (light and dark), base CSS, the top bar, tab shell and footer;
-  Tailwind CDN and Font Awesome removed; About and the empty-state/notice components. Gate: the
-  detector reports none of the §1 findings; tabs work at 375 px and 1440 px.
+- **U1 — Foundation.** Tokens (light and dark), base CSS (`partials/styles.html`), the top bar, tab
+  shell and footer; the old Home tab removed; About rebuilt. Gate: the detector reports none of the
+  §1 findings in the files U1 rewrites; no tab overflows at 375 px or 1440 px.
+  *(As built: Tailwind and Font Awesome stay loaded until U3, because the dashboard, actions and
+  architecture partials still use them; dark mode switches on in U3 for the same reason.)*
 - **U2 — Investigate.** Intro, flagged-days list, anomaly panel, diverging contribution chart,
   trend, narrative, investigation, eval scorecard, Run menu; `scripts.html` renderers rebuilt;
   `replay.js` "Recorded runs" folded in. Gate: in the static replay, the three recorded cases and a
   consecutive pair render; every number on the first screen traces to a recording.
 - **U3 — Approvals and How it's built.** The queue, payload, decisions, undo, timeline; the stack
-  diagram; the eval table; onboarding. Gate: the recorded walk-through replays end to end.
+  diagram; the eval table; onboarding; then Tailwind and Font Awesome removed and dark mode on
+  (`.dark-ready`). Gate: the recorded walk-through replays end to end; the detector reports none of
+  the §1 findings anywhere.
 - **U4 — Finish.** One batched desktop and mobile screenshot round, one fix batch; Vercel
   web-interface guidelines review; Impeccable finish review and `DESIGN.md` by its documenter.
   Then re-record on `main`, enable Pages, check the live URL: that also passes H1.
@@ -109,3 +113,5 @@ Each milestone is one PR through the usual branch → PR → CI → squash-merge
 | 2026-11-12 | Visual direction: the category standard (over the Incident Record, Working Papers and Cutting Bench directions); benchmarks Linear and Stripe Dashboard + docs | Kousik (decision page) |
 | 2026-11-12 | Keep: the name, contact links, architecture content (corrected) | Kousik |
 | 2026-11-12 | System fonts, plain CSS, no Tailwind CDN or Font Awesome; light default with OS dark mode | Claude (from R2, R5 and the visitor's scene); open to change on review |
+| 2026-11-12 | Tailwind and Font Awesome come out in U3, not U1: until then the unconverted partials depend on them. Dark mode waits for the same reason | Claude (found building U1) |
+| 2026-11-12 | After seeing U1: no purple anywhere, no emoji, more space between tiles, tiles raised with a soft shadow, and a short project intro at the top. Done in U1: the dashboard partial rebuilt (intro, raised tiles, KPI deltas, breakdown bars on one honest scale coloured by whether each segment rose or fell, emoji dropped from narratives on display); approvals and architecture swapped off purple and given the same tile shadow until U3 | Kousik (feedback); Claude (implementation) |
