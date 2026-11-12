@@ -84,15 +84,16 @@ All real, from `evals/ledger.jsonl` (latest runs, 2026-11-12) and `demo/recordin
   2/6. (Weaker numbers stay visible; they are part of "measured, not asserted".)
 - Recorded runs: three labelled anomalies with real investigations and Action Agent proposals, an
   approve/edit/reject/undo walk-through, Superstore onboarding, 60 days of metrics.
-- Bio facts in `templates/partials/about.html`: Northeastern MS Data Analytics Engineering, prior
-  Capgemini experience, Mahindra University B.Tech.
+- Bio facts in `templates/partials/about.html`: Northeastern MS Data Analytics Engineering
+  (completed May 2026), prior Capgemini experience, Mahindra University B.Tech.
 
 Absent, never to be invented: users, customers, testimonials, company logos, uptime or speed
 claims beyond the measured numbers. The current hero's "99.6%" and "<5s" tiles are hand-written
 and unverified; drop or replace them with recorded numbers.
 
-**Open fact:** the About section says the MS is "Expected: April 2026", now in the past. Kousik to
-confirm the current status before the copy is reused.
+**Degree status (confirmed by Kousik, 2026-11-12):** the Northeastern MS Data Analytics
+Engineering finished in **May 2026**. The About section's "Expected: April 2026" is out of date and
+must not be reused.
 
 ## Product Principles
 
