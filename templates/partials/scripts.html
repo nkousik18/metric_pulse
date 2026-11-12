@@ -35,6 +35,32 @@
     // parsed, so every script below (and the static replay's fetch shim) is ready.
     document.addEventListener('DOMContentLoaded', () => showTab('dashboard'));
 
+    // Shared helpers for the redesigned dashboard (docs/ui-redesign-scope.md §6).
+    function cssVar(name) {
+        return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+
+    function withAlpha(hex, alpha) {
+        const m = /^#?([0-9a-f]{6})$/i.exec(hex);
+        if (!m) return hex;
+        const n = parseInt(m[1], 16);
+        return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
+    }
+
+    // Narratives are generated text (and segment names are untrusted, N3): escape first, then
+    // render **bold**, *italic* and '---' rules. Emoji are dropped on display only; the recorded
+    // output keeps them.
+    function formatNarrative(text) {
+        return escapeHtml(String(text || ''))
+            .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]\uFE0F?\s?/gu, '')
+            .split(/\n{2,}/)
+            .map(block => block.trim() === '---' ? '<hr>' : `<p style="margin: 0 0 10px;">${block
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                .replace(/\n/g, '<br>')}</p>`)
+            .join('');
+    }
+
     // Dashboard functionality
     let metricsData = [];
     let decompositionData = null;
@@ -100,9 +126,10 @@
     function setChangeLabel(elementId, change) {
         const el = document.getElementById(elementId);
         if (!el) return;
-        const arrow = change >= 0 ? '↑' : '↓';
-        const colorClass = change >= 0 ? 'text-green-500 bg-green-50' : 'text-red-500 bg-red-50';
-        el.innerHTML = `<span class="px-2 py-1 rounded-lg ${colorClass}">${arrow} ${Math.abs(change).toFixed(1)}%</span>`;
+        if (!isFinite(change)) { el.textContent = ''; return; }
+        const up = change >= 0;
+        const sign = up ? '+' : '\u2212';
+        el.innerHTML = `<span class="delta ${up ? 'delta-up' : 'delta-down'}">${sign}${Math.abs(change).toFixed(1)}%</span><span class="delta-note">vs compared day</span>`;
     }
 
     function drawChart(data, metric) {
@@ -122,11 +149,12 @@
                 datasets: [{
                     label: labels[metric],
                     data: data.map(d => d[metric]),
-                    borderColor: 'rgb(79, 70, 229)',
-                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                    borderColor: cssVar('--accent'),
+                    backgroundColor: withAlpha(cssVar('--accent'), 0.08),
                     fill: true,
                     tension: 0.4,
-                    pointRadius: 2,
+                    pointRadius: 0,
+                    pointHitRadius: 8,
                     pointHoverRadius: 6,
                     borderWidth: 2
                 }]
@@ -136,10 +164,10 @@
                 plugins: { 
                     legend: { display: false },
                     tooltip: {
-                        backgroundColor: 'white',
-                        titleColor: '#1f2937',
-                        bodyColor: '#4b5563',
-                        borderColor: '#e5e7eb',
+                        backgroundColor: cssVar('--surface'),
+                        titleColor: cssVar('--ink'),
+                        bodyColor: cssVar('--ink-2'),
+                        borderColor: cssVar('--border'),
                         borderWidth: 1,
                         padding: 12,
                         boxPadding: 6
@@ -148,11 +176,14 @@
                 scales: {
                     y: {
                         beginAtZero: false,
-                        ticks: { callback: value => prefix + value.toLocaleString() },
-                        grid: { color: '#f3f4f6' }
+                        ticks: { callback: value => prefix + value.toLocaleString(), color: cssVar('--ink-3'), font: { size: 12 } },
+                        grid: { color: cssVar('--border') },
+                        border: { display: false }
                     },
                     x: {
-                        grid: { display: false }
+                        grid: { display: false },
+                        ticks: { color: cssVar('--ink-3'), font: { size: 12 }, maxRotation: 0, autoSkipPadding: 16 },
+                        border: { color: cssVar('--border') }
                     }
                 }
             }
@@ -165,9 +196,7 @@
     function setChartMetric(metric) {
         selectedMetric = metric;
         document.querySelectorAll('.chart-btn').forEach(btn => {
-            btn.className = btn.dataset.metric === metric 
-                ? 'chart-btn px-4 py-2 text-sm rounded-lg bg-indigo-100 text-indigo-700 font-medium transition'
-                : 'chart-btn px-4 py-2 text-sm rounded-lg bg-gray-100 text-gray-600 font-medium transition';
+            btn.classList.toggle('is-active', btn.dataset.metric === metric);
         });
         drawChart(metricsData.slice().reverse(), metric);
     }
@@ -226,21 +255,23 @@
     function renderBreakdown(elementId, contributors) {
         const container = document.getElementById(elementId);
         if (!container) return;
-        
-        container.innerHTML = contributors.slice(0, 5).map(c => `
-            <div>
-                <div class="flex justify-between items-center mb-1.5">
-                    <span class="text-sm text-gray-700 font-medium">${c.segment}</span>
-                    <span class="text-sm font-bold ${c.contribution_pct >= 0 ? 'text-green-600' : 'text-red-600'}">
-                        ${c.contribution_pct > 0 ? '+' : ''}${c.contribution_pct.toFixed(1)}%
-                    </span>
-                </div>
-                <div class="w-full bg-gray-100 rounded-full h-2">
-                    <div class="h-2 rounded-full transition-all ${c.contribution_pct >= 0 ? 'bg-green-500' : 'bg-red-500'}" 
-                         style="width: ${Math.min(Math.abs(c.contribution_pct), 100)}%"></div>
-                </div>
-            </div>
-        `).join('');
+        const top = (contributors || []).slice(0, 5);
+        if (!top.length) { container.innerHTML = '<p class="muted">No segments for this pair of days.</p>'; return; }
+        // Bars share one scale: the largest share shown. Shares can exceed 100% or offset each
+        // other (a segment can move against the total), so capping at 100% would misdraw them.
+        const scale = Math.max(...top.map(c => Math.abs(c.contribution_pct)), 1);
+        container.innerHTML = top.map(c => {
+            // Colour says what the segment did (rose or fell); the number is its share of the
+            // total change, negative when it moved against the total.
+            const tone = c.change >= 0 ? 'is-up' : 'is-down';
+            const sign = c.contribution_pct < 0 ? '\u2212' : '';
+            return `
+            <div class="bar-row">
+                <span class="bar-name" title="${escapeHtml(c.segment)}">${escapeHtml(c.segment)}</span>
+                <span class="bar-value ${tone}" title="${c.change >= 0 ? 'rose' : 'fell'} ${escapeHtml(c.previous_value)} \u2192 ${escapeHtml(c.current_value)}">${sign}${Math.abs(c.contribution_pct).toFixed(1)}%</span>
+                <div class="bar-track"><div class="bar-fill ${tone}" style="width: ${(Math.abs(c.contribution_pct) / scale * 100).toFixed(1)}%"></div></div>
+            </div>`;
+        }).join('') + (scale > 100 ? '<p class="bars-note">Shares above 100% mean other segments moved the opposite way.</p>' : '');
     }
 
     function toggleDrilldown(dimension) {
@@ -277,7 +308,7 @@
             if (result.status === 'success') {
                 const narrativeEl = document.getElementById('narrative');
                 if (narrativeEl) {
-                    narrativeEl.innerHTML = result.data.full.replace(/\*\*/g, '').replace(/\n/g, '<br>');
+                    narrativeEl.innerHTML = formatNarrative(result.data.full);
                 }
             }
         } catch (error) {
@@ -335,8 +366,12 @@
         const narrativeEl = document.getElementById('narrative');
         if (!narrativeEl) return;
         const narrative = narrativeEl.innerText;
+        const btn = document.activeElement;
         navigator.clipboard.writeText(narrative).then(() => {
-            alert('Copied to clipboard!');
+            if (!btn || btn.tagName !== 'BUTTON') return;
+            const label = btn.textContent;
+            btn.textContent = 'Copied';
+            setTimeout(() => { btn.textContent = label; }, 1500);
         });
     }
 
@@ -355,7 +390,7 @@
         const metric = metricSelect ? metricSelect.value : 'total_revenue';
 
         btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Investigating...';
+        btn.textContent = 'Investigating…';
         resultBlock.classList.remove('hidden');
         contentEl.innerHTML = 'Running agent investigation (this can take several seconds)...';
 
@@ -377,10 +412,9 @@
             } else if (data.status === 'failed') {
                 contentEl.innerHTML = `Investigation failed: ${data.error || 'unknown error'}`;
             } else {
-                let html = (data.investigation_summary || 'No summary available.')
-                    .replace(/\*\*/g, '').replace(/\n/g, '<br>');
+                let html = formatNarrative(data.investigation_summary || 'No summary available.');
                 if (data.grounding_failed) {
-                    html += '<br><br><em class="text-xs text-gray-500">(Fell back to a deterministic summary -- the AI-generated explanation could not be fully verified this run.)</em>';
+                    html += '<p class="muted" style="margin-top: 12px; font-size: 13px;">The AI explanation could not be fully verified this run, so this is the deterministic summary instead.</p>';
                 }
                 contentEl.innerHTML = html;
             }
@@ -388,7 +422,7 @@
             contentEl.innerHTML = `Investigation failed: ${error.message}`;
         } finally {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-robot"></i> Investigate with AI Agent';
+            btn.textContent = 'Investigate with AI agent';
         }
     }
 
@@ -408,7 +442,7 @@
         const statusEl = document.getElementById('pipeline-status');
         if (!statusEl) return;
         
-        statusEl.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Running pipeline...';
+        statusEl.textContent = 'Running the pipeline…';
         
         try {
             const metricSelect = document.getElementById('metric-select');
@@ -423,13 +457,13 @@
             const result = await response.json();
             
             if (result.status === 'success') {
-                statusEl.innerHTML = `<i class="fas fa-check-circle mr-2"></i> Completed in ${result.data.duration_seconds.toFixed(2)}s | Alert: ${result.data.alert_status}`;
+                statusEl.textContent = `Finished in ${result.data.duration_seconds.toFixed(2)} s · pipeline ${result.data.pipeline_status} · alert: ${result.data.alert_status || 'none'}`;
                 refreshData();
             } else {
                 throw new Error(result.message);
             }
         } catch (error) {
-            statusEl.innerHTML = `<i class="fas fa-exclamation-circle mr-2"></i> Failed: ${error.message}`;
+            statusEl.textContent = `Failed: ${error.message}`;
         }
     }
 
@@ -537,7 +571,7 @@
             return `
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5" data-proposal="${id}">
                 <div class="flex flex-wrap items-center gap-2 mb-2">
-                    <span class="text-xs font-semibold bg-indigo-50 text-indigo-700 px-2 py-1 rounded">${escapeHtml(dry.action_type || item.action_type)}</span>
+                    <span class="text-xs font-semibold bg-blue-50 text-blue-700 px-2 py-1 rounded">${escapeHtml(dry.action_type || item.action_type)}</span>
                     <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">${escapeHtml(dry.tier)} · ${dry.reversible ? 'reversible' : 'not reversible'}</span>
                     <span class="text-sm text-gray-700">${escapeHtml(item.dataset_id)} / ${escapeHtml(item.metric)} / ${escapeHtml(item.anomaly_date)}</span>
                 </div>
@@ -546,7 +580,7 @@
                 <p class="text-sm text-gray-700 mb-3">${escapeHtml(item.narrative)}</p>
                 ${citations ? `<div class="text-sm text-gray-600 mb-3"><strong>Cited evidence</strong><ul class="list-disc ml-5">${citations}</ul></div>` : ''}
                 <div class="text-sm mb-1"><strong>Target:</strong> ${escapeHtml(describeTarget(dry.target))}</div>
-                <details class="mb-3"><summary class="cursor-pointer text-sm text-indigo-600">Exact payload (what will run)</summary><div class="mt-2">${renderPayload(dry.payload)}</div></details>
+                <details class="mb-3"><summary class="cursor-pointer text-sm text-blue-600">Exact payload (what will run)</summary><div class="mt-2">${renderPayload(dry.payload)}</div></details>
                 <label class="block text-sm font-medium text-gray-700 mb-1" for="params-${id}">Params (edit to change what runs)</label>
                 <textarea id="params-${id}" rows="3" class="w-full font-mono text-xs border border-gray-200 rounded-lg p-2 bg-gray-50 mb-2">${escapeHtml(JSON.stringify(dry.params || {}, null, 2))}</textarea>
                 <label class="block text-sm font-medium text-gray-700 mb-1" for="reason-${id}">Reason (required to reject)</label>
@@ -554,7 +588,7 @@
                 <label class="flex items-center gap-2 text-sm text-gray-700 mb-3"><input id="live-${id}" type="checkbox"> Allow effects outside this machine (a real GitHub issue)</label>
                 <div class="flex flex-wrap gap-2">
                     <button onclick="decideAction('${id}', 'approve')" class="gradient-bg text-white px-4 py-2 rounded-lg hover:opacity-90 text-sm font-medium">Approve</button>
-                    <button onclick="decideAction('${id}', 'edit')" class="bg-white border border-indigo-300 text-indigo-700 px-4 py-2 rounded-lg hover:bg-indigo-50 text-sm font-medium">Approve edited params</button>
+                    <button onclick="decideAction('${id}', 'edit')" class="bg-white border border-blue-300 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-50 text-sm font-medium">Approve edited params</button>
                     <button onclick="decideAction('${id}', 'reject')" class="bg-white border border-red-300 text-red-700 px-4 py-2 rounded-lg hover:bg-red-50 text-sm font-medium">Reject</button>
                 </div>
                 <p id="result-${id}" class="text-sm mt-2"></p>

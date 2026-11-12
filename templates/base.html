@@ -16,6 +16,10 @@
         .gradient-bg { background: var(--ink); }
         .card-hover { transition: none; }
         .stat-card { background: var(--surface-2); }
+        /* Panels in the actions and architecture partials share the tile elevation until U3. */
+        .tab-content .bg-white.rounded-2xl, .tab-content .bg-white.rounded-xl { box-shadow: var(--shadow-tile) !important; border-color: var(--border) !important; }
+        .tab-content .space-y-4 > * + * { margin-top: var(--gap-tiles) !important; }
+        .tab-content .gap-6 { gap: var(--gap-tiles) !important; }
     </style>
 </head>
 <body class="site">
