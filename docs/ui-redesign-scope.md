@@ -1,6 +1,6 @@
 # MetricPulse UI Redesign — Scope
 
-**Status:** Draft 2026-11-12, awaiting Kousik's approval · **Owner:** Kousik Nandury
+**Status:** Approved 2026-11-12 · **Owner:** Kousik Nandury
 **Tracked in:** `docs/ROADMAP.md` → "UI redesign" (milestones U1–U4)
 **Inputs:** `PRODUCT.md` (product brief, approved), `.impeccable/surfaces/templates-base-html.md`
 (direction contract), `docs/hosting-scope.md` (H1's static replay, which renders these templates)
