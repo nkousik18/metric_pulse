@@ -1,6 +1,6 @@
 # MetricPulse Hosting — Scope
 
-**Status:** Draft 2026-11-12, awaiting Kousik's approval · **Owner:** Kousik Nandury · **Date:** 2026-11-12
+**Status:** Approved 2026-11-12; H1 not started · **Owner:** Kousik Nandury · **Date:** 2026-11-12
 **Tracked in:** `docs/ROADMAP.md` → "Hosting" (milestones H1–H3)
 
 ## 1. Why this exists
@@ -57,7 +57,7 @@ Then **H3**: point every doc at the real URLs.
 | Committed CI sample | Olist orders from 2018-08-01 only | Too thin to be the demo data |
 | App memory | ~185 MB after importing Django + every agent module | Fits Render free (512 MB) with one gunicorn worker |
 | Existing Render config | `render.yaml`, `Procfile`, `settings_prod.py` (whitenoise, `ALLOWED_HOSTS=.onrender.com`) | Reuse; fix rather than rewrite |
-| Public-safety gap | `/api/actions/<id>/approve\|edit\|undo` take `"live": true` with no auth | A visitor could open real GitHub issues; must be closed for H2 |
+| Actions API auth | `/api/actions/*` require `Authorization: Bearer <ACTION_APPROVER_TOKEN>` and fail closed (503) when it's unset (`dashboard_api/action_views.py` `IsApprover`); `approve\|edit\|undo` accept `"live": true` | Safe by default, but a public demo that lets visitors click Approve must share a token, so `live` has to be forced off server-side (§6.5). *(Corrected 2026-11-12: the draft said these endpoints had no auth.)* |
 | LLM cost | `/api/investigate/` and `/api/pipeline/` call Groq; throttled 5/min per client, no daily cap | Needs a global daily cap for H2 |
 
 ## 6. Design
@@ -113,6 +113,9 @@ at it; the app opens it read-only.
 One switch, on in `render.yaml`, off everywhere else:
 - **Live effects off, server-side:** the action views ignore `"live"` and always build the agent with
   `live=False`; the notifier is forced to the outbox. (R3)
+- **Approver token:** the token check stays. In demo mode the SPA sends a public demo token (set in
+  `render.yaml`, not secret), which is only safe because live effects are off; outside demo mode
+  nothing changes.
 - **Daily LLM cap:** a global counter (SQLite) on `/api/investigate/` and `/api/pipeline/`, e.g.
   50 calls/day; past it, the endpoint returns the recorded H1 answer for that anomaly, labelled as
   recorded. Per-client throttles stay.
@@ -166,5 +169,38 @@ Update `render.yaml`: one gunicorn worker (memory), `DEMO_MODE=true`, `WAREHOUSE
 | 2026-11-12 | Static GitHub Pages site first, Render live app second | Kousik |
 | 2026-11-12 | Static site replays real recorded outputs, not mock data or dummy functions | Kousik (on Claude's recommendation) |
 | 2026-11-12 | New Render account, since the old one doesn't work | Kousik |
-| 2026-11-12 | Demo data: a committed staging-only snapshot of full Olist (2.1 MB), not the CI sample | Proposed — confirm on approval |
-| 2026-11-12 | Public H2 runs in demo mode: live effects off server-side, daily LLM cap | Proposed — confirm on approval |
+| 2026-11-12 | Demo data: a committed staging-only snapshot of full Olist (2.1 MB), not the CI sample | Kousik |
+| 2026-11-12 | Public H2 runs in demo mode: live effects off server-side, daily LLM cap | Kousik |
+| 2026-11-12 | §5 corrected: the actions API already requires an approver token; demo mode shares a public demo token with `live` forced off | Claude (found while preparing H1) |
+
+## 11. H1 build guide — read this before starting
+
+For the agent that builds H1. Read in this order:
+
+1. **This doc**, §3 (rules, especially R1: real recordings only), §6.1–6.3 (design), §7 Q1–Q2 (gate).
+2. **`templates/README.md`**, then `templates/base.html`, `templates/index.html` and the six
+   `templates/partials/*.html`. The SPA is one page; Tailwind, Chart.js and Font Awesome come from
+   CDNs (`base.html` lines 8–10), so the static build doesn't need to bundle them.
+3. **`templates/partials/scripts.html`** — every data call the static site must answer. The fetches
+   are at lines 49 (`/api/contact/`, hide it), 82 (`/api/metrics/?days=60`), 217
+   (`/api/anomalies/?threshold=…`), 242 and 306 (decomposition / narrative, URLs built just above
+   each), 395 (`POST /api/investigate/`), 449 (`POST /api/pipeline/`), and 501 (`actionsApi()`, all
+   `/api/actions/…` calls, with the bearer token from `getApproverToken()`). `replay.js` wraps
+   `window.fetch` and must match these URL and body shapes exactly.
+4. **`dashboard_api/README.md`**, then `dashboard_api/views.py` (the 8 public views, their query
+   params and response shapes) and `dashboard_api/action_views.py` (envelope
+   `{"status","data"}`, full-UUID proposal ids, `IsApprover`, `live`). The recorder must call these
+   through `django.test.Client` with `ACTION_APPROVER_TOKEN` set (≥ the module's `MIN_TOKEN_LENGTH`),
+   `ALERT_CHANNEL=outbox`, and scratch `ACTIONS_DB_PATH` / `CHECKPOINTS_DB_PATH` (`config/settings.py`
+   lines 58–59) so recording never touches the real `actions.db`.
+5. **`tests/test_action_api.py`** — working examples of driving the action views with the test client
+   and a scratch database; copy its setup for the recorder.
+6. **`config/README.md`** and `config/settings.py` (env vars as constants; don't `os.getenv` ad hoc),
+   and **`orchestration/README.md`** (the try/except-never-raise convention for new code).
+7. **`evals/README.md`** and `observability/drift.py --report` for the eval numbers the site shows.
+8. **`CONTRIBUTING.md`** (branch → PR → CI green → squash-merge) and `docs/WORKING_CONVENTIONS.md`.
+
+Before writing code, confirm the open details and note the answers in §10: which anomaly dates get
+recorded investigations (§6.1 lists four), and the Pages URL (`https://nkousik18.github.io/metric_pulse/`
+by default). Recording makes real Groq calls; run it on a day with quota, like the drift run.
+
