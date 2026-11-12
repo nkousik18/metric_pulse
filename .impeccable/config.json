@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "gray-on-color",
+        "value": "*",
+        "files": [
+          "demo/static/replay.js"
+        ],
+        "createdAt": "2026-11-12T17:44:06.514Z",
+        "reason": "Claude: L257 is a ternary pairing text-gray-600 with bg-gray-100 and text-amber-700 with bg-amber-50; no gray text sits on a colored background"
+      }
+    ]
+  }
+}

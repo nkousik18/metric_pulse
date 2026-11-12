@@ -63,3 +63,5 @@ outbox/
 
 # Static replay site build output (demo/build.py); built in CI by pages.yml
 demo/_site/
+.impeccable/hook.cache.json
+.impeccable/questions/
