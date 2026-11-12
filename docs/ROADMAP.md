@@ -303,6 +303,22 @@ checked in a browser locally); its box waits for the live Pages URL.
 
 ---
 
+## UI redesign (`docs/ui-redesign-scope.md`)
+
+The site looked AI-generated (Inter, indigo→violet, template landing page) and its breakdown bars
+misdrew values over 100%. Rebuilt as the category standard at Linear / Stripe craft, for a
+hiring manager's 30-second visit. Brief in `PRODUCT.md`. The Pages deploy waits for U4.
+
+- [ ] **U1** — Foundation: tokens (light + dark), base CSS, top bar and tabs, About; Tailwind CDN
+      and Font Awesome removed. Gate: no detector findings from scope §1; works at 375 and 1440 px.
+- [ ] **U2** — Investigate: intro, flagged days, anomaly panel, diverging contribution chart,
+      cited investigation, eval scorecard. Gate: first-screen numbers all trace to recordings.
+- [ ] **U3** — Approvals and How it's built. Gate: the recorded walk-through replays end to end.
+- [ ] **U4** — Finish review, `DESIGN.md`, re-record on `main`, enable Pages. Gate: verdict,
+      `DESIGN.md`, live URL checked in a browser (also H1's gate).
+
+---
+
 ## Retrospectives
 
 `docs/project/retrospectives/` is a named convention (end-of-phase reflection, heavier than a

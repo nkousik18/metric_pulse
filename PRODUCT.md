@@ -70,6 +70,9 @@ denominators, adversarial and safety results, and replayed real runs instead of 
 - **Architecture content stays,** corrected to the real local stack.
 - Everything else (tabs, layout, copy structure, the current look) is open. The current indigo/
   violet, Inter, gradient-text look is explicitly rejected ("screams AI generated").
+- **Standing visual preference (Kousik, 2026-11-12):** the category standard played straight, a
+  clean conventional product UI, not a themed or metaphorical world. The craft bar is **Linear**
+  and **Stripe Dashboard + docs**.
 
 ## Evidence on Hand
 
