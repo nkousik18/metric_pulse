@@ -4,6 +4,21 @@ What's shipped, in user-facing terms — built from actual commit history, not a
 version tags exist for this project yet, so entries are dated. See `docs/ROADMAP.md` for what's
 planned but not yet shipped, and `docs/project/SESSION_LOG.md` for session-by-session detail.
 
+## 2026-11-12
+
+### Changed
+- Every eval (detection, onboarding, investigation, Action Agent) now has an accepted baseline, and
+  the first clean full drift run against them found no regressions. Investigation answers improved
+  since their baseline (matching the expected root cause 73% of the time, up from 57%, with no
+  fallbacks); the Action Agent picked the right action on all 15 golden cases.
+- Changes to `main` now have to pass the real dbt build on DuckDB, not just the lint and tests.
+- Added terminal screenshots of the investigation and onboarding agents to `docs/project/demos/`.
+
+### Removed
+- The SNS email alert channel no longer works: the AWS topic was deleted and the AWS key turned
+  off. Alerts go to the local Markdown outbox, as they have by default since 2026-11-02. The SNS
+  code is kept.
+
 ## 2026-11-06
 
 ### Added
