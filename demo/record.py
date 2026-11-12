@@ -202,14 +202,17 @@ def edited_params(action_type: str, params: Dict) -> Optional[Dict]:
         p['expires_in_days'] = days + 7 if days + 7 <= CONTROL_MAX_EXPIRY_DAYS else max(1, days - 7)
     elif action_type == 'open_incident':
         p['severity'] = {'low': 'medium', 'medium': 'high', 'high': 'medium'}[p['severity']]
+    elif action_type == 'annotate_anomaly':
+        note = ' (confirmed by the approver)'
+        p['cause'] = p['cause'][:200 - len(note)] + note
     else:
         return None
     return p
 
 
 def plan_walkthrough(pending: List[Dict]) -> Dict:
-    """Which proposal is approved (then undone), which edited, which rejected. Approve-then-undo
-    needs a reversible type, edit needs one edited_params() can change."""
+    """Which proposal is approved, which edited, which rejected, and which of the first two is then
+    undone. Undo needs a reversible type, edit needs one edited_params() can change."""
     from action_agent.catalog import CATALOG
 
     def kind(item):
@@ -218,11 +221,18 @@ def plan_walkthrough(pending: List[Dict]) -> Dict:
     def rank(item):
         return REVERSIBLE_PREFERENCE.index(kind(item)) if kind(item) in REVERSIBLE_PREFERENCE else 99
 
-    for approve, edit, reject in sorted(permutations(pending, 3), key=lambda t: rank(t[0])):
-        if CATALOG[kind(approve)].reversible and edited_params(kind(edit), edit['waiting_on']['dry_run']['params']):
-            return {'approve': approve, 'edit': edit, 'reject': reject}
-    raise RuntimeError('the recorded proposals cannot cover approve/undo, edit and reject: '
-                       f'{[kind(p) for p in pending]}. Re-run, or change CASES.')
+    options = []
+    for approve, edit, reject in permutations(pending, 3):
+        if not edited_params(kind(edit), edit['waiting_on']['dry_run']['params']):
+            continue
+        for undo in (approve, edit):
+            if CATALOG[kind(undo)].reversible:
+                options.append((rank(undo), undo is edit,
+                                {'approve': approve, 'edit': edit, 'reject': reject, 'undo': undo}))
+    if not options:
+        raise RuntimeError('the recorded proposals cannot cover approve, edit, reject and undo: '
+                           f'{[kind(p) for p in pending]}. Re-run, or change CASES.')
+    return min(options, key=lambda o: o[:2])[2]   # prefer undoing a plain approval
 
 
 def record_actions(rec: Recorder) -> Dict:
@@ -250,7 +260,7 @@ def record_actions(rec: Recorder) -> Dict:
 
     initial = snapshot()
     plan = plan_walkthrough(initial['pending']['data'])
-    approve, edit, reject = (plan[k]['proposal_id'] for k in ('approve', 'edit', 'reject'))
+    approve, edit, reject, undo = (plan[k]['proposal_id'] for k in ('approve', 'edit', 'reject', 'undo'))
     edit_type = plan['edit']['waiting_on']['dry_run']['action_type']
     new_params = edited_params(edit_type, plan['edit']['waiting_on']['dry_run']['params'])
 
@@ -259,12 +269,12 @@ def record_actions(rec: Recorder) -> Dict:
         (edit, 'edit', {'reason': 'Adjusted the parameters before approving (recorded demo).',
                         'live': False, 'params': new_params}),
         (reject, 'reject', {'reason': 'Not worth acting on (recorded demo).', 'live': False}),
-        (approve, 'undo', {'reason': 'Reversed after review (recorded demo).', 'live': False}),
+        (undo, 'undo', {'reason': 'Reversed after review (recorded demo).', 'live': False}),
     ]
     # Real validation answers, so the replay can show them when a reason is left empty.
     validation = {}
     for verb, message_key in (('reject', 'reject'), ('undo', 'undo')):
-        code, payload = rec.call('POST', f'/api/actions/{reject if verb == "reject" else approve}/{verb}/',
+        code, payload = rec.call('POST', f'/api/actions/{reject if verb == "reject" else undo}/{verb}/',
                                  {'reason': '', 'live': False}, auth=True)
         if code != 400:
             raise RuntimeError(f'expected a 400 for a {verb} without a reason, got {code}')

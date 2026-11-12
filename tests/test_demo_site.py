@@ -116,7 +116,8 @@ def test_the_actions_walkthrough_is_approve_edit_reject_undo_with_live_off():
     assert all(s['response']['status'] == 200 for s in flow['steps'])
     pending = {p['proposal_id'] for p in flow['initial']['pending']['data']}
     assert {s['proposal_id'] for s in flow['steps']} <= pending
-    assert flow['steps'][0]['proposal_id'] == flow['steps'][3]['proposal_id']   # undo reverses the approval
+    # undo reverses one of the two executed decisions (approve or edit)
+    assert flow['steps'][3]['proposal_id'] in {flow['steps'][0]['proposal_id'], flow['steps'][1]['proposal_id']}
     assert flow['steps'][-1]['after']['pending']['data'] == []
     assert {v['status'] for v in flow['validation'].values()} == {400}
 
@@ -188,4 +189,6 @@ def test_edited_params_stay_inside_the_policy_limits():
     assert edited_params('suppress_alerts', {'days': 3, 'reason': 'x'})['days'] == 4
     assert edited_params('create_control', {'expires_in_days': 28})['expires_in_days'] == 21
     assert edited_params('open_incident', {'severity': 'high'})['severity'] == 'medium'
+    assert edited_params('annotate_anomaly', {'category': 'other', 'cause': 'c' * 200})['cause'].endswith('approver)')
+    assert len(edited_params('annotate_anomaly', {'category': 'other', 'cause': 'c' * 200})['cause']) == 200
     assert edited_params('notify_owner', {'dimension': 'd', 'segment': 's'}) is None
