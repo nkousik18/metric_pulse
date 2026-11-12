@@ -5,6 +5,28 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-12 — A7 gate passed: clean drift run, 0 regressions
+
+**What happened:** Merged PR #45 (A5 gate + action baseline) as `06a58bf`. Ran a full
+`python -m observability.drift` on clean main with untouched Groq quota: all four evals ran, 0 API
+errors, 0 regressions. Detection: precision/recall 11/12, F1 0.92 (with freshness 0.96, recall
+12/12). Onboarding: flat vs. baseline (all-fields 0.33, grounded 1.00, human review 0). Investigation
+(10 cases x 3): grounding 0.77->0.83, golden match 0.57->0.73, uncertainty 0.70 flat, fallback
+0.07->0. Action: 15/15, grounding 15/15 and 10/10 adversarial, every safety metric 0, cost and
+latency slightly down. Checked A7.
+
+**Decisions:** Kept the existing baselines (no regressions, and improvements alone don't warrant
+re-baselining mid-gate).
+
+**State:** Action Agent A1-A7 all done. Local stack L1-L3 done.
+
+**Next / loose ends:** Investigation Golden Case #1 (2018-09-03); SNS/AWS keys; `.env` tokens;
+required CI checks; LangSmith test projects; optionally install the weekly drift job
+(`python -m observability.drift --print-launchd`). Onboarding's dimension/rejected-column match
+(0.50 / 0.67) is the weakest eval number if there's a next quality target.
+
+---
+
 ## 2026-11-06 (later) — A5 gate passed: 15/15; action baseline set
 
 **What happened:** Kousik merged PRs #43 (threshold 2.0, §15 scope) and #44 (freshness check). Ran
