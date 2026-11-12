@@ -5,6 +5,31 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-12 (redesign) — Product brief, direction chosen, U1 built
+
+**What happened:** Ran the Impeccable skill's flow. Phase 1: three-question interview →
+`PRODUCT.md` (hiring managers, 30 seconds; the AI and the evals should shine, plus end-to-end
+ownership; LinkedIn is the main action; keep the name, contact links, architecture content).
+Kousik confirmed the MS finished May 2026. Phase 2: a surface round (structure: short intro, then
+the explained anomaly with the eval scorecard beside it), then the direction decision page. The
+roll assigned "The Incident Record"; Kousik chose **the category standard** instead, benchmarks
+Linear and Stripe Dashboard + docs. Wrote the direction contract
+(`.impeccable/surfaces/templates-base-html.md`) and `docs/ui-redesign-scope.md` (approved); PR #52
+is green but **not merged**: the merge was blocked pending Kousik's explicit OK.
+
+U1 on `feat/ui-foundation` (branched from #52's branch): `partials/styles.html` (tokens, base,
+header, buttons, About, footer, replay banner), new `base.html` shell (four tabs, LinkedIn button,
+system fonts, Chart.js pinned to 4.4.1, Inter removed), About rebuilt (facts unchanged except the
+confirmed May 2026 date; one new line restating the end-to-end claim from PRODUCT.md, flagged for
+Kousik), Home tab and contact form removed, Investigate opens first. Checked in Chrome at 500 px,
+375 px (no overflow on any tab) and 1440 px; detector: 0 findings in U1's files; 393 tests pass.
+
+**Decision:** Tailwind and Font Awesome stay until U3 (the old partials need them); dark mode too.
+
+**Next:** Kousik's OK to merge #52 and U1's PR; then U2 (Investigate), with the dataviz skill.
+
+---
+
 ## 2026-11-12 (later still) — H1 merged, Pages held for a UI redesign
 
 **What happened:** Kousik saw the site locally and rejected the UI ("screams AI generated": Inter,

@@ -3,76 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MetricPulse | Automated Root Cause Analysis</title>
-    <meta name="description" content="When metrics move unexpectedly, instantly identify what drove the change. Root cause analysis in 30 seconds, not 2 hours.">
+    <title>MetricPulse · Why did the metric move?</title>
+    <meta name="description" content="MetricPulse explains why a daily business metric moved: anomaly detection, segment decomposition, and AI investigations with every claim cited and every agent measured by evals.">
+    <meta name="color-scheme" content="light dark">
+    {# Tailwind and Font Awesome stay only until U3 has rebuilt every partial (docs/ui-redesign-scope.md §7). #}
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    {% include 'partials/styles.html' %}
     <style>
-        * { font-family: 'Inter', sans-serif; }
-        .tab-active { border-bottom: 3px solid white; opacity: 1 !important; }
-        .gradient-bg { background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); }
-        .gradient-text { background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .card-hover { transition: all 0.3s ease; }
-        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.1); }
-        .fade-in { animation: fadeIn 0.6s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .pulse { animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
-        .stat-card { background: linear-gradient(135deg, rgba(79,70,229,0.1) 0%, rgba(124,58,237,0.1) 100%); }
-        .flow-line { stroke-dasharray: 5; animation: dash 20s linear infinite; }
-        @keyframes dash { to { stroke-dashoffset: -100; } }
+        /* Legacy helpers still used by the dashboard and actions partials until U2/U3. */
+        .gradient-bg { background: var(--ink); }
+        .card-hover { transition: none; }
+        .stat-card { background: var(--surface-2); }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="site">
 
-    <!-- Navigation -->
-    <nav class="gradient-bg text-white shadow-lg sticky top-0 z-50">
-        <div class="container mx-auto px-6 py-4">
-            <div class="flex justify-between items-center">
-                <a href="#" onclick="showTab('hero')" class="text-2xl font-bold tracking-tight">MetricPulse</a>
-                <div class="flex space-x-6">
-                    <button onclick="showTab('hero')" id="tab-hero" class="tab-btn py-2 px-1 font-medium tab-active">Home</button>
-                    <button onclick="showTab('dashboard')" id="tab-dashboard" class="tab-btn py-2 px-1 font-medium opacity-80 hover:opacity-100 transition">Dashboard</button>
-                    <button onclick="showTab('actions')" id="tab-actions" class="tab-btn py-2 px-1 font-medium opacity-80 hover:opacity-100 transition">Pending actions</button>
-                    <button onclick="showTab('architecture')" id="tab-architecture" class="tab-btn py-2 px-1 font-medium opacity-80 hover:opacity-100 transition">Architecture</button>
-                    <button onclick="showTab('about')" id="tab-about" class="tab-btn py-2 px-1 font-medium opacity-80 hover:opacity-100 transition">About</button>
-                </div>
+    <header class="site-header">
+        <div class="site-header-inner">
+            <button type="button" class="wordmark" onclick="showTab('dashboard')" aria-label="MetricPulse, go to Investigate">
+                <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
+                    <rect width="20" height="20" rx="5" fill="currentColor"/>
+                    <path d="M4 11h3l1.6-4.5L11.4 14 13 9h3" fill="none" stroke="var(--surface)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                MetricPulse
+            </button>
+            <nav class="site-nav" aria-label="Sections">
+                <button onclick="showTab('dashboard')" id="tab-dashboard" class="nav-tab tab-btn tab-active">Investigate</button>
+                <button onclick="showTab('actions')" id="tab-actions" class="nav-tab tab-btn">Approvals</button>
+                <button onclick="showTab('architecture')" id="tab-architecture" class="nav-tab tab-btn">How it's built</button>
+                <button onclick="showTab('about')" id="tab-about" class="nav-tab tab-btn">About</button>
+            </nav>
+            <div class="header-actions">
+                <a class="btn btn-quiet" href="https://github.com/nkousik18/metric_pulse" target="_blank" rel="noopener">
+                    <span>Source</span>
+                </a>
+                <a class="btn btn-primary" href="https://www.linkedin.com/in/kousik-nandury" target="_blank" rel="noopener">
+                    <span>Contact<span class="btn-label-long"> on LinkedIn</span></span>
+                    <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M4 2h6v6M10 2 2.5 9.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </a>
             </div>
         </div>
-    </nav>
+    </header>
 
-    {% include 'partials/hero.html' %}
     {% include 'partials/dashboard.html' %}
     {% include 'partials/actions.html' %}
     {% include 'partials/architecture.html' %}
     {% include 'partials/about.html' %}
 
     <!-- Footer -->
-    <footer class="bg-gray-900 text-gray-400 py-8 mt-12">
-        <div class="container mx-auto px-6">
-            <div class="flex flex-col md:flex-row justify-between items-center">
-                <div class="mb-4 md:mb-0">
-                    <span class="text-white font-bold text-xl">MetricPulse</span>
-                    <p class="text-sm mt-1">Automated Root Cause Analysis</p>
-                </div>
-                <div class="flex space-x-6">
-                    <a href="https://github.com/nkousik18/metric_pulse" target="_blank" class="hover:text-white transition">
-                        <i class="fab fa-github text-xl"></i>
-                    </a>
-                    <a href="https://www.linkedin.com/in/kousik-nandury" target="_blank" class="hover:text-white transition">
-                        <i class="fab fa-linkedin text-xl"></i>
-                    </a>
-                    <a href="mailto:nandury.k@northeastern.edu" class="hover:text-white transition">
-                        <i class="fas fa-envelope text-xl"></i>
-                    </a>
-                </div>
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <div>
+                <p><strong style="color: var(--ink); font-weight: 600;">MetricPulse</strong> · built by Kousik Nandury</p>
+                <p style="margin-top: var(--space-1);">Python, dbt, DuckDB, LangGraph, Django. Olist data: CC BY-NC-SA 4.0.</p>
             </div>
-            <div class="border-t border-gray-800 mt-6 pt-6 text-center text-sm">
-                Built with Python, AWS, dbt & Django | © 2026 Kousik Nandury
-            </div>
+            <nav class="footer-links" aria-label="Contact">
+                <a href="https://www.linkedin.com/in/kousik-nandury" target="_blank" rel="noopener">LinkedIn</a>
+                <a href="https://github.com/nkousik18" target="_blank" rel="noopener">GitHub</a>
+                <a href="https://github.com/nkousik18/metric_pulse" target="_blank" rel="noopener">Source</a>
+                <a href="mailto:nandury.k@northeastern.edu">Email</a>
+            </nav>
         </div>
     </footer>
 

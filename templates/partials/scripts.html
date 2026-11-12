@@ -4,14 +4,14 @@
         document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
         document.querySelectorAll('.tab-btn').forEach(el => {
             el.classList.remove('tab-active');
-            el.classList.add('opacity-80');
+            el.removeAttribute('aria-current');
         });
-        
+
         document.getElementById(`content-${tabName}`).classList.remove('hidden');
         const tabBtn = document.getElementById(`tab-${tabName}`);
         if (tabBtn) {
             tabBtn.classList.add('tab-active');
-            tabBtn.classList.remove('opacity-80');
+            tabBtn.setAttribute('aria-current', 'page');
         }
         
         // Load dashboard data when switching to dashboard
@@ -31,41 +31,9 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // Contact form
-    async function sendContactForm() {
-        const name = document.getElementById('contact-name').value.trim();
-        const email = document.getElementById('contact-email').value.trim();
-        const message = document.getElementById('contact-message').value.trim();
-        const statusEl = document.getElementById('contact-status');
-        
-        if (!message) {
-            statusEl.innerHTML = '<p class="text-red-600 flex items-center gap-2"><i class="fas fa-exclamation-circle"></i> Please enter a message.</p>';
-            return;
-        }
-        
-        statusEl.innerHTML = '<p class="text-indigo-600 flex items-center gap-2"><i class="fas fa-spinner fa-spin"></i> Sending...</p>';
-        
-        try {
-            const response = await fetch('/api/contact/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, email, message })
-            });
-            
-            const result = await response.json();
-            
-            if (result.status === 'success') {
-                statusEl.innerHTML = '<p class="text-green-600 flex items-center gap-2"><i class="fas fa-check-circle"></i> ' + result.message + '</p>';
-                document.getElementById('contact-name').value = '';
-                document.getElementById('contact-email').value = '';
-                document.getElementById('contact-message').value = '';
-            } else {
-                throw new Error(result.message);
-            }
-        } catch (error) {
-            statusEl.innerHTML = '<p class="text-red-600 flex items-center gap-2"><i class="fas fa-exclamation-circle"></i> Failed: ' + error.message + '</p>';
-        }
-    }
+    // Investigate is the first screen (docs/ui-redesign-scope.md §5); open it once the page has
+    // parsed, so every script below (and the static replay's fetch shim) is ready.
+    document.addEventListener('DOMContentLoaded', () => showTab('dashboard'));
 
     // Dashboard functionality
     let metricsData = [];
