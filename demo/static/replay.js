@@ -259,7 +259,7 @@
                     <p class="text-sm text-gray-600 mt-1 mb-3">${esc(c.note)}</p>
                     <div class="flex flex-wrap gap-3 items-center">
                         <button onclick="replayOpenCase(${i})" class="gradient-bg text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90"><i class="fas fa-robot mr-1"></i> Open in dashboard</button>
-                        ${c.trace_url ? `<a href="${esc(c.trace_url)}" target="_blank" rel="noopener" class="text-sm text-indigo-600 hover:underline">LangSmith trace</a>` : ''}
+                        <!-- trace_url is in the manifest; LangSmith runs are private, so no link until they are shared -->
                     </div>
                 </div>`).join('');
         }
