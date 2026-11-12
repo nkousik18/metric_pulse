@@ -220,7 +220,7 @@ reachable from its action-log row.
       records a LangSmith trace id. Verified live on `runserver` with scratch databases: 401s, the
       tab's approve and reject, 409 on a second decision and on undoing `notify_owner`, a policy
       error from an edit shown on the card, and 429s from both throttles. 16 new tests, suite 300.
-- [ ] **A7** — Detection eval (≥20 labeled dates), investigation golden set ≥10 and onboarding
+- [x] **A7** — Detection eval (≥20 labeled dates), investigation golden set ≥10 and onboarding
       ≥3 (§7.1), scheduled drift run against stored baselines.
       **Built 2026-11-03; not checked — waiting on Kousik's labels** (design: scope §7.3, choices
       in the A7 decision log). `python -m detection.eval` (replays the production decision; 28
@@ -240,6 +240,10 @@ reachable from its action-log row.
       28 rows' median (off below 50 records/day). The pipeline alerts on a stale day even when the
       z-score doesn't; the Action Agent's rule 3 annotates it as `data_issue`. Detection eval with it:
       recall 12/12, precision 12/13, F1 0.96 (z-score alone 0.92); the threshold stays 2.0.
+      **2026-11-12, gate passed:** a clean full `python -m observability.drift` on main `06a58bf` ran
+      all four evals with 0 API errors and **0 regressions**: detection F1 0.92 (0.96 with freshness),
+      onboarding unchanged, investigation up (grounding 0.77→0.83, golden match 0.57→0.73, fallback
+      0.07→0), action 15/15 with every safety metric 0.
 
 ---
 
