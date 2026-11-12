@@ -5,6 +5,26 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-12 (later still) — H1 merged, Pages held for a UI redesign
+
+**What happened:** Kousik saw the site locally and rejected the UI ("screams AI generated": Inter,
+indigo→violet gradients, template landing page). I gave a redesign game plan built around the
+Impeccable design skill (detector: overused font, AI colour palette, gradient text) plus a UX
+critique: breakdown bars capped at 100% misdraw "251% of change", the dashboard opens on bare
+date dropdowns, the hero numbers are hand-written, and the six-tab nav overflows on a phone.
+Kousik approved Phase 0: merge #50 and #51 and **hold Pages until the redesign lands**. Merged #50,
+merged main into #51's branch (a rebase needed a force-push, which was blocked), made `pages.yml`
+manual-only, and swapped the README's demo link for a "being rebuilt" note (a link to an
+unpublished site would be false, Q6).
+
+**Note:** the recording names `cca4d9c`, a branch commit the squash-merge leaves off `main`, so
+**re-record on `main` before enabling Pages** (`python -m demo.record`, then `--check`).
+
+**Next:** redesign Phase 1, the PRODUCT.md interview (three questions), then the direction cards.
+Optional first: update Impeccable (4.3.1 → 4.8.2, `npx impeccable update`).
+
+---
+
 ## 2026-11-12 (late night) — H1 built: static replay site, checked locally
 
 **What happened:** Read scope §11's list. Checked §6.1 against the warehouse before coding and

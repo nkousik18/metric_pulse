@@ -4,7 +4,7 @@
 
 When business metrics move unexpectedly, MetricPulse automatically identifies what drove the change — before anyone asks.
 
-🔗 **Demo:** [nkousik18.github.io/metric_pulse](https://nkousik18.github.io/metric_pulse/), a static site that replays real recorded outputs of the pipeline and its three agents (`demo/README.md`). No server, nothing mocked.
+🔗 **Demo:** a public demo site is being rebuilt (`docs/hosting-scope.md`); the old Render link is gone.
 
 **Status:** core pipeline (ingestion → dbt → detection → decomposition → narrative → alerting) is live and stable. A LangGraph-based agentic layer is currently in design — see `docs/ROADMAP.md` for what's built vs. planned.
 
