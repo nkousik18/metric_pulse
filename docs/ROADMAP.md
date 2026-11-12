@@ -285,6 +285,23 @@ R1–R5). It is prioritized ahead of Action Agent A3 (scope §9).
 
 ---
 
+## Hosting (`docs/hosting-scope.md`)
+
+Nothing is clickable: the Render deployment is gone and AWS was deleted. A static GitHub Pages site
+replays **real recorded outputs** (primary link), and the real app runs on a new Render free account
+in demo mode (no outside effects, capped LLM spend). **Scope drafted 2026-11-12; awaiting Kousik's
+approval.**
+
+- [ ] **H1** — Static replay site: `demo/record.py` (real views via the test client), `demo/build.py`
+      + `replay.js`, Pages workflow, README link. Gate: every tab loads from recordings on the Pages
+      URL, checked in a browser.
+- [ ] **H2** — Render demo-mode app: 2.1 MB staging snapshot, `DEMO_MODE` (live effects off
+      server-side, daily LLM cap, dry-run pipeline), `requirements-web.txt`, `render.yaml`. Kousik
+      creates the Render account. Gate: scope §7 Q3–Q5 and a real investigation on the live URL.
+- [ ] **H3** — Docs point at the real URLs (the 8 "live on Render" mentions, README). Gate: Q6.
+
+---
+
 ## Retrospectives
 
 `docs/project/retrospectives/` is a named convention (end-of-phase reflection, heavier than a

@@ -22,6 +22,7 @@ Technical reference for the MetricPulse automated root cause analysis pipeline.
 | [MetricPulse_resume_project_doc.md](MetricPulse_resume_project_doc.md) | Full project source of truth — all layers, all stats, decisions, known gaps (renamed from `resume_project_doc.md`, 2026-11-02) |
 | [scoping.md](scoping.md) | Design record for the agentic-layer initiative (Phases 1–3, M0–M7, complete) |
 | [action-agent-scope.md](action-agent-scope.md) | Design record for the Action Agent (A1–A7) **and** for observability, LangSmith tracing/replay and the system-wide eval suite (§7.1–7.2, §13) |
+| [hosting-scope.md](hosting-scope.md) | Design record for public hosting: a static GitHub Pages site replaying real recorded outputs (H1) and the real app on Render in demo mode (H2), then docs (H3) |
 | [local-stack-scope.md](local-stack-scope.md) | Design record for the local stack (DuckDB, dbt-duckdb, alert outbox) replacing the deleted AWS resources (L1–L3); AWS code kept as an archived, switchable backend |
 | [architecture.md](architecture.md) | System overview and component diagram |
 | [workflow_diagram.md](workflow_diagram.md) | End-to-end data flow — Mermaid diagrams + per-step input/output tables across all layers |
