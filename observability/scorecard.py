@@ -41,7 +41,8 @@ def _display(metric: Dict, unit: str) -> Optional[Dict]:
     if value is None or not n:
         return None
     if isinstance(num, int) and not isinstance(num, bool):
-        pct = '' if num in (0, n) else f' · {value:.0%}'
+        is_rate = abs(value - num / n) < 0.005
+        pct = f' · {value:.0%}' if is_rate and num not in (0, n) else ''
         return {'figure': f'{num}/{n}', 'context': f'{unit}{pct}'}
     return {'figure': f'{value:.2f}', 'context': f'over {n} {unit}'}
 
@@ -65,7 +66,43 @@ def build_scorecard(latest_rows: Dict[str, Dict]) -> List[Dict]:
     return groups
 
 
+EVAL_TITLES = {'detection': 'Detection', 'investigation': 'Investigation agent',
+               'onboarding': 'Onboarding agent', 'action': 'Action Agent'}
+
+
+def _plain(metric: Dict) -> Optional[str]:
+    """Every metric shape in the ledger as text: '25/30 (83%)', '0/10', '0.96 (n = 28)'."""
+    value, num, n = metric.get('value'), metric.get('num'), metric.get('n')
+    if value is None:
+        return None
+    if isinstance(num, int) and not isinstance(num, bool) and n:
+        is_rate = abs(value - num / n) < 0.005          # a count's value is the count, not a rate
+        return f'{num}/{n}' + (f' ({value:.0%})' if is_rate and num not in (0, n) else '')
+    if isinstance(value, float):
+        text = f'{value:.5f}'.rstrip('0').rstrip('.') if abs(value) < 0.01 else f'{value:.2f}'
+    else:
+        text = str(value)
+    return f'{text} (n = {n})' if n else text
+
+
+def eval_table(latest_rows: Dict[str, Dict]) -> List[Dict]:
+    """Every metric of each eval's latest ledger row, for How it's built. Order: detection,
+    investigation, onboarding, action; metric keys as the ledger names them."""
+    out = []
+    for name in ('detection', 'investigation', 'onboarding', 'action'):
+        row = latest_rows.get(name)
+        if not row:
+            continue
+        metrics = [{'key': key, 'text': _plain(m)} for key, m in (row.get('metrics') or {}).items()]
+        out.append({'eval': name, 'title': EVAL_TITLES[name], 'date': (row.get('ts') or '')[:10],
+                    'git_sha': row.get('git_sha'), 'sets': row.get('sets') or {},
+                    'metrics': [m for m in metrics if m['text'] is not None]})
+        out[-1]['count'] = str(len(out[-1]['metrics']))   # text: the Pages build renders without l10n
+    return out
+
+
 def scorecard_context(latest_rows: Dict[str, Dict]) -> Dict:
-    """Template context: the groups in order, and the same groups by eval name (`scores.action`)."""
+    """Template context: the scorecard groups in order, the same groups by eval name
+    (`scores.action`), and the full table (`evals`) for How it's built."""
     groups = build_scorecard(latest_rows)
-    return {'scorecard': groups, 'scores': {g['eval']: g for g in groups}}
+    return {'scorecard': groups, 'scores': {g['eval']: g for g in groups}, 'evals': eval_table(latest_rows)}

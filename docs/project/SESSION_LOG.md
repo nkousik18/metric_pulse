@@ -5,6 +5,28 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-12 (redesign, U3) — U2 merged; approvals and How it's built rebuilt; Tailwind gone; dark mode
+
+**What happened:** Kousik approved U2; merged #55. U3 on `feat/ui-approvals-architecture`. Rewrote
+How it's built from facts verified in this session (451,535 raw rows from the warehouse, 11 dbt
+models, 14 API endpoints, 399 tests, both Groq models): the local stack with AWS listed as retired,
+the pipeline as one connected sequence with each agent marked where it acts, the dbt models, how
+the evals work, and every metric of each eval's latest ledger row in folded tables
+(`observability.scorecard.eval_table`). Rebuilt the approval cards, undo rows and log in
+`scripts.html` (ids and the replay's `onclick` strings unchanged), and the replay's notice, guide
+and onboarding render. Removed Tailwind and Font Awesome; a small reset in `styles.html` replaces
+what the page relied on from Tailwind's preflight (the light Overview looked identical after).
+Switched dark mode on (`html.dark-ready`). Found live and fixed: the count-as-rate "1/28 (100%)"
+and the static build's localisation crash (BUG_LOG U3-1, U3-2; also logged U1-1 and U2-1 from
+earlier screenshots). Checked in Chrome: dark (the OS setting) and light, 1440 px and 375 px, the
+walk-through end to end, the notice; detector 0 findings across all templates; 401 tests pass.
+Ticked U2 and U3.
+
+**Next:** merge with Kousik's OK; U4: the Impeccable finish review and DESIGN.md, re-record on
+`main`, enable Pages, check the live URL.
+
+---
+
 ## 2026-11-12 (redesign, U2 revised) — Overview distilled; agents get their own tab
 
 **What happened:** Kousik found the U2 page "flooded" with nowhere for the eye to go and asked for

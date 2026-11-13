@@ -22,7 +22,7 @@ def latest_scorecard() -> dict:
         return scorecard_context(latest_rows(read_ledger()))
     except Exception as e:
         logger.warning(f'eval scorecard unavailable: {e}')
-        return {'scorecard': [], 'scores': {}}
+        return {'scorecard': [], 'scores': {}, 'evals': []}
 
 
 class HomeView(TemplateView):

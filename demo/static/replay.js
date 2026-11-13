@@ -184,7 +184,7 @@
                 el = document.createElement('div');
                 el.id = 'replay-notice';
                 el.setAttribute('role', 'status');
-                el.className = 'fixed bottom-4 left-1/2 -translate-x-1/2 z-50 max-w-xl w-[calc(100%-2rem)] bg-gray-900 text-white text-sm rounded-xl shadow-lg px-4 py-3';
+                el.className = 'replay-notice';
                 document.body.appendChild(el);
             }
             el.textContent = `This demo replays recorded runs. ${message}`;
@@ -253,29 +253,24 @@
 
         function renderOnboarding(o) {
             const clf = o.classification.classification;
-            const dims = clf.dimension_columns.map(d => `<li>${esc(d.column)} <span class="text-gray-400">(${esc(d.cardinality)} values, confidence ${esc(d.confidence)})</span></li>`).join('');
-            const rejected = clf.rejected_columns.map(r => `<li>${esc(r.column)}: <span class="text-gray-500">${esc(r.reason)}</span></li>`).join('');
+            const dims = clf.dimension_columns.map(d => `<li>${esc(d.column)} <span class="muted">(${esc(d.cardinality)} values, confidence ${esc(d.confidence)})</span></li>`).join('');
+            const rejected = clf.rejected_columns.map(r => `<li>${esc(r.column)}: <span class="muted">${esc(r.reason)}</span></li>`).join('');
             const rows = Object.entries(o.results).map(([metric, r]) => `
-                <tr class="border-t border-gray-100 align-top">
-                    <td class="px-3 py-2 font-medium">${esc(metric)}</td>
-                    <td class="px-3 py-2 whitespace-nowrap">${esc(r.current_date)} vs ${esc(r.previous_date)}</td>
-                    <td class="px-3 py-2">${esc(r.detection.anomaly_count)}</td>
-                    <td class="px-3 py-2 text-gray-700">${esc(r.narratives.summary)}</td>
+                <tr>
+                    <td class="mono">${esc(metric)}</td>
+                    <td class="nowrap num">${esc(r.current_date)} vs ${esc(r.previous_date)}</td>
+                    <td class="num">${esc(r.detection.anomaly_count)}</td>
+                    <td class="wrap">${esc(r.narratives.summary)}</td>
                 </tr>`).join('');
             return `
-                <div class="grid md:grid-cols-2 gap-6 mb-6">
-                    <div>
-                        <p class="text-sm text-gray-700 mb-2"><strong>Date column:</strong> ${esc(clf.date_column)} · <strong>Metrics:</strong> ${esc(clf.metric_columns.join(', '))}</p>
-                        <p class="text-sm font-semibold text-gray-700">Dimensions it chose</p>
-                        <ul class="list-disc ml-5 text-sm text-gray-700">${dims}</ul>
-                    </div>
-                    <div>
-                        <p class="text-sm font-semibold text-gray-700">Columns it rejected, and why</p>
-                        <ul class="list-disc ml-5 text-sm text-gray-700">${rejected}</ul>
-                    </div>
+                <p class="agent-what" style="margin: 0 0 var(--space-4);"><strong>Date column:</strong> ${esc(clf.date_column)} \u00b7 <strong>Metrics:</strong> ${esc(clf.metric_columns.join(', '))}</p>
+                <div class="onboarding-cols">
+                    <div><p class="label">Dimensions it chose</p><ul class="bullets">${dims}</ul></div>
+                    <div><p class="label">Columns it rejected, and why</p><ul class="bullets">${rejected}</ul></div>
                 </div>
-                <div class="overflow-x-auto"><table class="w-full text-sm">
-                    <thead><tr class="text-left text-gray-500"><th class="px-3 py-2">Metric</th><th class="px-3 py-2">Dates</th><th class="px-3 py-2">Anomalies</th><th class="px-3 py-2">Narrative (same pipeline as Olist)</th></tr></thead>
+                <p class="label" style="margin-top: var(--space-5);">The unchanged pipeline on four of its metrics</p>
+                <div class="table-wrap tile"><table class="data-table">
+                    <thead><tr><th>Metric</th><th>Dates</th><th>Anomalies</th><th>Narrative</th></tr></thead>
                     <tbody>${rows}</tbody>
                 </table></div>`;
         }
@@ -295,13 +290,13 @@
             const contact = document.getElementById('contact-name');
             const form = contact && contact.closest('.max-w-xl');
             if (form) {
-                form.innerHTML = '<p class="text-sm text-gray-600">The contact form is off on this static demo. The GitHub and LinkedIn links in the footer reach me.</p>';
+                form.innerHTML = '<p class="muted">The contact form is off on this static demo. The GitHub and LinkedIn links in the footer reach me.</p>';
             }
             const pending = document.getElementById('pending-actions');
             if (pending) {
                 const guide = document.createElement('div');
                 guide.id = 'replay-actions-guide';
-                guide.className = 'bg-amber-50 border border-amber-200 text-amber-900 text-sm rounded-xl p-4 mb-4';
+                guide.className = 'callout callout-info';
                 guide.textContent = 'This tab replays a recorded approval flow: approve, edit, reject, then undo, all with live effects off.';
                 pending.parentNode.insertBefore(guide, pending);
                 // Watch only the two card lists the SPA re-renders. The guide lives outside them, so

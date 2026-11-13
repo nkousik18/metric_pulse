@@ -1,26 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark-ready">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MetricPulse · Why did the metric move?</title>
     <meta name="description" content="MetricPulse explains why a daily business metric moved: anomaly detection, segment decomposition, and AI investigations with every claim cited and every agent measured by evals.">
     <meta name="color-scheme" content="light dark">
-    {# Tailwind and Font Awesome stay only until U3 has rebuilt every partial (docs/ui-redesign-scope.md §7). #}
-    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     {% include 'partials/styles.html' %}
-    <style>
-        /* Legacy helpers still used by the dashboard and actions partials until U2/U3. */
-        .gradient-bg { background: var(--ink); }
-        .card-hover { transition: none; }
-        .stat-card { background: var(--surface-2); }
-        /* Panels in the actions and architecture partials share the tile elevation until U3. */
-        .tab-content .bg-white.rounded-2xl, .tab-content .bg-white.rounded-xl { box-shadow: var(--shadow-tile) !important; border-color: var(--border) !important; }
-        .tab-content .space-y-4 > * + * { margin-top: var(--gap-tiles) !important; }
-        .tab-content .gap-6 { gap: var(--gap-tiles) !important; }
-    </style>
 </head>
 <body class="site">
 
