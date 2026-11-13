@@ -22,8 +22,10 @@
             loadNarrative();
         }
         
-        // The actions tab reloads every time it opens: proposals expire and change state.
-        if (tabName === 'actions') {
+        // The agents tab holds the approval queue, which reloads every time it opens: proposals
+        // expire and change state.
+        if (tabName === 'agents') {
+            updateAgentDay();
             loadActions();
         }
 
@@ -59,6 +61,141 @@
                 .replace(/\*(.+?)\*/g, '<em>$1</em>')
                 .replace(/\n/g, '<br>')}</p>`)
             .join('');
+    }
+
+    // --- Days to look at (docs/ui-redesign-scope.md §5): the detector's flagged days, the
+    // incomplete-data day, and (on the static replay) the recorded AI investigations, which
+    // demo/static/replay.js puts in window.extraFlaggedDays.
+    let lastDetection = null;
+    const METRIC_NAMES = { total_revenue: 'revenue', order_count: 'orders', avg_order_value: 'AOV' };
+
+    function flaggedDays() {
+        const items = [...(window.extraFlaggedDays || [])];
+        const d = lastDetection;
+        if (d) {
+            (d.all_anomalies || []).forEach(a => items.push({
+                date: a.metric_date, metric: 'total_revenue',
+                note: `z ${Number(a.zscore).toFixed(1)} \u00b7 ${a.anomaly_direction === 'low' ? 'unusually low' : 'unusually high'}`,
+            }));
+            if (d.freshness && d.freshness.status === 'stale' && d.freshness.date) {
+                items.push({ date: d.freshness.date, metric: 'total_revenue',
+                             note: `incomplete data \u00b7 ${d.freshness.volume} vs ~${Math.round(d.freshness.median)} usual` });
+            }
+        }
+        const seen = new Set();
+        return items.filter(i => { const k = i.date + i.metric + (i.investigate ? 'ai' : ''); if (seen.has(k)) return false; seen.add(k); return true; });
+    }
+
+    function formatDay(iso) {
+        const [y, m, d] = iso.split('-').map(Number);
+        return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+    }
+
+    function renderFlaggedDays() {
+        const list = document.getElementById('flagged-days');
+        if (!list) return;
+        const items = flaggedDays();
+        if (!items.length) { list.innerHTML = '<li class="muted">Nothing flagged at this threshold. Lower it, or pick any pair below.</li>'; return; }
+        const current = (document.getElementById('current-date') || {}).value;
+        const metric = (document.getElementById('metric-select') || {}).value;
+        list.innerHTML = items.map((item, i) => `
+            <li><button type="button" class="day-chip" data-index="${i}" aria-pressed="${item.date === current && item.metric === metric}"
+                        onclick="selectFlaggedDay(${i})">
+                <strong>${escapeHtml(formatDay(item.date))} \u00b7 ${escapeHtml(METRIC_NAMES[item.metric] || item.metric)}</strong>
+                <span>${escapeHtml(item.note)}</span>
+            </button></li>`).join('');
+
+        const agentList = document.getElementById('agent-days');
+        if (agentList) {
+            const recorded = items.map((item, i) => ({ item, i })).filter(x => x.item.investigate);
+            agentList.classList.toggle('hidden', !recorded.length);
+            agentList.innerHTML = recorded.map(({ item, i }) => `
+                <li><button type="button" class="day-chip" onclick="selectFlaggedDay(${i}, true)"
+                            aria-pressed="${item.date === current && item.metric === metric}">
+                    <strong>${escapeHtml(formatDay(item.date))} \u00b7 ${escapeHtml(METRIC_NAMES[item.metric] || item.metric)}</strong>
+                    <span>${escapeHtml(item.note)}</span>
+                </button></li>`).join('');
+        }
+    }
+
+    function selectFlaggedDay(index, fromAgents) {
+        const item = flaggedDays()[index];
+        if (!item || !metricsData.length) return;
+        const at = metricsData.findIndex(row => row.metric_date === item.date);
+        const previous = item.previous_date || (metricsData[at + 1] || {}).metric_date;
+        if (at < 0 || !previous) return;
+        document.getElementById('current-date').value = item.date;
+        document.getElementById('previous-date').value = previous;
+        selectMetric(item.metric);
+        applyFilters();
+        if (fromAgents) {
+            updateAgentDay();
+            investigateWithAgent();
+        } else {
+            document.getElementById('answer-headline').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+
+    // --- The answer block: the one focal point of Overview (docs/ui-redesign-scope.md §5) ---
+    const METRIC_LABELS = { total_revenue: 'Revenue', order_count: 'Orders', avg_order_value: 'Average order value' };
+    const DIMENSION_NAMES = { geography: 'region', product: 'product', payment: 'payment' };
+
+    function formatMetricValue(metric, value) {
+        const n = Number(value);
+        return metric === 'order_count'
+            ? n.toLocaleString('en-US')
+            : '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function updateAnswer(latest, previous) {
+        const metric = (document.getElementById('metric-select') || {}).value || 'total_revenue';
+        const head = document.getElementById('answer-headline');
+        const sub = document.getElementById('answer-sub');
+        if (!head || !latest || !previous) return;
+        const now = Number(latest[metric]), before = Number(previous[metric]);
+        const change = before ? (now - before) / before * 100 : NaN;
+        const verb = !isFinite(change) ? 'changed' : (change >= 0 ? 'rose' : 'fell');
+        head.textContent = isFinite(change) ? `${METRIC_LABELS[metric]} ${verb} ${Math.abs(change).toFixed(1)}%` : `${METRIC_LABELS[metric]} ${verb}`;
+        sub.textContent = `on ${formatDay(latest.metric_date)}, compared with ${formatDay(previous.metric_date)} · ` +
+            `${formatMetricValue(metric, before)} \u2192 ${formatMetricValue(metric, now)}`;
+    }
+
+    function updateDrivers(dims) {
+        const el = document.getElementById('answer-drivers');
+        if (!el) return;
+        const tops = Object.entries(dims || {})
+            .map(([dim, d]) => ({ dim, c: (d.top_contributors || [])[0] }))
+            .filter(x => x.c)
+            .sort((a, b) => Math.abs(b.c.contribution_pct) - Math.abs(a.c.contribution_pct))
+            .slice(0, 2);
+        if (!tops.length) { el.textContent = ''; return; }
+        const metric = (document.getElementById('metric-select') || {}).value;
+        const part = x => `${x.c.segment} (${DIMENSION_NAMES[x.dim] || x.dim}, ${Math.abs(x.c.contribution_pct).toFixed(0)}% of the change)`;
+        el.textContent = (metric && metric !== 'total_revenue' ? 'In revenue, mostly ' : 'Mostly ') +
+            tops.map(part).join(' and ') + '.';
+    }
+
+    function isRecordedInvestigation(date, metric) {
+        return (window.extraFlaggedDays || []).some(i => i.investigate && i.date === date && i.metric === metric);
+    }
+
+    // The agent's explanation lives on the AI agents tab. It runs by itself only when the day has a
+    // recorded run (the static replay); on a live server a click is the user's choice to spend an LLM call.
+    function openInvestigation() {
+        showTab('agents');
+        const section = document.getElementById('agent-investigation');
+        if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const day = document.getElementById('current-date').value;
+        const metric = document.getElementById('metric-select').value;
+        if (isRecordedInvestigation(day, metric)) investigateWithAgent();
+    }
+
+    function updateAgentDay() {
+        const el = document.getElementById('agent-day');
+        const cur = (document.getElementById('current-date') || {}).value;
+        const prev = (document.getElementById('previous-date') || {}).value;
+        const metric = (document.getElementById('metric-select') || {}).value;
+        if (el && cur && prev) el.textContent = `${formatDay(cur)} vs ${formatDay(prev)}, ${(METRIC_LABELS[metric] || metric).toLowerCase()}`;
     }
 
     // Dashboard functionality
@@ -109,6 +246,7 @@
     function updateKPIs(latest, previous) {
         const revenueEl = document.getElementById('kpi-revenue');
         if (!revenueEl) return;
+        updateAnswer(latest, previous);
         
         revenueEl.textContent = '$' + parseFloat(latest.total_revenue).toLocaleString('en-US', {minimumFractionDigits: 2});
         const revChange = ((latest.total_revenue - previous.total_revenue) / previous.total_revenue * 100);
@@ -129,19 +267,40 @@
         if (!isFinite(change)) { el.textContent = ''; return; }
         const up = change >= 0;
         const sign = up ? '+' : '\u2212';
-        el.innerHTML = `<span class="delta ${up ? 'delta-up' : 'delta-down'}">${sign}${Math.abs(change).toFixed(1)}%</span><span class="delta-note">vs compared day</span>`;
+        const tri = up ? 'M5 1 9 8H1z' : 'M5 9 1 2h8z';
+        el.innerHTML = `<span class="delta ${up ? 'delta-up' : 'delta-down'}"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="${tri}" fill="currentColor"/></svg>${sign}${Math.abs(change).toFixed(1)}%</span>`;
     }
+
+    // Single series, so no legend box (the title names it); flagged days are 8px dots with a 2px
+    // surface ring; the selected day is a ring; hover shows a crosshair and tooltip (dataviz skill).
+    const crosshair = {
+        id: 'crosshair',
+        afterDatasetsDraw(chart) {
+            const active = chart.tooltip && chart.tooltip.getActiveElements();
+            if (!active || !active.length) return;
+            const x = active[0].element.x, { top, bottom } = chart.chartArea, ctx = chart.ctx;
+            ctx.save();
+            ctx.strokeStyle = cssVar('--border-strong');
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x, bottom); ctx.stroke();
+            ctx.restore();
+        },
+    };
 
     function drawChart(data, metric) {
         const canvas = document.getElementById('revenueChart');
         if (!canvas) return;
-        
+
         const ctx = canvas.getContext('2d');
         if (currentChart) currentChart.destroy();
-        
-        const labels = { 'total_revenue': 'Revenue', 'order_count': 'Orders', 'avg_order_value': 'AOV' };
+
+        const labels = { 'total_revenue': 'Revenue', 'order_count': 'Orders', 'avg_order_value': 'Avg order value' };
         const prefix = metric === 'order_count' ? '' : '$';
-        
+        const flagged = new Set(flaggedDays().filter(i => i.metric === metric).map(i => i.date));   // this metric's flags only
+        const selected = (document.getElementById('current-date') || {}).value;
+        const accent = cssVar('--accent'), surface = cssVar('--surface'), ink = cssVar('--ink');
+        const radius = data.map(d => d.metric_date === selected ? 6 : (flagged.has(d.metric_date) ? 4 : 0));
+
         currentChart = new Chart(ctx, {
             type: 'line',
             data: {
@@ -149,19 +308,24 @@
                 datasets: [{
                     label: labels[metric],
                     data: data.map(d => d[metric]),
-                    borderColor: cssVar('--accent'),
-                    backgroundColor: withAlpha(cssVar('--accent'), 0.08),
+                    borderColor: accent,
+                    backgroundColor: withAlpha(accent, 0.07),
                     fill: true,
-                    tension: 0.4,
-                    pointRadius: 0,
-                    pointHitRadius: 8,
-                    pointHoverRadius: 6,
-                    borderWidth: 2
+                    tension: 0.3,
+                    borderWidth: 2,
+                    pointRadius: radius,
+                    pointHoverRadius: 5,
+                    pointHitRadius: 10,
+                    pointBackgroundColor: data.map(d => d.metric_date === selected ? surface : (flagged.has(d.metric_date) ? ink : accent)),
+                    pointBorderColor: data.map(d => d.metric_date === selected ? ink : surface),
+                    pointBorderWidth: 2,
                 }]
             },
+            plugins: [crosshair],
             options: {
                 responsive: true,
-                plugins: { 
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
                     legend: { display: false },
                     tooltip: {
                         backgroundColor: cssVar('--surface'),
@@ -169,26 +333,31 @@
                         bodyColor: cssVar('--ink-2'),
                         borderColor: cssVar('--border'),
                         borderWidth: 1,
-                        padding: 12,
-                        boxPadding: 6
-                    }
+                        padding: 10,
+                        displayColors: false,
+                        callbacks: {
+                            title: items => formatDay(items[0].label) + (flagged.has(items[0].label) ? ' \u00b7 flagged' : ''),
+                            label: item => `${labels[metric]}: ${prefix}${Number(item.raw).toLocaleString('en-US', { maximumFractionDigits: 2 })}`,
+                        },
+                    },
                 },
                 scales: {
                     y: {
-                        beginAtZero: false,
-                        ticks: { callback: value => prefix + value.toLocaleString(), color: cssVar('--ink-3'), font: { size: 12 } },
+                        beginAtZero: true,
+                        ticks: { callback: value => prefix + value.toLocaleString(), color: cssVar('--ink-3'), font: { size: 12 }, maxTicksLimit: 5 },
                         grid: { color: cssVar('--border') },
                         border: { display: false }
                     },
                     x: {
                         grid: { display: false },
-                        ticks: { color: cssVar('--ink-3'), font: { size: 12 }, maxRotation: 0, autoSkipPadding: 16 },
+                        ticks: { color: cssVar('--ink-3'), font: { size: 12 }, maxRotation: 0, autoSkipPadding: 24,
+                                 callback: function (value) { return formatDay(this.getLabelForValue(value)).replace(/, \d{4}$/, ''); } },
                         border: { color: cssVar('--border') }
                     }
                 }
             }
         });
-        
+
         const chartTitle = document.getElementById('chart-title');
         if (chartTitle) chartTitle.textContent = labels[metric];
     }
@@ -216,7 +385,12 @@
             
             if (result.status === 'success') {
                 const anomaliesEl = document.getElementById('kpi-anomalies');
-                if (anomaliesEl) anomaliesEl.textContent = result.data.anomaly_count;
+                if (anomaliesEl) anomaliesEl.textContent = result.data.anomaly_count === 0 ? 'No' : result.data.anomaly_count;
+                const echo = document.getElementById('threshold-echo');
+                if (echo) echo.textContent = parseFloat(threshold).toFixed(1) + '\u03c3';
+                lastDetection = result.data;
+                renderFlaggedDays();
+                if (metricsData.length) drawChart(metricsData.slice().reverse(), selectedMetric);
             }
         } catch (error) {
             console.error('Failed to load anomalies:', error);
@@ -243,9 +417,16 @@
                 decompositionData = result.data;
                 const dims = result.data.dimensions;
                 
-                if (dims.geography) renderBreakdown('geo-breakdown', dims.geography.top_contributors);
-                if (dims.product) renderBreakdown('product-breakdown', dims.product.top_contributors);
-                if (dims.payment) renderBreakdown('payment-breakdown', dims.payment.top_contributors);
+                const scales = [
+                    dims.geography && renderBreakdown('geo-breakdown', dims.geography.top_contributors),
+                    dims.product && renderBreakdown('product-breakdown', dims.product.top_contributors),
+                    dims.payment && renderBreakdown('payment-breakdown', dims.payment.top_contributors),
+                ];
+                updateDrivers(dims);
+                const note = document.getElementById('bars-note');
+                if (note) note.textContent = scales.some(x => x > 100)
+                    ? 'A share above 100% means other segments in that dimension moved the opposite way; each column has its own scale.'
+                    : 'Each column has its own scale.';
             }
         } catch (error) {
             console.error('Failed to load decomposition:', error);
@@ -265,13 +446,15 @@
             // total change, negative when it moved against the total.
             const tone = c.change >= 0 ? 'is-up' : 'is-down';
             const sign = c.contribution_pct < 0 ? '\u2212' : '';
+            const what = `${c.segment}: ${c.change >= 0 ? 'rose' : 'fell'} from ${c.previous_value} to ${c.current_value}, ${sign}${Math.abs(c.contribution_pct).toFixed(1)}% of the total change`;
             return `
-            <div class="bar-row">
+            <div class="bar-row" title="${escapeHtml(what)}">
                 <span class="bar-name" title="${escapeHtml(c.segment)}">${escapeHtml(c.segment)}</span>
-                <span class="bar-value ${tone}" title="${c.change >= 0 ? 'rose' : 'fell'} ${escapeHtml(c.previous_value)} \u2192 ${escapeHtml(c.current_value)}">${sign}${Math.abs(c.contribution_pct).toFixed(1)}%</span>
+                <span class="bar-value">${sign}${Math.abs(c.contribution_pct).toFixed(1)}%</span>
                 <div class="bar-track"><div class="bar-fill ${tone}" style="width: ${(Math.abs(c.contribution_pct) / scale * 100).toFixed(1)}%"></div></div>
             </div>`;
-        }).join('') + (scale > 100 ? '<p class="bars-note">Shares above 100% mean other segments moved the opposite way.</p>' : '');
+        }).join('');
+        return scale;
     }
 
     function toggleDrilldown(dimension) {
@@ -333,6 +516,8 @@
         const previous = metricsData.find(d => d.metric_date === previousDate);
         
         if (current && previous) updateKPIs(current, previous);
+        if (metricsData.length) drawChart(metricsData.slice().reverse(), selectedMetric);
+        renderFlaggedDays();
     }
 
     function resetFilters() {

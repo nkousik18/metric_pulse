@@ -9,6 +9,7 @@ The Django project package — settings, root URL routing, and WSGI/ASGI entry p
 | `settings.py` | Base Django settings, active for local development (`DJANGO_DEBUG=True` by default) |
 | `settings_prod.py` | Production overrides for Render — `from .settings import *` then overrides 4 settings |
 | `urls.py` | Root URL configuration — 3 routes total |
+| `views.py` | `HomeView` serves `index.html` with one piece of server-side data: the eval scorecard (`observability/scorecard.py`) from `evals/ledger.jsonl`, or none if the ledger can't be read (never raises). |
 | `wsgi.py` | WSGI entry point, used by Gunicorn in production (`gunicorn metric_pulse_web.wsgi:application`) |
 | `asgi.py` | ASGI entry point — present for completeness/future use; nothing in this project uses async views or channels, so this file is currently unused in practice |
 | `__init__.py` | Empty package marker |
@@ -48,7 +49,7 @@ Activated only when `DJANGO_SETTINGS_MODULE=metric_pulse_web.settings_prod` is s
 ```python
 path('admin/', admin.site.urls)
 path('api/', include('dashboard_api.urls'))          # → all 7 endpoints in dashboard_api/urls.py
-path('', TemplateView.as_view(template_name='index.html'), name='home')
+path('', HomeView.as_view(), name='home')    # metric_pulse_web/views.py, adds the eval scorecard
 ```
 
 That's it — every non-`/admin`, non-`/api` request serves `templates/index.html` (which just extends `base.html` — see `templates/README.md`). There is no `404.html`/`500.html` override and no catch-all route beyond `/`.

@@ -1,0 +1,73 @@
+<div id="content-agents" class="tab-content hidden">
+    <main class="page page-narrow">
+        <header class="agents-intro">
+            <h1 class="page-title">AI agents</h1>
+            <p class="lede">
+                Three LLM agents built with LangGraph sit on top of the pipeline. Each one is measured by its own
+                eval suite; the scores below are from the latest runs, weak numbers included.
+            </p>
+            <nav class="jump" aria-label="Agents">
+                <a href="#agent-investigation">Investigation</a>
+                <a href="#agent-action">Action and approvals</a>
+                <a href="#agent-onboarding">Onboarding</a>
+            </nav>
+        </header>
+
+        <section class="agent" id="agent-investigation" aria-labelledby="agent-investigation-title">
+            <div class="agent-head">
+                <h2 class="section-title" id="agent-investigation-title">Investigation agent</h2>
+                <p class="agent-what">
+                    Explains an anomalous day: it drills into the segments that moved, writes the cause in plain English,
+                    and every number it cites is checked against the data before the answer is shown.
+                </p>
+                {% include 'partials/score_row.html' with group=scores.investigation %}
+            </div>
+            <div class="tile tile-pad">
+                <div class="tile-head">
+                    <div>
+                        <h3 class="subhead">Run it on a day</h3>
+                        <p class="muted tile-sub">Day: <strong id="agent-day" class="num">the day selected on Overview</strong>.
+                            <button type="button" class="link-btn" onclick="showTab('dashboard')">Change it on Overview</button></p>
+                    </div>
+                    <button type="button" id="investigate-btn" class="btn btn-primary" onclick="investigateWithAgent()">Investigate with AI agent</button>
+                </div>
+                <ul id="agent-days" class="day-list hidden" aria-label="Days with a recorded investigation"></ul>
+                <div id="investigation-result" class="hidden investigation">
+                    <div id="investigation-content" class="prose-box"></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="agent" id="agent-action" aria-labelledby="agent-action-title">
+            <div class="agent-head">
+                <h2 class="section-title" id="agent-action-title">Action agent</h2>
+                <p class="agent-what">
+                    Proposes a response to an anomaly (annotate it, suppress repeat alerts, notify a segment owner, open an
+                    incident, add a watch) with cited evidence and the exact payload. Nothing runs until a person approves,
+                    edits or rejects it, and reversible actions can be undone.
+                </p>
+                {% include 'partials/score_row.html' with group=scores.action %}
+            </div>
+            {% include 'partials/actions.html' %}
+        </section>
+
+        <section class="agent" id="agent-onboarding" aria-labelledby="agent-onboarding-title">
+            <div class="agent-head">
+                <h2 class="section-title" id="agent-onboarding-title">Onboarding agent</h2>
+                <p class="agent-what">
+                    Takes a CSV the pipeline has never seen, classifies its columns (date, metrics, dimensions, what to
+                    ignore), and after a person confirms, generates the tables so the same detect, decompose and explain
+                    pipeline runs on it unchanged.
+                </p>
+                {% include 'partials/score_row.html' with group=scores.onboarding %}
+            </div>
+            <div class="tile tile-pad">
+                <h3 class="subhead">The Superstore run</h3>
+                <div id="onboarding-results">
+                    <p class="muted tile-sub" style="margin: 0;">The recorded Superstore onboarding run is shown on the demo site.
+                        Locally, run <code>python -m onboarding.onboard --file &lt;csv&gt;</code>.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>

@@ -118,6 +118,16 @@
         const ready = Promise.all([getJson('index.json'), getJson('manifest.json'), getJson('actions/flow.json')])
             .then(([index, manifest, flow]) => ({ index, manifest, actions: createActionReplay(flow) }));
 
+        // The recorded AI investigations join Investigate's "Days to look at" list
+        // (templates/partials/scripts.html reads window.extraFlaggedDays).
+        ready.then(({ manifest }) => {
+            window.extraFlaggedDays = (manifest.investigations || []).map(c => ({
+                date: c.current_date, previous_date: c.previous_date, metric: c.metric, investigate: true,
+                note: `AI investigation recorded \u00b7 labelled ${c.labelled_event ? 'an event' : 'not an event'}`,
+            }));
+            if (typeof window.renderFlaggedDays === 'function') window.renderFlaggedDays();
+        });
+
         try {
             if (!window.sessionStorage.getItem(TOKEN_KEY)) window.sessionStorage.setItem(TOKEN_KEY, 'static-replay');
         } catch (e) { /* private mode: the actions tab asks for a token; any value works here */ }
@@ -158,7 +168,7 @@
 
         function hintFor(url) {
             if (url.startsWith('/api/investigate/')) {
-                return 'AI investigations were recorded for three anomalies only. Open one from the "Recorded runs" tab.';
+                return 'AI investigations were recorded for three days only: the ones marked "AI investigation recorded".';
             }
             if (url.startsWith('/api/decomposition/') || url.startsWith('/api/narrative/')) {
                 return 'Breakdowns were recorded for each day against the day before it. Pick a consecutive pair of dates.';
@@ -216,12 +226,6 @@
                 { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
         }
 
-        function fmtMetric(m) {
-            if (!m || m.value === null || m.value === undefined) return 'n/a';
-            const v = typeof m.value === 'number' && !Number.isInteger(m.value) ? m.value.toFixed(m.value < 0.01 ? 5 : 2) : m.value;
-            return m.num !== null && m.num !== undefined && Number.isInteger(m.num) && m.n ? `${v} (${m.num}/${m.n})` : `${v}`;
-        }
-
         async function waitFor(test, timeoutMs) {
             const end = Date.now() + (timeoutMs || 10000);
             while (Date.now() < end) {
@@ -246,23 +250,6 @@
             window.investigateWithAgent();
         }
         window.replayOpenCase = openCase;
-
-        function renderInvestigations(manifest) {
-            return (manifest.investigations || []).map((c, i) => `
-                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                    <div class="flex flex-wrap items-center gap-2 mb-2">
-                        <span class="text-xs font-semibold bg-blue-50 text-blue-700 px-2 py-1 rounded">${esc(c.metric)}</span>
-                        <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">${esc(c.current_date)} vs ${esc(c.previous_date)}</span>
-                        <span class="text-xs ${c.labelled_event ? 'bg-amber-50 text-amber-700' : 'bg-gray-100 text-gray-600'} px-2 py-1 rounded">labelled ${c.labelled_event ? 'an event' : 'not an event'}</span>
-                    </div>
-                    <h4 class="font-semibold text-gray-900">${esc(c.title)}</h4>
-                    <p class="text-sm text-gray-600 mt-1 mb-3">${esc(c.note)}</p>
-                    <div class="flex flex-wrap gap-3 items-center">
-                        <button onclick="replayOpenCase(${i})" class="gradient-bg text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90"><i class="fas fa-robot mr-1"></i> Open in dashboard</button>
-                        <!-- trace_url is in the manifest; LangSmith runs are private, so no link until they are shared -->
-                    </div>
-                </div>`).join('');
-        }
 
         function renderOnboarding(o) {
             const clf = o.classification.classification;
@@ -293,44 +280,14 @@
                 </table></div>`;
         }
 
-        function renderEvals(evals) {
-            return Object.entries(evals).map(([name, e]) => {
-                const metrics = Object.entries(e.latest.metrics).map(([k, m]) => `
-                    <tr class="border-t border-gray-100"><td class="px-3 py-1.5 font-mono text-xs">${esc(k)}</td><td class="px-3 py-1.5">${esc(fmtMetric(m))}</td></tr>`).join('');
-                return `
-                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                    <h4 class="font-semibold text-gray-900 capitalize">${esc(name)}</h4>
-                    <p class="text-xs text-gray-500 mb-2">${esc(e.latest.ts)} · commit ${esc(e.latest.git_sha)}</p>
-                    <table class="w-full text-sm"><tbody>${metrics}</tbody></table>
-                </div>`;
-            }).join('');
-        }
-
-        async function renderRecorded() {
-            const rootEl = document.getElementById('recorded-root');
+        // The recorded Superstore onboarding run, in the onboarding agent's section of AI agents.
+        async function renderOnboardingRun() {
+            const rootEl = document.getElementById('onboarding-results');
             if (!rootEl) return;
             try {
-                const { manifest } = await ready;
-                const [onboarding, evals] = await Promise.all([
-                    getJson('onboarding/superstore_sales.json'), getJson('evals/latest.json')]);
-                rootEl.innerHTML = `
-                    <section class="mb-10">
-                        <h3 class="text-xl font-bold text-gray-900 mb-1">AI investigations</h3>
-                        <p class="text-sm text-gray-600 mb-4">Three real, hand-labelled cases from the detection eval. "Open in dashboard" sets the dates and replays the recorded agent run.</p>
-                        <div class="grid md:grid-cols-3 gap-4">${renderInvestigations(manifest)}</div>
-                    </section>
-                    <section class="mb-10">
-                        <h3 class="text-xl font-bold text-gray-900 mb-1">Dataset onboarding: Superstore</h3>
-                        <p class="text-sm text-gray-600 mb-4">A CSV the pipeline had never seen. The onboarding agent classified its columns (confirmed by a human), generated the tables, and the unchanged detect, decompose and narrate pipeline ran on it.</p>
-                        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">${renderOnboarding(onboarding)}</div>
-                    </section>
-                    <section class="mb-4">
-                        <h3 class="text-xl font-bold text-gray-900 mb-1">Evals: the latest run of each</h3>
-                        <p class="text-sm text-gray-600 mb-4">From <code>evals/ledger.jsonl</code>; <code>python -m observability.drift --report</code> prints the same numbers.</p>
-                        <div class="grid md:grid-cols-2 gap-4">${renderEvals(evals)}</div>
-                    </section>`;
+                rootEl.innerHTML = renderOnboarding(await getJson('onboarding/superstore_sales.json'));
             } catch (error) {
-                rootEl.textContent = `The recordings did not load: ${error.message}`;
+                rootEl.textContent = `The recording did not load: ${error.message}`;
             }
         }
 
@@ -355,7 +312,7 @@
                     if (el) observer.observe(el, { childList: true });
                 }
             }
-            renderRecorded();
+            renderOnboardingRun();
         });
     }
 

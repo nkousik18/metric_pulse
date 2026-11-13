@@ -5,6 +5,53 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-12 (redesign, U2 revised) — Overview distilled; agents get their own tab
+
+**What happened:** Kousik found the U2 page "flooded" with nowhere for the eye to go and asked for
+the agents in a separate tab. Used the Impeccable distill method (one purpose per screen, one focal
+point, progressive disclosure) and offered two layouts; Kousik chose "one answer + agents tab".
+Overview now leads with the answer for the selected day ("Revenue fell 90.6%", dates and values,
+the top two drivers composed from the decomposition, three small stats) and one primary button;
+then the trend, the drivers, and "Other days to look at" with the any-pair controls and the alert
+text in disclosures. New AI agents tab (`partials/agents.html`): one section per agent with its own
+scores (`partials/score_row.html`, `scores` context from `scorecard_context()`), the investigation
+runner (recorded days as chips on the static site; on a live server the agent only runs on a
+click), the approval queue (actions partial rebuilt as a section), and the Superstore onboarding run
+(`replay.js` renders it there). The Run panel moved to How it's built; the Recorded runs tab and the
+builder's nav/tab insertion are gone. Checked in Chrome at 1440 px and 375 px: the answer reads
+first, the button replays the Sep 3 investigation, the walk-through plays through in the agents
+tab, no tab overflows; detector 0 findings on the changed templates; 399 tests pass.
+
+**Next:** Kousik's review of the revised U2; merge #55 with his OK; then U3.
+
+---
+
+## 2026-11-12 (redesign, U2) — U1 merged; Investigate rebuilt around a day list and a scorecard
+
+**What happened:** Kousik approved; merged #52, then U1 as #54 (#53 auto-closed when #52's branch
+was deleted; the branch was merged with main and re-opened as #54, no force-push). Ticked U1.
+U2 on `feat/ui-investigate`, using the dataviz skill: "Days to look at" (the detector's flags at the
+chosen threshold, the incomplete-data day, and on the static site the three recorded AI
+investigations, each a chip that selects the day and, for a recorded one, replays the agent); a
+two-column layout with the eval scorecard (`observability/scorecard.py`, eight curated metrics with
+numerators and denominators, weak onboarding numbers included) beside the analysis, rendered by a
+new `HomeView` from the ledger and by `demo/build.py` from the recorded ledger; the trend with
+flagged dots, a ring on the selected day, crosshair and tooltips; breakdowns in one tile with a
+rose/fell legend. The dataviz validator rejected nothing but showed U1's green/red was the wrong
+pair: switched to the reference blue/red (passes CVD, normal-vision and contrast, light and dark);
+numbers now in ink. Caught in the browser: the chart dotted days flagged for another metric; fixed.
+Checked at 1440 px and 375 px (no tab overflows; a recorded day's chip selects orders 08-25 vs
+08-24 and replays its investigation); Django renders the scorecard from the live ledger; 399 tests
+pass (6 new in `tests/test_scorecard.py`).
+
+**State:** U2 built, box unchecked until Kousik reviews. The intro's 451,535 rows comes from the
+ingestion run, not a recording; flagged for the U2 gate.
+
+**Next:** Kousik's review and OK to merge U2; then U3 (Approvals, How it's built with onboarding and
+the full eval table, drop Tailwind/Font Awesome, dark mode).
+
+---
+
 ## 2026-11-12 (redesign, cont.) — Kousik's U1 feedback applied
 
 **What happened:** Kousik asked for no purple shades, no emoji, more spacing between tiles, a

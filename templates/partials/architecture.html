@@ -270,5 +270,18 @@
                 </div>
             </div>
         </div>
+
+        <!-- Run the pipeline (moved from Overview in the UI redesign; U3 rebuilds this tab) -->
+        <section class="tile tile-pad run-panel" aria-labelledby="run-title" style="margin-top: var(--gap-tiles);">
+            <div>
+                <h2 class="section-title" id="run-title">Run the pipeline</h2>
+                <p class="muted tile-sub">Detect, decompose and narrate the latest day. "Send alert" writes to the local outbox.</p>
+            </div>
+            <div class="tile-actions">
+                <button type="button" class="btn btn-secondary" onclick="runPipeline(false)">Run analysis</button>
+                <button type="button" class="btn btn-secondary" onclick="runPipeline(true)">Run and send alert</button>
+            </div>
+            <div id="pipeline-status" class="muted run-status" role="status"></div>
+        </section>
     </main>
 </div>
