@@ -1,194 +1,125 @@
 <div id="content-dashboard" class="tab-content hidden">
-    <main class="page">
+    <main class="page page-narrow">
 
-        <section class="intro" aria-labelledby="intro-title">
-            <h1 class="page-title intro-title" id="intro-title">Why did the metric move?</h1>
+        <header class="overview-intro">
+            <h1 class="overview-title">Why did the metric move?</h1>
             <p class="lede">
-                MetricPulse watches a daily business metric, flags the days that break pattern, and explains
-                them: which segments drove the change, a plain-English summary, and an AI investigation whose
-                every claim is checked against the numbers. Any action it proposes waits for a person to approve it.
+                MetricPulse flags the days a business metric breaks pattern and explains why, with AI agents whose
+                every claim is checked against the data. Below is one real day from the Olist e-commerce dataset.
             </p>
-            <ol class="flow" aria-label="How a day is processed">
-                <li><strong>Detect</strong><span>z-score and data-freshness checks on every day</span></li>
-                <li><strong>Decompose</strong><span>the change split by region, product and payment</span></li>
-                <li><strong>Explain</strong><span>an LLM agent writes the cause and cites the numbers</span></li>
-                <li><strong>Act</strong><span>an agent proposes a response; a person approves it</span></li>
-            </ol>
-            <p class="intro-meta">
-                Data: Olist Brazilian e-commerce, 451,535 rows, 2016–2018. Each agent is scored by its own eval
-                suite, summarised beside the analysis. Built end to end by Kousik Nandury.
-            </p>
+        </header>
+
+        <section class="answer" aria-live="polite" aria-labelledby="answer-headline">
+            <p class="answer-headline" id="answer-headline">Loading the day…</p>
+            <p class="answer-sub" id="answer-sub"></p>
+            <p class="answer-drivers" id="answer-drivers"></p>
+            <dl class="answer-stats">
+                <div><dt>Revenue</dt><dd><span id="kpi-revenue" class="num">–</span> <span id="kpi-revenue-change"></span></dd></div>
+                <div><dt>Orders</dt><dd><span id="kpi-orders" class="num">–</span> <span id="kpi-orders-change"></span></dd></div>
+                <div><dt>Avg order value</dt><dd><span id="kpi-aov" class="num">–</span> <span id="kpi-aov-change"></span></dd></div>
+            </dl>
+            <div class="answer-actions">
+                <button type="button" class="btn btn-primary btn-lg" onclick="openInvestigation()">See how the AI agent explains it</button>
+                <button type="button" class="btn btn-quiet" onclick="document.getElementById('other-days').scrollIntoView({behavior: 'smooth', block: 'start'})">Look at another day</button>
+            </div>
         </section>
 
-        <div class="investigate">
-            <div class="investigate-main">
-
-                <section class="tile tile-pad" aria-labelledby="days-title">
-                    <div class="tile-head">
-                        <div>
-                            <h2 class="section-title" id="days-title">Days to look at</h2>
-                            <p class="muted tile-sub">
-                                <span id="kpi-anomalies" class="num">–</span> days of revenue flagged in the last 30 at
-                                <span id="threshold-echo" class="num">2.0σ</span>, plus days with incomplete data.
-                                Pick one, or choose any pair below.
-                            </p>
-                        </div>
-                    </div>
-                    <ul id="flagged-days" class="day-list" aria-label="Flagged days">
-                        <li class="muted">Loading…</li>
-                    </ul>
-
-                    <div class="filters">
-                        <div class="field">
-                            <label class="label" for="current-date">Day</label>
-                            <select id="current-date" class="input"><option value="">Loading…</option></select>
-                        </div>
-                        <div class="field">
-                            <label class="label" for="previous-date">Compared with</label>
-                            <select id="previous-date" class="input"><option value="">Loading…</option></select>
-                        </div>
-                        <div class="field">
-                            <label class="label" for="metric-select">Metric</label>
-                            <select id="metric-select" class="input">
-                                <option value="total_revenue">Total revenue</option>
-                                <option value="order_count">Order count</option>
-                                <option value="avg_order_value">Avg order value</option>
-                            </select>
-                        </div>
-                        <div class="field">
-                            <label class="label" for="threshold-slider">Anomaly threshold</label>
-                            <div class="range-row">
-                                <input type="range" id="threshold-slider" min="1" max="3" step="0.1" value="2" class="range" oninput="updateThresholdLabel(this.value)">
-                                <span id="threshold-label" class="range-value num">2.0σ</span>
-                            </div>
-                        </div>
-                        <div class="filters-actions">
-                            <button type="button" class="btn btn-primary" onclick="applyFilters()">Apply</button>
-                            <button type="button" class="btn btn-quiet" onclick="resetFilters()">Reset</button>
-                        </div>
-                    </div>
-                </section>
-
-                <section class="kpis" aria-label="The selected day">
-                    <div class="tile kpi">
-                        <p class="label">Total revenue</p>
-                        <p id="kpi-revenue" class="kpi-value num">–</p>
-                        <p id="kpi-revenue-change" class="kpi-change"></p>
-                    </div>
-                    <div class="tile kpi">
-                        <p class="label">Orders</p>
-                        <p id="kpi-orders" class="kpi-value num">–</p>
-                        <p id="kpi-orders-change" class="kpi-change"></p>
-                    </div>
-                    <div class="tile kpi">
-                        <p class="label">Avg order value</p>
-                        <p id="kpi-aov" class="kpi-value num">–</p>
-                        <p id="kpi-aov-change" class="kpi-change"></p>
-                    </div>
-                </section>
-
-                <section class="tile tile-pad" aria-labelledby="chart-title">
-                    <div class="tile-head">
-                        <div>
-                            <h2 class="section-title" id="chart-title">Revenue</h2>
-                            <p class="muted tile-sub">Last 60 days · dots mark flagged days, the ring marks the selected day</p>
-                        </div>
-                        <div class="segmented" role="group" aria-label="Chart metric">
-                            <button type="button" onclick="setChartMetric('total_revenue')" class="chart-btn seg-btn is-active" data-metric="total_revenue">Revenue</button>
-                            <button type="button" onclick="setChartMetric('order_count')" class="chart-btn seg-btn" data-metric="order_count">Orders</button>
-                            <button type="button" onclick="setChartMetric('avg_order_value')" class="chart-btn seg-btn" data-metric="avg_order_value">AOV</button>
-                        </div>
-                    </div>
-                    <div class="chart-box"><canvas id="revenueChart" height="110" role="img" aria-label="Daily trend over the last 60 days"></canvas></div>
-                </section>
-
-                <section class="tile tile-pad" aria-labelledby="drivers-title">
-                    <div class="tile-head">
-                        <div>
-                            <h2 class="section-title" id="drivers-title">What drove the change</h2>
-                            <p class="muted tile-sub">Each segment's share of the total change in revenue</p>
-                        </div>
-                        <ul class="legend" aria-label="Legend">
-                            <li><span class="swatch swatch-rise"></span>Segment rose</li>
-                            <li><span class="swatch swatch-fall"></span>Segment fell</li>
-                        </ul>
-                    </div>
-                    <div class="breakdowns">
-                        <div>
-                            <h3 class="subhead">Region</h3>
-                            <div id="geo-breakdown" class="bars"><p class="muted">Loading…</p></div>
-                        </div>
-                        <div>
-                            <h3 class="subhead">Product</h3>
-                            <div id="product-breakdown" class="bars"><p class="muted">Loading…</p></div>
-                        </div>
-                        <div>
-                            <h3 class="subhead">Payment</h3>
-                            <div id="payment-breakdown" class="bars"><p class="muted">Loading…</p></div>
-                        </div>
-                    </div>
-                    <p class="bars-note" id="bars-note"></p>
-                </section>
-
-                <section class="tile tile-pad" aria-labelledby="explanation-title">
-                    <div class="tile-head">
-                        <div>
-                            <h2 class="section-title" id="explanation-title">Explanation</h2>
-                            <p class="muted tile-sub">Written from the breakdown by the narrative layer, no LLM</p>
-                        </div>
-                        <div class="tile-actions">
-                            <button type="button" class="btn btn-quiet" onclick="copyNarrative()">Copy</button>
-                            <button type="button" class="btn btn-quiet" onclick="downloadNarrative()">Download</button>
-                            <button type="button" id="investigate-btn" class="btn btn-primary" onclick="investigateWithAgent()">Investigate with AI agent</button>
-                        </div>
-                    </div>
-                    <div id="narrative" class="prose-box">Loading…</div>
-                    <div id="investigation-result" class="hidden investigation">
-                        <h3 class="subhead">AI investigation</h3>
-                        <p class="muted tile-sub">A LangGraph agent drills into the segments; every cited number is checked against the data</p>
-                        <div id="investigation-content" class="prose-box"></div>
-                    </div>
-                </section>
-
+        <section class="tile tile-pad" aria-labelledby="chart-title">
+            <div class="tile-head">
+                <div>
+                    <h2 class="section-title" id="chart-title">Revenue</h2>
+                    <p class="muted tile-sub">Last 60 days · the ring is the selected day, dots are flagged days</p>
+                </div>
+                <div class="segmented" role="group" aria-label="Chart metric">
+                    <button type="button" onclick="setChartMetric('total_revenue')" class="chart-btn seg-btn is-active" data-metric="total_revenue">Revenue</button>
+                    <button type="button" onclick="setChartMetric('order_count')" class="chart-btn seg-btn" data-metric="order_count">Orders</button>
+                    <button type="button" onclick="setChartMetric('avg_order_value')" class="chart-btn seg-btn" data-metric="avg_order_value">AOV</button>
+                </div>
             </div>
+            <div class="chart-box"><canvas id="revenueChart" height="120" role="img" aria-label="Daily trend over the last 60 days"></canvas></div>
+        </section>
 
-            <aside class="investigate-side" aria-labelledby="scorecard-title">
-                <section class="tile tile-pad scorecard">
-                    <h2 class="section-title" id="scorecard-title">How the agents score</h2>
-                    {% if scorecard %}
-                    <p class="muted tile-sub">The latest eval run of each, with its denominator. The weak numbers stay in.</p>
-                    {% for group in scorecard %}
-                    <div class="score-group">
-                        <h3 class="subhead">{{ group.title }}</h3>
-                        <dl class="scores">
-                            {% for row in group.rows %}
-                            <div class="score">
-                                <dt>{{ row.label }}</dt>
-                                <dd><span class="score-figure num">{{ row.figure }}</span><span class="score-context">{{ row.context }}</span></dd>
-                            </div>
-                            {% endfor %}
-                        </dl>
-                        <p class="score-meta">Run {{ group.date }} · commit <span class="mono">{{ group.git_sha }}</span></p>
+        <section class="tile tile-pad" aria-labelledby="drivers-title">
+            <div class="tile-head">
+                <div>
+                    <h2 class="section-title" id="drivers-title">What drove the revenue change</h2>
+                    <p class="muted tile-sub">Each segment's share of the total change</p>
+                </div>
+                <ul class="legend" aria-label="Legend">
+                    <li><span class="swatch swatch-rise"></span>Segment rose</li>
+                    <li><span class="swatch swatch-fall"></span>Segment fell</li>
+                </ul>
+            </div>
+            <div class="breakdowns">
+                <div>
+                    <h3 class="subhead">Region</h3>
+                    <div id="geo-breakdown" class="bars"><p class="muted">Loading…</p></div>
+                </div>
+                <div>
+                    <h3 class="subhead">Product</h3>
+                    <div id="product-breakdown" class="bars"><p class="muted">Loading…</p></div>
+                </div>
+                <div>
+                    <h3 class="subhead">Payment</h3>
+                    <div id="payment-breakdown" class="bars"><p class="muted">Loading…</p></div>
+                </div>
+            </div>
+            <p class="bars-note" id="bars-note"></p>
+        </section>
+
+        <section class="tile tile-pad" id="other-days" aria-labelledby="days-title">
+            <h2 class="section-title" id="days-title">Other days to look at</h2>
+            <p class="muted tile-sub">
+                <span id="kpi-anomalies" class="num">–</span> revenue days flagged in the last 30 at
+                <span id="threshold-echo" class="num">2.0σ</span>, plus days with incomplete data.
+                {% with f1=scores.detection.rows.0 %}{% if f1 %}Detection scores {{ f1.figure }} F1 {{ f1.context }}.{% endif %}{% endwith %}
+            </p>
+            <ul id="flagged-days" class="day-list" aria-label="Flagged days">
+                <li class="muted">Loading…</li>
+            </ul>
+
+            <details class="disclosure">
+                <summary>Choose any two days, metric or threshold</summary>
+                <div class="filters">
+                    <div class="field">
+                        <label class="label" for="current-date">Day</label>
+                        <select id="current-date" class="input"><option value="">Loading…</option></select>
                     </div>
-                    {% endfor %}
-                    <button type="button" class="link-btn score-link" onclick="showTab('architecture')">How the evals work</button>
-                    {% else %}
-                    <p class="muted tile-sub">No eval results are available on this server.</p>
-                    {% endif %}
-                </section>
-            </aside>
-        </div>
+                    <div class="field">
+                        <label class="label" for="previous-date">Compared with</label>
+                        <select id="previous-date" class="input"><option value="">Loading…</option></select>
+                    </div>
+                    <div class="field">
+                        <label class="label" for="metric-select">Metric</label>
+                        <select id="metric-select" class="input">
+                            <option value="total_revenue">Total revenue</option>
+                            <option value="order_count">Order count</option>
+                            <option value="avg_order_value">Avg order value</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label class="label" for="threshold-slider">Anomaly threshold</label>
+                        <div class="range-row">
+                            <input type="range" id="threshold-slider" min="1" max="3" step="0.1" value="2" class="range" oninput="updateThresholdLabel(this.value)">
+                            <span id="threshold-label" class="range-value num">2.0σ</span>
+                        </div>
+                    </div>
+                    <div class="filters-actions">
+                        <button type="button" class="btn btn-primary" onclick="applyFilters()">Apply</button>
+                        <button type="button" class="btn btn-quiet" onclick="resetFilters()">Reset</button>
+                    </div>
+                </div>
+            </details>
 
-        <section class="tile tile-pad run-panel" aria-labelledby="run-title">
-            <div>
-                <h2 class="section-title" id="run-title">Run the pipeline</h2>
-                <p class="muted tile-sub">Detect, decompose and narrate the latest day. "Send alert" writes to the local outbox.</p>
-            </div>
-            <div class="tile-actions">
-                <button type="button" class="btn btn-secondary" onclick="runPipeline(false)">Run analysis</button>
-                <button type="button" class="btn btn-secondary" onclick="runPipeline(true)">Run and send alert</button>
-            </div>
-            <div id="pipeline-status" class="muted run-status" role="status"></div>
+            <details class="disclosure">
+                <summary>Read the generated alert text</summary>
+                <p class="muted tile-sub" style="margin-top: var(--space-3);">Written from the breakdown by the narrative layer, no LLM.</p>
+                <div id="narrative" class="prose-box">Loading…</div>
+                <div class="tile-actions" style="margin-top: var(--space-3);">
+                    <button type="button" class="btn btn-quiet" onclick="copyNarrative()">Copy</button>
+                    <button type="button" class="btn btn-quiet" onclick="downloadNarrative()">Download</button>
+                </div>
+            </details>
         </section>
 
     </main>

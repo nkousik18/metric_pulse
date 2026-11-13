@@ -22,8 +22,10 @@
             loadNarrative();
         }
         
-        // The actions tab reloads every time it opens: proposals expire and change state.
-        if (tabName === 'actions') {
+        // The agents tab holds the approval queue, which reloads every time it opens: proposals
+        // expire and change state.
+        if (tabName === 'agents') {
+            updateAgentDay();
             loadActions();
         }
 
@@ -102,9 +104,21 @@
                 <strong>${escapeHtml(formatDay(item.date))} \u00b7 ${escapeHtml(METRIC_NAMES[item.metric] || item.metric)}</strong>
                 <span>${escapeHtml(item.note)}</span>
             </button></li>`).join('');
+
+        const agentList = document.getElementById('agent-days');
+        if (agentList) {
+            const recorded = items.map((item, i) => ({ item, i })).filter(x => x.item.investigate);
+            agentList.classList.toggle('hidden', !recorded.length);
+            agentList.innerHTML = recorded.map(({ item, i }) => `
+                <li><button type="button" class="day-chip" onclick="selectFlaggedDay(${i}, true)"
+                            aria-pressed="${item.date === current && item.metric === metric}">
+                    <strong>${escapeHtml(formatDay(item.date))} \u00b7 ${escapeHtml(METRIC_NAMES[item.metric] || item.metric)}</strong>
+                    <span>${escapeHtml(item.note)}</span>
+                </button></li>`).join('');
+        }
     }
 
-    function selectFlaggedDay(index) {
+    function selectFlaggedDay(index, fromAgents) {
         const item = flaggedDays()[index];
         if (!item || !metricsData.length) return;
         const at = metricsData.findIndex(row => row.metric_date === item.date);
@@ -114,8 +128,74 @@
         document.getElementById('previous-date').value = previous;
         selectMetric(item.metric);
         applyFilters();
-        if (item.investigate) investigateWithAgent();
-        document.getElementById('kpi-revenue').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (fromAgents) {
+            updateAgentDay();
+            investigateWithAgent();
+        } else {
+            document.getElementById('answer-headline').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+
+    // --- The answer block: the one focal point of Overview (docs/ui-redesign-scope.md §5) ---
+    const METRIC_LABELS = { total_revenue: 'Revenue', order_count: 'Orders', avg_order_value: 'Average order value' };
+    const DIMENSION_NAMES = { geography: 'region', product: 'product', payment: 'payment' };
+
+    function formatMetricValue(metric, value) {
+        const n = Number(value);
+        return metric === 'order_count'
+            ? n.toLocaleString('en-US')
+            : '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function updateAnswer(latest, previous) {
+        const metric = (document.getElementById('metric-select') || {}).value || 'total_revenue';
+        const head = document.getElementById('answer-headline');
+        const sub = document.getElementById('answer-sub');
+        if (!head || !latest || !previous) return;
+        const now = Number(latest[metric]), before = Number(previous[metric]);
+        const change = before ? (now - before) / before * 100 : NaN;
+        const verb = !isFinite(change) ? 'changed' : (change >= 0 ? 'rose' : 'fell');
+        head.textContent = isFinite(change) ? `${METRIC_LABELS[metric]} ${verb} ${Math.abs(change).toFixed(1)}%` : `${METRIC_LABELS[metric]} ${verb}`;
+        sub.textContent = `on ${formatDay(latest.metric_date)}, compared with ${formatDay(previous.metric_date)} · ` +
+            `${formatMetricValue(metric, before)} \u2192 ${formatMetricValue(metric, now)}`;
+    }
+
+    function updateDrivers(dims) {
+        const el = document.getElementById('answer-drivers');
+        if (!el) return;
+        const tops = Object.entries(dims || {})
+            .map(([dim, d]) => ({ dim, c: (d.top_contributors || [])[0] }))
+            .filter(x => x.c)
+            .sort((a, b) => Math.abs(b.c.contribution_pct) - Math.abs(a.c.contribution_pct))
+            .slice(0, 2);
+        if (!tops.length) { el.textContent = ''; return; }
+        const metric = (document.getElementById('metric-select') || {}).value;
+        const part = x => `${x.c.segment} (${DIMENSION_NAMES[x.dim] || x.dim}, ${Math.abs(x.c.contribution_pct).toFixed(0)}% of the change)`;
+        el.textContent = (metric && metric !== 'total_revenue' ? 'In revenue, mostly ' : 'Mostly ') +
+            tops.map(part).join(' and ') + '.';
+    }
+
+    function isRecordedInvestigation(date, metric) {
+        return (window.extraFlaggedDays || []).some(i => i.investigate && i.date === date && i.metric === metric);
+    }
+
+    // The agent's explanation lives on the AI agents tab. It runs by itself only when the day has a
+    // recorded run (the static replay); on a live server a click is the user's choice to spend an LLM call.
+    function openInvestigation() {
+        showTab('agents');
+        const section = document.getElementById('agent-investigation');
+        if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const day = document.getElementById('current-date').value;
+        const metric = document.getElementById('metric-select').value;
+        if (isRecordedInvestigation(day, metric)) investigateWithAgent();
+    }
+
+    function updateAgentDay() {
+        const el = document.getElementById('agent-day');
+        const cur = (document.getElementById('current-date') || {}).value;
+        const prev = (document.getElementById('previous-date') || {}).value;
+        const metric = (document.getElementById('metric-select') || {}).value;
+        if (el && cur && prev) el.textContent = `${formatDay(cur)} vs ${formatDay(prev)}, ${(METRIC_LABELS[metric] || metric).toLowerCase()}`;
     }
 
     // Dashboard functionality
@@ -166,6 +246,7 @@
     function updateKPIs(latest, previous) {
         const revenueEl = document.getElementById('kpi-revenue');
         if (!revenueEl) return;
+        updateAnswer(latest, previous);
         
         revenueEl.textContent = '$' + parseFloat(latest.total_revenue).toLocaleString('en-US', {minimumFractionDigits: 2});
         const revChange = ((latest.total_revenue - previous.total_revenue) / previous.total_revenue * 100);
@@ -187,7 +268,7 @@
         const up = change >= 0;
         const sign = up ? '+' : '\u2212';
         const tri = up ? 'M5 1 9 8H1z' : 'M5 9 1 2h8z';
-        el.innerHTML = `<span class="delta ${up ? 'delta-up' : 'delta-down'}"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="${tri}" fill="currentColor"/></svg>${sign}${Math.abs(change).toFixed(1)}%</span><span class="delta-note">vs compared day</span>`;
+        el.innerHTML = `<span class="delta ${up ? 'delta-up' : 'delta-down'}"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="${tri}" fill="currentColor"/></svg>${sign}${Math.abs(change).toFixed(1)}%</span>`;
     }
 
     // Single series, so no legend box (the title names it); flagged days are 8px dots with a 2px
@@ -304,7 +385,7 @@
             
             if (result.status === 'success') {
                 const anomaliesEl = document.getElementById('kpi-anomalies');
-                if (anomaliesEl) anomaliesEl.textContent = result.data.anomaly_count;
+                if (anomaliesEl) anomaliesEl.textContent = result.data.anomaly_count === 0 ? 'No' : result.data.anomaly_count;
                 const echo = document.getElementById('threshold-echo');
                 if (echo) echo.textContent = parseFloat(threshold).toFixed(1) + '\u03c3';
                 lastDetection = result.data;
@@ -341,6 +422,7 @@
                     dims.product && renderBreakdown('product-breakdown', dims.product.top_contributors),
                     dims.payment && renderBreakdown('payment-breakdown', dims.payment.top_contributors),
                 ];
+                updateDrivers(dims);
                 const note = document.getElementById('bars-note');
                 if (note) note.textContent = scales.some(x => x > 100)
                     ? 'A share above 100% means other segments in that dimension moved the opposite way; each column has its own scale.'

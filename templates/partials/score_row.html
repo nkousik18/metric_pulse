@@ -1,0 +1,14 @@
+{# One agent's eval scores (observability/scorecard.py). `group` is scores.<eval>, or empty. #}
+{% if group %}
+<dl class="score-row" aria-label="Latest eval scores">
+    {% for row in group.rows %}
+    <div class="score-cell">
+        <dt>{{ row.label }} <span class="score-context">{{ row.context }}</span></dt>
+        <dd class="score-figure num">{{ row.figure }}</dd>
+    </div>
+    {% endfor %}
+</dl>
+<p class="score-meta">Eval run {{ group.date }} at commit <span class="mono">{{ group.git_sha }}</span></p>
+{% else %}
+<p class="score-meta">No eval results are available on this server.</p>
+{% endif %}

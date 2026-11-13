@@ -63,3 +63,9 @@ def build_scorecard(latest_rows: Dict[str, Dict]) -> List[Dict]:
             groups.append({'eval': eval_name, 'title': title, 'rows': rows,
                            'date': (row.get('ts') or '')[:10], 'git_sha': row.get('git_sha')})
     return groups
+
+
+def scorecard_context(latest_rows: Dict[str, Dict]) -> Dict:
+    """Template context: the groups in order, and the same groups by eval name (`scores.action`)."""
+    groups = build_scorecard(latest_rows)
+    return {'scorecard': groups, 'scores': {g['eval']: g for g in groups}}

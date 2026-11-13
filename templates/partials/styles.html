@@ -271,17 +271,6 @@
     .swatch-rise { background: var(--rise); }
     .swatch-fall { background: var(--fall); }
 
-    /* --- investigate layout: analysis + scorecard --- */
-    .investigate { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: var(--gap-tiles); align-items: start; }
-    .investigate-main { display: flex; flex-direction: column; gap: var(--gap-tiles); min-width: 0; }
-    .investigate-side { position: sticky; top: calc(var(--header-h) + var(--space-5)); }
-    @media (max-width: 1080px) {
-        .investigate { grid-template-columns: 1fr; }
-        .investigate-side { position: static; }
-    }
-    .page > .intro + .investigate { margin-top: var(--space-7); }
-    .page > .investigate + section { margin-top: var(--gap-tiles); }
-
     /* --- flagged days --- */
     .day-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-2); }
     .day-chip {
@@ -294,18 +283,6 @@
     .day-chip[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
     .day-chip strong { font-weight: 600; font-variant-numeric: tabular-nums; }
     .day-chip span { font-size: var(--text-xs); color: var(--ink-3); }
-
-    /* --- scorecard --- */
-    .scorecard .tile-sub { margin-bottom: var(--space-2); }
-    .score-group { padding-top: var(--space-4); margin-top: var(--space-4); border-top: 1px solid var(--border); }
-    .score-group .subhead { margin-bottom: var(--space-2); }
-    .scores { margin: 0; display: flex; flex-direction: column; gap: var(--space-3); }
-    .score dt { font-size: var(--text-sm); color: var(--ink-2); line-height: 1.4; }
-    .score dd { margin: 2px 0 0; display: flex; align-items: baseline; gap: var(--space-2); }
-    .score-figure { font-size: var(--text-xl); font-weight: 650; letter-spacing: -0.01em; color: var(--ink); }
-    .score-context { font-size: var(--text-xs); color: var(--ink-3); }
-    .score-meta { font-size: var(--text-xs); color: var(--ink-3); margin: var(--space-3) 0 0; }
-    .score-link { margin-top: var(--space-5); font-size: var(--text-sm); }
 
     /* --- narrative and investigation --- */
     .prose-box { background: var(--surface-2); border-radius: var(--radius); padding: var(--space-4) var(--space-5); color: var(--ink-2); line-height: 1.65; max-width: 100%; }
@@ -321,6 +298,64 @@
     .run-status { grid-column: 1 / -1; font-size: var(--text-sm); }
     .run-status:empty { display: none; }
     @media (max-width: 640px) { .run-panel { grid-template-columns: 1fr; } }
+
+    /* --- narrow pages (Overview, AI agents): one column, one reading line --- */
+    .page-narrow { max-width: 960px; }
+    .page-narrow > * + * { margin-top: var(--gap-tiles); }
+
+    /* --- Overview: intro and the answer, the one focal point --- */
+    .overview-intro { max-width: 720px; }
+    .overview-title { font-size: var(--text-lg); font-weight: 600; color: var(--ink-3); margin: 0; letter-spacing: -0.01em; }
+    .overview-intro .lede { margin-top: var(--space-2); font-size: var(--text-base); color: var(--ink-2); }
+    .page-narrow > .answer { margin-top: var(--space-6); }
+    .answer { padding: var(--space-2) 0 var(--space-6); }
+    .answer-headline { font-size: clamp(36px, 6vw, 64px); line-height: 1.02; font-weight: 700; letter-spacing: -0.035em; margin: 0; color: var(--ink); text-wrap: balance; }
+    .answer-sub { font-size: var(--text-lg); color: var(--ink-2); margin: var(--space-3) 0 0; font-variant-numeric: tabular-nums; }
+    .answer-drivers { font-size: var(--text-base); color: var(--ink-2); margin: var(--space-2) 0 0; max-width: 68ch; }
+    .answer-drivers:empty { display: none; }
+    .answer-stats { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-6); margin: var(--space-5) 0 0; padding: 0; }
+    .answer-stats div { display: flex; align-items: baseline; gap: var(--space-2); }
+    .answer-stats dt { font-size: var(--text-sm); color: var(--ink-3); }
+    .answer-stats dd { margin: 0; font-size: var(--text-sm); font-weight: 600; color: var(--ink); display: inline-flex; gap: var(--space-2); align-items: baseline; }
+    .answer-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-6); }
+    .btn-lg { font-size: var(--text-base); padding: 12px 18px; }
+
+    /* --- disclosures --- */
+    .disclosure { border-top: 1px solid var(--border); margin-top: var(--space-5); padding-top: var(--space-4); }
+    .disclosure summary { cursor: pointer; font-size: var(--text-sm); font-weight: 600; color: var(--ink-2); list-style: none; display: flex; align-items: center; gap: var(--space-2); }
+    .disclosure summary::-webkit-details-marker { display: none; }
+    .disclosure summary::before { content: ""; width: 7px; height: 7px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(-45deg); transition: transform 150ms var(--ease-out); }
+    .disclosure[open] summary::before { transform: rotate(45deg); }
+    .disclosure summary:hover { color: var(--ink); }
+    .disclosure .filters { margin-top: var(--space-4); padding-top: 0; border-top: 0; }
+
+    /* --- AI agents tab --- */
+    .agents-intro .lede { font-size: var(--text-base); }
+    .jump { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-5); }
+    .jump a { font-size: var(--text-sm); color: var(--ink-2); padding: 6px 12px; border: 1px solid var(--border-strong); border-radius: 999px; background: var(--surface); }
+    .jump a:hover { text-decoration: none; background: var(--surface-2); color: var(--ink); }
+    .agent { scroll-margin-top: calc(var(--header-h) + var(--space-4)); padding-top: var(--space-6); border-top: 1px solid var(--border); }
+    .page-narrow > .agent { margin-top: var(--space-7); }
+    .agent-head { margin-bottom: var(--space-5); }
+    .agent-what { color: var(--ink-2); max-width: 68ch; margin: var(--space-2) 0 0; }
+    .score-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: var(--space-4); margin: var(--space-5) 0 0; padding: 0; }
+    .score-cell { display: flex; flex-direction: column-reverse; justify-content: flex-end; gap: 2px; }
+    .score-cell dt { font-size: var(--text-sm); color: var(--ink-2); line-height: 1.4; }
+    .score-cell dd { margin: 0; }
+    .score-figure { font-size: var(--text-2xl); font-weight: 650; letter-spacing: -0.02em; color: var(--ink); line-height: 1.1; }
+    .score-context { display: block; font-size: var(--text-xs); color: var(--ink-3); }
+    .score-meta { font-size: var(--text-xs); color: var(--ink-3); margin: var(--space-3) 0 0; }
+    #agent-days { margin-bottom: var(--space-4); }
+    .investigation { margin-top: var(--space-4); }
+
+    /* --- approvals --- */
+    .approvals-head { margin: var(--space-6) 0 var(--space-3); }
+    .token-row { display: flex; gap: var(--space-2); flex-wrap: wrap; }
+    .token-row .input { flex: 1; min-width: 200px; }
+    .table-wrap { overflow-x: auto; }
+    .data-table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
+    .data-table th { text-align: left; font-weight: 600; color: var(--ink-3); font-size: var(--text-xs); padding: 10px 16px; border-bottom: 1px solid var(--border); background: var(--surface-2); }
+    .data-table td { padding: 8px 16px; color: var(--ink-2); vertical-align: top; }
 
     /* --- about --- */
     .about { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: var(--space-7); align-items: start; }
@@ -348,11 +383,6 @@
     .replay-banner-inner { max-width: var(--page-max); margin: 0 auto; padding: var(--space-2) var(--space-5); }
     .replay-banner a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--border-strong); }
     .replay-banner strong { color: var(--ink); font-weight: 600; }
-
-    /* Recorded runs (static replay only, until U2 folds it into Investigate): wide tables scroll
-       inside their card instead of widening the page. */
-    #recorded-root, #recorded-root section, #recorded-root section > div { min-width: 0; max-width: 100%; }
-    #recorded-root .bg-white { overflow-x: auto; }
 
     /* --- footer --- */
     .site-footer { border-top: 1px solid var(--border); background: var(--surface); }

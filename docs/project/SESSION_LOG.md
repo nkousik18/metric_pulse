@@ -5,6 +5,27 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-12 (redesign, U2 revised) — Overview distilled; agents get their own tab
+
+**What happened:** Kousik found the U2 page "flooded" with nowhere for the eye to go and asked for
+the agents in a separate tab. Used the Impeccable distill method (one purpose per screen, one focal
+point, progressive disclosure) and offered two layouts; Kousik chose "one answer + agents tab".
+Overview now leads with the answer for the selected day ("Revenue fell 90.6%", dates and values,
+the top two drivers composed from the decomposition, three small stats) and one primary button;
+then the trend, the drivers, and "Other days to look at" with the any-pair controls and the alert
+text in disclosures. New AI agents tab (`partials/agents.html`): one section per agent with its own
+scores (`partials/score_row.html`, `scores` context from `scorecard_context()`), the investigation
+runner (recorded days as chips on the static site; on a live server the agent only runs on a
+click), the approval queue (actions partial rebuilt as a section), and the Superstore onboarding run
+(`replay.js` renders it there). The Run panel moved to How it's built; the Recorded runs tab and the
+builder's nav/tab insertion are gone. Checked in Chrome at 1440 px and 375 px: the answer reads
+first, the button replays the Sep 3 investigation, the walk-through plays through in the agents
+tab, no tab overflows; detector 0 findings on the changed templates; 399 tests pass.
+
+**Next:** Kousik's review of the revised U2; merge #55 with his OK; then U3.
+
+---
+
 ## 2026-11-12 (redesign, U2) — U1 merged; Investigate rebuilt around a day list and a scorecard
 
 **What happened:** Kousik approved; merged #52, then U1 as #54 (#53 auto-closed when #52's branch

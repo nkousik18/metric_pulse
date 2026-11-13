@@ -26,7 +26,7 @@
 
     <header class="site-header">
         <div class="site-header-inner">
-            <button type="button" class="wordmark" onclick="showTab('dashboard')" aria-label="MetricPulse, go to Investigate">
+            <button type="button" class="wordmark" onclick="showTab('dashboard')" aria-label="MetricPulse, go to Overview">
                 <svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true">
                     <rect width="20" height="20" rx="5" fill="currentColor"/>
                     <path d="M4 11h3l1.6-4.5L11.4 14 13 9h3" fill="none" stroke="var(--surface)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
@@ -34,8 +34,8 @@
                 MetricPulse
             </button>
             <nav class="site-nav" aria-label="Sections">
-                <button onclick="showTab('dashboard')" id="tab-dashboard" class="nav-tab tab-btn tab-active">Investigate</button>
-                <button onclick="showTab('actions')" id="tab-actions" class="nav-tab tab-btn">Approvals</button>
+                <button onclick="showTab('dashboard')" id="tab-dashboard" class="nav-tab tab-btn tab-active">Overview</button>
+                <button onclick="showTab('agents')" id="tab-agents" class="nav-tab tab-btn">AI agents</button>
                 <button onclick="showTab('architecture')" id="tab-architecture" class="nav-tab tab-btn">How it's built</button>
                 <button onclick="showTab('about')" id="tab-about" class="nav-tab tab-btn">About</button>
             </nav>
@@ -52,7 +52,7 @@
     </header>
 
     {% include 'partials/dashboard.html' %}
-    {% include 'partials/actions.html' %}
+    {% include 'partials/agents.html' %}
     {% include 'partials/architecture.html' %}
     {% include 'partials/about.html' %}
 

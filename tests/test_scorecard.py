@@ -67,5 +67,5 @@ def test_the_home_page_renders_the_scorecard_from_the_ledger():
     response = Client().get('/')
     assert response.status_code == 200
     html = response.content.decode()
-    assert 'How the agents score' in html
-    assert html.count('class="score"') == sum(len(items) for _, _, items in SCORECARD)
+    agent_rows = sum(len(items) for name, _, items in SCORECARD if name != 'detection')
+    assert html.count('class="score-cell"') == agent_rows   # one score row per agent section

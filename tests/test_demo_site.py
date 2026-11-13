@@ -161,16 +161,16 @@ def test_the_site_builds_from_the_recordings_with_replay_loaded_before_the_spa(t
     page = (out / 'index.html').read_text()
     assert page.index('<script src="replay.js"></script>') < page.index('// Tab switching')
     assert _json('manifest.json')['git_sha'] in page
-    assert 'id="content-recorded"' in page and 'id="tab-recorded"' in page
+    assert 'id="content-agents"' in page and 'id="tab-recorded"' not in page
     assert '{%' not in page and '{{' not in page
-    assert 'How the agents score' in page and page.count('class="score"') >= 8   # recorded ledger rows
+    assert page.count('class="score-cell"') == 7   # the agents' rows from the recorded ledger (detection isn't an agent)
     assert (out / 'replay.js').exists() and (out / '.nojekyll').exists()
     assert (out / 'data' / 'index.json').read_text() == (REC / 'index.json').read_text()
 
 
 def test_the_build_fails_loudly_when_an_anchor_moves():
     with pytest.raises(site.BuildError):
-        site.insert_once('<html></html>', site.NAV_ANCHOR, 'x')
+        site.insert_once('<html></html>', site.BODY_ANCHOR, 'x')
 
 
 # --- recorder helpers ---

@@ -49,12 +49,14 @@ LinkedIn. An engineer can reach the depth (approvals, architecture, evals) in on
 
 ## 5. Information architecture
 
+*(Revised 2026-11-12 after Kousik found the first U2 build "flooded": one focal point per screen.)*
+
 | Tab | Content | Replaces |
 |---|---|---|
-| **Investigate** (default) | Intro line (what it is, who built it, LinkedIn). Flagged-days list (the three recorded cases first, then the 60 days). The selected day: headline change, trend with the day marked, diverging contribution chart per dimension, the deterministic narrative, and the agent's cited investigation. Eval scorecard beside it. Pipeline controls tucked into a secondary "Run" menu. | Home, Dashboard, Recorded runs |
-| **Approvals** | The Action Agent queue: proposal, cited evidence, exact payload, decision; executed actions with undo; the log as a timeline. The static site's walk-through guide stays. | Pending actions |
-| **How it's built** | The pipeline as one diagram of the real local stack (DuckDB, dbt, detection, decomposition, three agents, outbox), the eval table with every metric and denominator, Superstore onboarding results, links to the repo docs. | Architecture, parts of Recorded runs |
-| **About** | Bio facts (MS completed May 2026, Capgemini, B.Tech), contact links. No contact form. | About |
+| **Overview** (default) | One line on what MetricPulse is, then **the answer** for the selected day as the focal point ("Revenue fell 90.6%", the dates and values, the top two drivers, revenue/orders/AOV), one primary button to the agent's explanation. Below: the 60-day trend, "What drove the change", and "Other days to look at" with the any-pair controls and the generated alert text folded into disclosures. | Home, Dashboard |
+| **AI agents** | One section per agent (investigation, action and approvals, onboarding): what it does, its own eval scores with denominators, and its live part (run an investigation; the approval queue; the Superstore onboarding run). | Pending actions, Recorded runs, the scorecard |
+| **How it's built** | The pipeline diagram (real local stack), the full eval table, the Run panel, links to the repo docs. | Architecture |
+| **About** | Bio facts, contact links. | About |
 
 The top bar carries the wordmark, the four tabs, and a LinkedIn button. On a phone the tabs become
 a scrollable segmented control; nothing overflows at 375 px.
@@ -115,4 +117,5 @@ Each milestone is one PR through the usual branch → PR → CI → squash-merge
 | 2026-11-12 | System fonts, plain CSS, no Tailwind CDN or Font Awesome; light default with OS dark mode | Claude (from R2, R5 and the visitor's scene); open to change on review |
 | 2026-11-12 | Tailwind and Font Awesome come out in U3, not U1: until then the unconverted partials depend on them. Dark mode waits for the same reason | Claude (found building U1) |
 | 2026-11-12 | U2 as built: the eval scorecard is rendered into the page from the ledger (Django `HomeView` at request time; the static build from the recorded ledger), not fetched, so no API change (R4). Rose/fell uses the dataviz reference diverging pair, blue `#2a78d6` / red `#e34948` (validated light and dark), replacing U1's green/red; bar values in ink. The anomaly count moved into "Days to look at". Onboarding and eval details stay on the static Recorded runs tab until U3 moves them to How it's built | Claude |
+| 2026-11-12 | After the first U2 build ("flooded, my eyes are not going to anything specific; keep agents in a separate tab"): distilled with the Impeccable distill method. Overview keeps one focal answer; the agents, their scores and Approvals move to an AI agents tab; the Run panel moves to How it's built; the Recorded runs tab is gone (onboarding renders in the agents tab); detection's F1 sits next to the flagged days | Kousik chose "one answer + agents tab" over "just move agents out"; Claude implemented |
 | 2026-11-12 | After seeing U1: no purple anywhere, no emoji, more space between tiles, tiles raised with a soft shadow, and a short project intro at the top. Done in U1: the dashboard partial rebuilt (intro, raised tiles, KPI deltas, breakdown bars on one honest scale coloured by whether each segment rose or fell, emoji dropped from narratives on display); approvals and architecture swapped off purple and given the same tile shadow until U3 | Kousik (feedback); Claude (implementation) |
