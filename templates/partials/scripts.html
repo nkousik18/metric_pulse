@@ -14,8 +14,10 @@
             tabBtn.setAttribute('aria-current', 'page');
         }
         
-        // Load dashboard data when switching to dashboard
-        if (tabName === 'dashboard' && metricsData.length === 0) {
+        // The day data loads on the first tab opened, whichever it is: the agents tab needs the
+        // selected day too (a #agents link lands there first).
+        if (metricsData.length === 0 && !window.__dayDataRequested) {
+            window.__dayDataRequested = true;
             loadMetrics();
             loadAnomalies();
             loadDecomposition();
@@ -191,6 +193,23 @@
         head.textContent = isFinite(change) ? `${METRIC_LABELS[metric]} ${verb} ${Math.abs(change).toFixed(1)}%` : `${METRIC_LABELS[metric]} ${verb}`;
         sub.textContent = `on ${formatDay(latest.metric_date)}, compared with ${formatDay(previous.metric_date)} · ` +
             `${formatMetricValue(metric, before)} \u2192 ${formatMetricValue(metric, now)}`;
+        updateAnswerWarning();
+    }
+
+    // When the freshness check flags the selected day, the answer says so where the eye already is:
+    // a drop on an incomplete day is a data gap first (PRODUCT.md principle 5).
+    function updateAnswerWarning() {
+        const el = document.getElementById('answer-warning');
+        if (!el) return;
+        const day = (document.getElementById('current-date') || {}).value;
+        const f = lastDetection && lastDetection.freshness;
+        const stale = f && f.status === 'stale' && f.date === day;
+        el.classList.toggle('hidden', !stale);
+        if (stale) {
+            el.textContent = `Incomplete data: only ${Number(f.volume).toLocaleString('en-US')} order${f.volume === 1 ? ' was' : 's were'} recorded ` +
+                `this day against about ${Math.round(f.median).toLocaleString('en-US')} usually, so the freshness check flags it. ` +
+                `Read the drop as a data gap before reading it as a business change.`;
+        }
     }
 
     function updateDrivers(dims) {
@@ -333,7 +352,7 @@
         const flagged = new Set(flaggedDays().filter(i => i.metric === metric).map(i => i.date));   // this metric's flags only
         const selected = (document.getElementById('current-date') || {}).value;
         const accent = cssVar('--accent'), surface = cssVar('--surface'), ink = cssVar('--ink');
-        const radius = data.map(d => d.metric_date === selected ? 6 : (flagged.has(d.metric_date) ? 4 : 0));
+        const radius = data.map(d => d.metric_date === selected ? 7 : (flagged.has(d.metric_date) ? 5 : 0));
 
         currentChart = new Chart(ctx, {
             type: 'line',
@@ -345,7 +364,7 @@
                     borderColor: accent,
                     backgroundColor: withAlpha(accent, 0.07),
                     fill: true,
-                    tension: 0.3,
+                    cubicInterpolationMode: 'monotone',   // never overshoots a daily value
                     borderWidth: 2,
                     pointRadius: radius,
                     pointHoverRadius: 5,
@@ -358,6 +377,7 @@
             plugins: [crosshair],
             options: {
                 responsive: true,
+                maintainAspectRatio: false,   // the .chart-box sets the height, so phones keep a readable plot
                 interaction: { mode: 'index', intersect: false },
                 plugins: {
                     legend: { display: false },
@@ -419,11 +439,12 @@
             
             if (result.status === 'success') {
                 const anomaliesEl = document.getElementById('kpi-anomalies');
-                if (anomaliesEl) anomaliesEl.textContent = result.data.anomaly_count === 0 ? 'No' : result.data.anomaly_count;
+                if (anomaliesEl) anomaliesEl.textContent = result.data.anomaly_count === 0 ? 'none' : result.data.anomaly_count;
                 const echo = document.getElementById('threshold-echo');
                 if (echo) echo.textContent = parseFloat(threshold).toFixed(1) + '\u03c3';
                 lastDetection = result.data;
                 renderFlaggedDays();
+                updateAnswerWarning();
                 if (metricsData.length) drawChart(metricsData.slice().reverse(), selectedMetric);
             }
         } catch (error) {
@@ -785,7 +806,7 @@
             el.innerHTML = '<div class="tile tile-pad empty-state">No proposals are waiting. New ones come from <code>python -m action_agent.cli propose</code>.</div>';
             return;
         }
-        el.innerHTML = items.map(item => {
+        el.innerHTML = items.map((item, index) => {
             const w = item.waiting_on || {};
             const dry = w.dry_run || {};
             const id = escapeHtml(item.proposal_id);
@@ -800,6 +821,9 @@
                 </div>
                 ${errors ? `<div class="callout callout-error"><strong>Your last edit was rejected by policy:</strong><ul>${errors}</ul></div>` : ''}
                 <p class="proposal-narrative">${escapeHtml(item.narrative)}</p>
+                <details class="proposal-more"${index === 0 || errors ? ' open' : ''}>
+                <summary>Evidence, payload and decision</summary>
+                <div class="proposal-body">
                 ${citations ? `<div class="proposal-block"><p class="label">Cited evidence</p><ul class="bullets">${citations}</ul></div>` : ''}
                 <p class="proposal-block"><span class="label-inline">Target</span> ${escapeHtml(describeTarget(dry.target))}</p>
                 <details class="disclosure proposal-payload"><summary>Exact payload (what will run)</summary><div class="payload">${renderPayload(dry.payload)}</div></details>
@@ -816,10 +840,12 @@
                 </div>
                 <div class="proposal-actions">
                     <button onclick="decideAction('${id}', 'approve')" class="btn btn-primary">Approve</button>
-                    <button onclick="decideAction('${id}', 'edit')" class="btn btn-secondary">Approve edited params</button>
+                    <button onclick="decideAction('${id}', 'edit')" class="btn btn-secondary">Approve with edits</button>
                     <button onclick="decideAction('${id}', 'reject')" class="btn btn-danger">Reject</button>
                 </div>
                 <p id="result-${id}" class="status-text"></p>
+                </div>
+                </details>
                 <p class="proposal-meta">Proposed by ${escapeHtml(item.proposer)} \u00b7 expires ${escapeHtml(w.expires_at || item.expires_at)} \u00b7 <span class="mono">${escapeHtml(item.proposal_id)}</span></p>
             </article>`;
         }).join('');

@@ -19,7 +19,7 @@
     'use strict';
 
     const TOKEN_KEY = 'metricpulse.approverToken';   // scripts.html's APPROVER_TOKEN_KEY
-    const VERB_LABEL = { approve: 'Approve', edit: 'Approve edited params', reject: 'Reject', undo: 'Undo' };
+    const VERB_LABEL = { approve: 'Approve', edit: 'Approve with edits', reject: 'Reject', undo: 'Undo' };
 
     // --- request keys (mirror of demo/keys.py) ---
 
@@ -203,7 +203,7 @@
                     ? `Next recorded step: ${actions.describe(step)}. Its reason${step.verb === 'edit' ? ' and edited params are' : ' is'} pre-filled on the card.`
                     : 'The recorded walk-through is complete. Reload the page to replay it.';
                 if (guide && guide.textContent !== text) guide.textContent = text;   // no mutation unless it changed
-                document.querySelectorAll('.replay-next').forEach(b => b.classList.remove('replay-next', 'ring-4', 'ring-amber-300'));
+                document.querySelectorAll('.replay-next').forEach(b => b.classList.remove('replay-next'));
                 if (!step) return;
                 const id = step.proposal_id;
                 const reasonId = step.verb === 'undo' ? `undo-reason-${id}` : `reason-${id}`;
@@ -215,7 +215,16 @@
                 }
                 const call = step.verb === 'undo' ? `undoAction('${id}')` : `decideAction('${id}', '${step.verb}')`;
                 const button = document.querySelector(`button[onclick="${call}"]`);
-                if (button) button.classList.add('replay-next', 'ring-4', 'ring-amber-300');
+                document.querySelectorAll('.chip-next').forEach(tag => tag.remove());
+                if (button) {
+                    button.classList.add('replay-next');   // a marker for this code only; not styled as a ring
+                    const more = button.closest('details');
+                    // Only the next step's card is shown open; the rest fold to their summary.
+                    document.querySelectorAll('#pending-actions .proposal-more').forEach(d => { d.open = d === more; });
+                    const head = button.closest('.proposal, .undo-row');
+                    const where = head && (head.querySelector('.proposal-head') || head.querySelector('.undo-what'));
+                    if (where) where.insertAdjacentHTML('afterbegin', `<span class="chip chip-next">Next recorded step: ${esc(VERB_LABEL[step.verb])}</span>`);
+                }
             });
         }
 
@@ -269,7 +278,7 @@
                     <div><p class="label">Columns it rejected, and why</p><ul class="bullets">${rejected}</ul></div>
                 </div>
                 <p class="label" style="margin-top: var(--space-5);">The unchanged pipeline on four of its metrics</p>
-                <div class="table-wrap tile"><table class="data-table">
+                <div class="table-wrap tile"><table class="data-table stack-table">
                     <thead><tr><th>Metric</th><th>Dates</th><th>Anomalies</th><th>Narrative</th></tr></thead>
                     <tbody>${rows}</tbody>
                 </table></div>`;
