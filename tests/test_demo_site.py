@@ -163,6 +163,7 @@ def test_the_site_builds_from_the_recordings_with_replay_loaded_before_the_spa(t
     assert _json('manifest.json')['git_sha'] in page
     assert 'id="content-recorded"' in page and 'id="tab-recorded"' in page
     assert '{%' not in page and '{{' not in page
+    assert 'How the agents score' in page and page.count('class="score"') >= 8   # recorded ledger rows
     assert (out / 'replay.js').exists() and (out / '.nojekyll').exists()
     assert (out / 'data' / 'index.json').read_text() == (REC / 'index.json').read_text()
 

@@ -5,6 +5,32 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-12 (redesign, U2) — U1 merged; Investigate rebuilt around a day list and a scorecard
+
+**What happened:** Kousik approved; merged #52, then U1 as #54 (#53 auto-closed when #52's branch
+was deleted; the branch was merged with main and re-opened as #54, no force-push). Ticked U1.
+U2 on `feat/ui-investigate`, using the dataviz skill: "Days to look at" (the detector's flags at the
+chosen threshold, the incomplete-data day, and on the static site the three recorded AI
+investigations, each a chip that selects the day and, for a recorded one, replays the agent); a
+two-column layout with the eval scorecard (`observability/scorecard.py`, eight curated metrics with
+numerators and denominators, weak onboarding numbers included) beside the analysis, rendered by a
+new `HomeView` from the ledger and by `demo/build.py` from the recorded ledger; the trend with
+flagged dots, a ring on the selected day, crosshair and tooltips; breakdowns in one tile with a
+rose/fell legend. The dataviz validator rejected nothing but showed U1's green/red was the wrong
+pair: switched to the reference blue/red (passes CVD, normal-vision and contrast, light and dark);
+numbers now in ink. Caught in the browser: the chart dotted days flagged for another metric; fixed.
+Checked at 1440 px and 375 px (no tab overflows; a recorded day's chip selects orders 08-25 vs
+08-24 and replays its investigation); Django renders the scorecard from the live ledger; 399 tests
+pass (6 new in `tests/test_scorecard.py`).
+
+**State:** U2 built, box unchecked until Kousik reviews. The intro's 451,535 rows comes from the
+ingestion run, not a recording; flagged for the U2 gate.
+
+**Next:** Kousik's review and OK to merge U2; then U3 (Approvals, How it's built with onboarding and
+the full eval table, drop Tailwind/Font Awesome, dark mode).
+
+---
+
 ## 2026-11-12 (redesign, cont.) — Kousik's U1 feedback applied
 
 **What happened:** Kousik asked for no purple shades, no emoji, more spacing between tiles, a

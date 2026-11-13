@@ -309,11 +309,13 @@ The site looked AI-generated (Inter, indigo→violet, template landing page) and
 misdrew values over 100%. Rebuilt as the category standard at Linear / Stripe craft, for a
 hiring manager's 30-second visit. Brief in `PRODUCT.md`. The Pages deploy waits for U4.
 
-- [ ] **U1** — Foundation: tokens (light + dark), base CSS, top bar and tabs, About. Gate: no
+- [x] **U1** — Foundation: tokens (light + dark), base CSS, top bar and tabs, About. Gate: no
       detector findings from scope §1 in U1's files; no overflow at 375 and 1440 px. (Tailwind and
       Font Awesome come out in U3.)
 - [ ] **U2** — Investigate: intro, flagged days, anomaly panel, diverging contribution chart,
       cited investigation, eval scorecard. Gate: first-screen numbers all trace to recordings.
+      (Built 2026-11-12, waiting on Kousik's review. The intro's 451,535 rows comes from the
+      ingestion run, not a recording.)
 - [ ] **U3** — Approvals and How it's built. Gate: the recorded walk-through replays end to end.
 - [ ] **U4** — Finish review, `DESIGN.md`, re-record on `main`, enable Pages. Gate: verdict,
       `DESIGN.md`, live URL checked in a browser (also H1's gate).

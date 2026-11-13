@@ -46,13 +46,20 @@ class BuildError(RuntimeError):
     pass
 
 
-def render_spa() -> str:
+def render_spa(context: dict = None) -> str:
     from django.conf import settings
     if not settings.configured:
         settings.configure()
     from django.template import Context, Engine
     engine = Engine(dirs=[str(TEMPLATES_DIR)])
-    return engine.get_template('index.html').render(Context({}))
+    return engine.get_template('index.html').render(Context(context or {}))
+
+
+def recorded_scorecard(recordings: Path) -> list:
+    """The same scorecard the Django view builds, from the recorded ledger rows."""
+    from observability.scorecard import build_scorecard
+    evals = json.loads((recordings / 'evals' / 'latest.json').read_text())
+    return build_scorecard({name: entry['latest'] for name, entry in evals.items()})
 
 
 def insert_once(page: str, anchor: str, text: str, *, before: bool = True) -> str:
@@ -99,7 +106,7 @@ def build(recordings: Path = RECORDINGS_DIR, out: Path = SITE_DIR) -> Path:
         raise BuildError(f'{manifest_path} is missing: run `python -m demo.record` first')
     manifest = json.loads(manifest_path.read_text())
 
-    page = render_spa()
+    page = render_spa({'scorecard': recorded_scorecard(recordings)})
     page = insert_once(page, BODY_ANCHOR, banner(manifest), before=False)
     page = insert_once(page, NAV_ANCHOR, NAV_BUTTON)
     page = insert_once(page, FOOTER_ANCHOR, RECORDED_TAB)

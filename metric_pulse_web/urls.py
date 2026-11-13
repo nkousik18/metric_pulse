@@ -4,10 +4,10 @@ Main URL configuration.
 
 from django.contrib import admin
 from django.urls import path, include
-from django.views.generic import TemplateView
+from metric_pulse_web.views import HomeView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('dashboard_api.urls')),
-    path('', TemplateView.as_view(template_name='index.html'), name='home'),
+    path('', HomeView.as_view(), name='home'),
 ]

@@ -118,6 +118,16 @@
         const ready = Promise.all([getJson('index.json'), getJson('manifest.json'), getJson('actions/flow.json')])
             .then(([index, manifest, flow]) => ({ index, manifest, actions: createActionReplay(flow) }));
 
+        // The recorded AI investigations join Investigate's "Days to look at" list
+        // (templates/partials/scripts.html reads window.extraFlaggedDays).
+        ready.then(({ manifest }) => {
+            window.extraFlaggedDays = (manifest.investigations || []).map(c => ({
+                date: c.current_date, previous_date: c.previous_date, metric: c.metric, investigate: true,
+                note: `AI investigation recorded \u00b7 labelled ${c.labelled_event ? 'an event' : 'not an event'}`,
+            }));
+            if (typeof window.renderFlaggedDays === 'function') window.renderFlaggedDays();
+        });
+
         try {
             if (!window.sessionStorage.getItem(TOKEN_KEY)) window.sessionStorage.setItem(TOKEN_KEY, 'static-replay');
         } catch (e) { /* private mode: the actions tab asks for a token; any value works here */ }
@@ -158,7 +168,7 @@
 
         function hintFor(url) {
             if (url.startsWith('/api/investigate/')) {
-                return 'AI investigations were recorded for three anomalies only. Open one from the "Recorded runs" tab.';
+                return 'AI investigations were recorded for three days only: the ones marked "AI investigation recorded" under Days to look at.';
             }
             if (url.startsWith('/api/decomposition/') || url.startsWith('/api/narrative/')) {
                 return 'Breakdowns were recorded for each day against the day before it. Pick a consecutive pair of dates.';
@@ -247,23 +257,6 @@
         }
         window.replayOpenCase = openCase;
 
-        function renderInvestigations(manifest) {
-            return (manifest.investigations || []).map((c, i) => `
-                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                    <div class="flex flex-wrap items-center gap-2 mb-2">
-                        <span class="text-xs font-semibold bg-blue-50 text-blue-700 px-2 py-1 rounded">${esc(c.metric)}</span>
-                        <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">${esc(c.current_date)} vs ${esc(c.previous_date)}</span>
-                        <span class="text-xs ${c.labelled_event ? 'bg-amber-50 text-amber-700' : 'bg-gray-100 text-gray-600'} px-2 py-1 rounded">labelled ${c.labelled_event ? 'an event' : 'not an event'}</span>
-                    </div>
-                    <h4 class="font-semibold text-gray-900">${esc(c.title)}</h4>
-                    <p class="text-sm text-gray-600 mt-1 mb-3">${esc(c.note)}</p>
-                    <div class="flex flex-wrap gap-3 items-center">
-                        <button onclick="replayOpenCase(${i})" class="gradient-bg text-white px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90"><i class="fas fa-robot mr-1"></i> Open in dashboard</button>
-                        <!-- trace_url is in the manifest; LangSmith runs are private, so no link until they are shared -->
-                    </div>
-                </div>`).join('');
-        }
-
         function renderOnboarding(o) {
             const clf = o.classification.classification;
             const dims = clf.dimension_columns.map(d => `<li>${esc(d.column)} <span class="text-gray-400">(${esc(d.cardinality)} values, confidence ${esc(d.confidence)})</span></li>`).join('');
@@ -314,11 +307,6 @@
                 const [onboarding, evals] = await Promise.all([
                     getJson('onboarding/superstore_sales.json'), getJson('evals/latest.json')]);
                 rootEl.innerHTML = `
-                    <section class="mb-10">
-                        <h3 class="text-xl font-bold text-gray-900 mb-1">AI investigations</h3>
-                        <p class="text-sm text-gray-600 mb-4">Three real, hand-labelled cases from the detection eval. "Open in dashboard" sets the dates and replays the recorded agent run.</p>
-                        <div class="grid md:grid-cols-3 gap-4">${renderInvestigations(manifest)}</div>
-                    </section>
                     <section class="mb-10">
                         <h3 class="text-xl font-bold text-gray-900 mb-1">Dataset onboarding: Superstore</h3>
                         <p class="text-sm text-gray-600 mb-4">A CSV the pipeline had never seen. The onboarding agent classified its columns (confirmed by a human), generated the tables, and the unchanged detect, decompose and narrate pipeline ran on it.</p>
