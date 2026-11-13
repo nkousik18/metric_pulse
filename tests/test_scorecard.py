@@ -69,3 +69,24 @@ def test_the_home_page_renders_the_scorecard_from_the_ledger():
     html = response.content.decode()
     agent_rows = sum(len(items) for name, _, items in SCORECARD if name != 'detection')
     assert html.count('class="score-cell"') == agent_rows   # one score row per agent section
+
+
+# --- the full eval table on How it's built ---
+
+def test_the_eval_table_shows_a_percentage_only_for_rates_not_counts():
+    from observability.scorecard import eval_table
+    rows = eval_table({'detection': _row({
+        'detection_precision': {'value': 0.9167, 'num': 11, 'n': 12},   # a rate
+        'false_alarms': {'value': 1, 'num': 1, 'n': 28},                 # a count: value is the count
+        'detection_f1': {'value': 0.9167, 'num': None, 'n': 28},
+    })})
+    text = {m['key']: m['text'] for m in rows[0]['metrics']}
+    assert text == {'detection_precision': '11/12 (92%)', 'false_alarms': '1/28', 'detection_f1': '0.92 (n = 28)'}
+    assert rows[0]['count'] == '3'
+
+
+def test_the_eval_table_keeps_small_values_readable_and_skips_empty_ones():
+    from observability.scorecard import eval_table
+    rows = eval_table({'action': _row({'cost_per_run_usd': {'value': 0.00043, 'num': 0.006443, 'n': 15},
+                                       'missing': {'value': None, 'num': None, 'n': 0}})})
+    assert [(m['key'], m['text']) for m in rows[0]['metrics']] == [('cost_per_run_usd', '0.00043 (n = 15)')]

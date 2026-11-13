@@ -1,278 +1,124 @@
 <div id="content-architecture" class="tab-content hidden">
-    <main class="container mx-auto p-6 fade-in">
-        <!-- Header -->
-        <div class="text-center mb-12">
-            <h1 class="text-4xl font-bold text-gray-900 mb-4">System Architecture</h1>
-            <p class="text-xl text-gray-600 max-w-2xl mx-auto">End-to-end data pipeline built with production-grade technologies</p>
-        </div>
+    <main class="page page-narrow page-doc">
 
-        <!-- Visual Architecture Diagram -->
-        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 border border-gray-100">
-            <h2 class="text-2xl font-bold text-gray-900 mb-8 text-center">Data Flow</h2>
-            <div class="flex flex-col md:flex-row items-center justify-between gap-4 max-w-5xl mx-auto">
-                <!-- Data Source -->
-                <div class="flex flex-col items-center">
-                    <div class="w-20 h-20 bg-orange-100 rounded-2xl flex items-center justify-center mb-3 shadow-md">
-                        <i class="fas fa-database text-orange-500 text-2xl"></i>
-                    </div>
-                    <span class="font-semibold text-gray-800">Data Source</span>
-                    <span class="text-sm text-gray-500">451K rows</span>
+        <header>
+            <h1 class="page-title">How it's built</h1>
+            <p class="lede">
+                A local-first pipeline: the Olist CSVs load into DuckDB, dbt models them, Python detects,
+                decomposes and narrates each day, and three LangGraph agents work on top. A Django API serves this
+                page. The original AWS deployment (S3, Redshift, Lambda, SNS) was retired in November 2026; its code
+                is kept and can be switched back on.
+            </p>
+            <dl class="facts">
+                <div><dt>Raw rows</dt><dd class="num">451,535</dd></div>
+                <div><dt>dbt models · tests</dt><dd class="num">11 · 37</dd></div>
+                <div><dt>Python tests</dt><dd class="num">399</dd></div>
+                <div><dt>API endpoints</dt><dd class="num">14</dd></div>
+            </dl>
+        </header>
+
+        <section aria-labelledby="pipeline-title">
+            <h2 class="section-title" id="pipeline-title">The pipeline</h2>
+            <ol class="pipeline">
+                <li>
+                    <span class="stage-name">Olist CSVs</span>
+                    <span class="stage-detail">7 tables, 2016–2018 (CC BY-NC-SA 4.0)</span>
+                </li>
+                <li>
+                    <span class="stage-name">DuckDB</span>
+                    <span class="stage-detail">local warehouse, loaded by <code>ingestion.load_local</code></span>
+                </li>
+                <li>
+                    <span class="stage-name">dbt</span>
+                    <span class="stage-detail">staging → marts → daily metrics by segment</span>
+                </li>
+                <li>
+                    <span class="stage-name">Detection</span>
+                    <span class="stage-detail">z-score per day, plus a data-freshness check</span>
+                    <span class="stage-agent">Onboarding agent brings new datasets in here</span>
+                </li>
+                <li>
+                    <span class="stage-name">Decomposition</span>
+                    <span class="stage-detail">each segment's share of the change, by region, product, payment</span>
+                </li>
+                <li>
+                    <span class="stage-name">Narrative</span>
+                    <span class="stage-detail">a templated explanation, no LLM</span>
+                    <span class="stage-agent">Investigation agent explains with cited numbers</span>
+                </li>
+                <li>
+                    <span class="stage-name">Alert</span>
+                    <span class="stage-detail">a Markdown file in the local outbox</span>
+                    <span class="stage-agent">Action agent proposes a response for approval</span>
+                </li>
+            </ol>
+            <p class="muted tile-sub" style="margin-top: var(--space-4);">
+                Stages pass plain dictionaries, and every step catches its own errors so one failure never takes down
+                the run. The agents use Groq's <code>gpt-oss-20b</code> and <code>gpt-oss-120b</code>, traced in LangSmith.
+            </p>
+        </section>
+
+        <section aria-labelledby="dbt-title">
+            <h2 class="section-title" id="dbt-title">dbt models</h2>
+            <div class="model-layers">
+                <div>
+                    <h3 class="subhead">Staging</h3>
+                    <ul class="plain-list mono-list"><li>stg_orders</li><li>stg_order_items</li><li>stg_customers</li><li>stg_products</li></ul>
                 </div>
-                
-                <i class="fas fa-arrow-right text-gray-300 text-2xl hidden md:block"></i>
-                <i class="fas fa-arrow-down text-gray-300 text-2xl md:hidden"></i>
-                
-                <!-- S3 -->
-                <div class="flex flex-col items-center">
-                    <div class="w-20 h-20 bg-green-100 rounded-2xl flex items-center justify-center mb-3 shadow-md">
-                        <i class="fab fa-aws text-green-600 text-2xl"></i>
-                    </div>
-                    <span class="font-semibold text-gray-800">AWS S3</span>
-                    <span class="text-sm text-gray-500">Raw Storage</span>
+                <div>
+                    <h3 class="subhead">Marts</h3>
+                    <ul class="plain-list mono-list"><li>fact_daily_metrics</li><li>dim_geography</li><li>dim_product</li><li>dim_payment</li></ul>
                 </div>
-                
-                <i class="fas fa-arrow-right text-gray-300 text-2xl hidden md:block"></i>
-                <i class="fas fa-arrow-down text-gray-300 text-2xl md:hidden"></i>
-                
-                <!-- Redshift -->
-                <div class="flex flex-col items-center">
-                    <div class="w-20 h-20 bg-blue-100 rounded-2xl flex items-center justify-center mb-3 shadow-md">
-                        <i class="fas fa-warehouse text-blue-600 text-2xl"></i>
-                    </div>
-                    <span class="font-semibold text-gray-800">Redshift</span>
-                    <span class="text-sm text-gray-500">Data Warehouse</span>
-                </div>
-                
-                <i class="fas fa-arrow-right text-gray-300 text-2xl hidden md:block"></i>
-                <i class="fas fa-arrow-down text-gray-300 text-2xl md:hidden"></i>
-                
-                <!-- dbt -->
-                <div class="flex flex-col items-center">
-                    <div class="w-20 h-20 bg-orange-100 rounded-2xl flex items-center justify-center mb-3 shadow-md">
-                        <span class="text-orange-600 font-bold text-lg">dbt</span>
-                    </div>
-                    <span class="font-semibold text-gray-800">dbt</span>
-                    <span class="text-sm text-gray-500">11 Models</span>
-                </div>
-                
-                <i class="fas fa-arrow-right text-gray-300 text-2xl hidden md:block"></i>
-                <i class="fas fa-arrow-down text-gray-300 text-2xl md:hidden"></i>
-                
-                <!-- Python -->
-                <div class="flex flex-col items-center">
-                    <div class="w-20 h-20 bg-yellow-100 rounded-2xl flex items-center justify-center mb-3 shadow-md">
-                        <i class="fab fa-python text-yellow-600 text-2xl"></i>
-                    </div>
-                    <span class="font-semibold text-gray-800">Python</span>
-                    <span class="text-sm text-gray-500">Detection</span>
-                </div>
-                
-                <i class="fas fa-arrow-right text-gray-300 text-2xl hidden md:block"></i>
-                <i class="fas fa-arrow-down text-gray-300 text-2xl md:hidden"></i>
-                
-                <!-- Output -->
-                <div class="flex flex-col items-center">
-                    <div class="w-20 h-20 bg-slate-100 rounded-2xl flex items-center justify-center mb-3 shadow-md">
-                        <i class="fas fa-chart-line text-slate-600 text-2xl"></i>
-                    </div>
-                    <span class="font-semibold text-gray-800">Dashboard</span>
-                    <span class="text-sm text-gray-500">+ Alerts</span>
+                <div>
+                    <h3 class="subhead">Metrics</h3>
+                    <ul class="plain-list mono-list"><li>metric_by_geography</li><li>metric_by_product</li><li>metric_by_payment</li></ul>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Architecture Details -->
-        <div class="grid md:grid-cols-3 gap-6 mb-8">
-            <!-- Data Layer -->
-            <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 card-hover">
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                        <i class="fas fa-layer-group text-blue-600"></i>
+        <section aria-labelledby="evals-title">
+            <h2 class="section-title" id="evals-title">How the agents are measured</h2>
+            <p class="agent-what">
+                Each eval replays real cases and appends one row to a committed ledger (<code>evals/ledger.jsonl</code>):
+                the commit, the models, the prompt hash and every metric with its numerator and denominator. The
+                expected answers were labelled by hand: 28 days for detection, an investigation golden set, the
+                Superstore classification for onboarding, and 15 golden cases plus 10 prompt-injection attempts and
+                safety probes for the Action Agent. <code>python -m observability.drift</code> reruns them all and lists
+                any metric that fell below its accepted baseline.
+            </p>
+            {% if evals %}
+            <div class="eval-list">
+                {% for e in evals %}
+                <details class="disclosure eval">
+                    <summary>{{ e.title }} <span class="muted">· run {{ e.date }} at <span class="mono">{{ e.git_sha }}</span> · {{ e.count }} metrics</span></summary>
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead><tr><th>Metric</th><th>Latest</th></tr></thead>
+                            <tbody>
+                                {% for m in e.metrics %}<tr><td class="mono">{{ m.key }}</td><td class="num">{{ m.text }}</td></tr>{% endfor %}
+                            </tbody>
+                        </table>
                     </div>
-                    <h3 class="text-lg font-bold text-gray-900">Data Layer</h3>
-                </div>
-                <ul class="space-y-3">
-                    <li class="flex items-center gap-2 text-gray-600">
-                        <i class="fas fa-check text-green-500 text-sm"></i>
-                        <span>S3 for raw data lake</span>
-                    </li>
-                    <li class="flex items-center gap-2 text-gray-600">
-                        <i class="fas fa-check text-green-500 text-sm"></i>
-                        <span>Redshift Serverless warehouse</span>
-                    </li>
-                    <li class="flex items-center gap-2 text-gray-600">
-                        <i class="fas fa-check text-green-500 text-sm"></i>
-                        <span>7 raw tables, 451K rows</span>
-                    </li>
-                    <li class="flex items-center gap-2 text-gray-600">
-                        <i class="fas fa-check text-green-500 text-sm"></i>
-                        <span>Brazilian E-Commerce dataset</span>
-                    </li>
-                </ul>
+                </details>
+                {% endfor %}
             </div>
+            {% else %}
+            <p class="muted">No eval results are available on this server.</p>
+            {% endif %}
+        </section>
 
-            <!-- Transformation Layer -->
-            <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 card-hover">
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center">
-                        <i class="fas fa-cogs text-orange-600"></i>
-                    </div>
-                    <h3 class="text-lg font-bold text-gray-900">Transformation</h3>
-                </div>
-                <ul class="space-y-3">
-                    <li class="flex items-center gap-2 text-gray-600">
-                        <i class="fas fa-check text-green-500 text-sm"></i>
-                        <span>dbt for ELT pipelines</span>
-                    </li>
-                    <li class="flex items-center gap-2 text-gray-600">
-                        <i class="fas fa-check text-green-500 text-sm"></i>
-                        <span>11 models (staging + marts)</span>
-                    </li>
-                    <li class="flex items-center gap-2 text-gray-600">
-                        <i class="fas fa-check text-green-500 text-sm"></i>
-                        <span>37 automated tests</span>
-                    </li>
-                    <li class="flex items-center gap-2 text-gray-600">
-                        <i class="fas fa-check text-green-500 text-sm"></i>
-                        <span>Star schema design</span>
-                    </li>
-                </ul>
-            </div>
+        <section aria-labelledby="stack-title">
+            <h2 class="section-title" id="stack-title">Stack</h2>
+            <dl class="skills">
+                <dt>Data</dt><dd>Python, DuckDB, dbt (dbt-duckdb), pandas</dd>
+                <dt>Agents</dt><dd>LangGraph, LangChain, Groq (gpt-oss-20b, gpt-oss-120b), LangSmith tracing, Pydantic</dd>
+                <dt>App</dt><dd>Django, Django REST Framework, Chart.js</dd>
+                <dt>Delivery</dt><dd>GitHub Actions (lint, tests, dbt build), GitHub Pages for this replay</dd>
+                <dt>Retired, kept</dt><dd>AWS S3, Redshift Serverless, Lambda, SNS, Docker image</dd>
+            </dl>
+        </section>
 
-            <!-- Application Layer -->
-            <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 card-hover">
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center">
-                        <i class="fas fa-rocket text-slate-600"></i>
-                    </div>
-                    <h3 class="text-lg font-bold text-gray-900">Application</h3>
-                </div>
-                <ul class="space-y-3">
-                    <li class="flex items-center gap-2 text-gray-600">
-                        <i class="fas fa-check text-green-500 text-sm"></i>
-                        <span>Django REST API</span>
-                    </li>
-                    <li class="flex items-center gap-2 text-gray-600">
-                        <i class="fas fa-check text-green-500 text-sm"></i>
-                        <span>Z-score anomaly detection</span>
-                    </li>
-                    <li class="flex items-center gap-2 text-gray-600">
-                        <i class="fas fa-check text-green-500 text-sm"></i>
-                        <span>3-dimension decomposition</span>
-                    </li>
-                    <li class="flex items-center gap-2 text-gray-600">
-                        <i class="fas fa-check text-green-500 text-sm"></i>
-                        <span>SNS email alerting</span>
-                    </li>
-                </ul>
-            </div>
-        </div>
-
-        <!-- dbt Models -->
-        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 border border-gray-100">
-            <h2 class="text-2xl font-bold text-gray-900 mb-6">dbt Model Architecture</h2>
-            <div class="grid md:grid-cols-3 gap-6">
-                <div class="bg-blue-50 rounded-xl p-5 border border-blue-100">
-                    <h3 class="font-bold text-blue-800 mb-3">Staging Layer</h3>
-                    <ul class="space-y-2 text-blue-700 text-sm">
-                        <li class="flex items-center gap-2"><i class="fas fa-file-code"></i> stg_orders</li>
-                        <li class="flex items-center gap-2"><i class="fas fa-file-code"></i> stg_order_items</li>
-                        <li class="flex items-center gap-2"><i class="fas fa-file-code"></i> stg_customers</li>
-                        <li class="flex items-center gap-2"><i class="fas fa-file-code"></i> stg_products</li>
-                    </ul>
-                </div>
-                <div class="bg-green-50 rounded-xl p-5 border border-green-100">
-                    <h3 class="font-bold text-green-800 mb-3">Marts Layer</h3>
-                    <ul class="space-y-2 text-green-700 text-sm">
-                        <li class="flex items-center gap-2"><i class="fas fa-table"></i> fact_daily_metrics</li>
-                        <li class="flex items-center gap-2"><i class="fas fa-table"></i> dim_geography</li>
-                        <li class="flex items-center gap-2"><i class="fas fa-table"></i> dim_product</li>
-                        <li class="flex items-center gap-2"><i class="fas fa-table"></i> dim_payment</li>
-                    </ul>
-                </div>
-                <div class="bg-slate-50 rounded-xl p-5 border border-slate-100">
-                    <h3 class="font-bold text-slate-800 mb-3">Metrics Layer</h3>
-                    <ul class="space-y-2 text-slate-700 text-sm">
-                        <li class="flex items-center gap-2"><i class="fas fa-chart-bar"></i> metric_by_geography</li>
-                        <li class="flex items-center gap-2"><i class="fas fa-chart-bar"></i> metric_by_product</li>
-                        <li class="flex items-center gap-2"><i class="fas fa-chart-bar"></i> metric_by_payment</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tech Stack Grid -->
-        <div class="bg-white rounded-2xl shadow-sm p-8 mb-8 border border-gray-100">
-            <h2 class="text-2xl font-bold text-gray-900 mb-6">Tech Stack</h2>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div class="bg-gray-50 rounded-xl p-5 text-center card-hover border border-gray-100">
-                    <i class="fab fa-python text-3xl text-yellow-500 mb-2"></i>
-                    <h4 class="font-semibold text-gray-800">Python</h4>
-                    <p class="text-xs text-gray-500 mt-1">Core Language</p>
-                </div>
-                <div class="bg-gray-50 rounded-xl p-5 text-center card-hover border border-gray-100">
-                    <i class="fab fa-aws text-3xl text-orange-500 mb-2"></i>
-                    <h4 class="font-semibold text-gray-800">AWS</h4>
-                    <p class="text-xs text-gray-500 mt-1">S3, Redshift, SNS</p>
-                </div>
-                <div class="bg-gray-50 rounded-xl p-5 text-center card-hover border border-gray-100">
-                    <span class="text-2xl font-bold text-orange-500">dbt</span>
-                    <h4 class="font-semibold text-gray-800 mt-1">dbt</h4>
-                    <p class="text-xs text-gray-500 mt-1">Transformation</p>
-                </div>
-                <div class="bg-gray-50 rounded-xl p-5 text-center card-hover border border-gray-100">
-                    <i class="fab fa-python text-3xl text-green-600 mb-2"></i>
-                    <h4 class="font-semibold text-gray-800">Django</h4>
-                    <p class="text-xs text-gray-500 mt-1">REST API</p>
-                </div>
-                <div class="bg-gray-50 rounded-xl p-5 text-center card-hover border border-gray-100">
-                    <i class="fab fa-docker text-3xl text-blue-500 mb-2"></i>
-                    <h4 class="font-semibold text-gray-800">Docker</h4>
-                    <p class="text-xs text-gray-500 mt-1">Containerization</p>
-                </div>
-                <div class="bg-gray-50 rounded-xl p-5 text-center card-hover border border-gray-100">
-                    <i class="fab fa-github text-3xl text-gray-800 mb-2"></i>
-                    <h4 class="font-semibold text-gray-800">GitHub Actions</h4>
-                    <p class="text-xs text-gray-500 mt-1">CI/CD</p>
-                </div>
-                <div class="bg-gray-50 rounded-xl p-5 text-center card-hover border border-gray-100">
-                    <i class="fas fa-chart-line text-3xl text-blue-500 mb-2"></i>
-                    <h4 class="font-semibold text-gray-800">Chart.js</h4>
-                    <p class="text-xs text-gray-500 mt-1">Visualization</p>
-                </div>
-                <div class="bg-gray-50 rounded-xl p-5 text-center card-hover border border-gray-100">
-                    <i class="fab fa-css3 text-3xl text-cyan-500 mb-2"></i>
-                    <h4 class="font-semibold text-gray-800">Tailwind</h4>
-                    <p class="text-xs text-gray-500 mt-1">Styling</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Key Metrics -->
-        <div class="gradient-bg rounded-2xl p-8 text-white">
-            <h2 class="text-2xl font-bold mb-8 text-center">Project Metrics</h2>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-                <div class="text-center">
-                    <div class="text-5xl font-bold">451K</div>
-                    <div class="text-blue-200 mt-2">Rows Processed</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-5xl font-bold">37</div>
-                    <div class="text-blue-200 mt-2">Automated Tests</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-5xl font-bold">&lt;5s</div>
-                    <div class="text-blue-200 mt-2">Pipeline Speed</div>
-                </div>
-                <div class="text-center">
-                    <div class="text-5xl font-bold">6</div>
-                    <div class="text-blue-200 mt-2">API Endpoints</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Run the pipeline (moved from Overview in the UI redesign; U3 rebuilds this tab) -->
-        <section class="tile tile-pad run-panel" aria-labelledby="run-title" style="margin-top: var(--gap-tiles);">
+        <section class="tile tile-pad run-panel" aria-labelledby="run-title">
             <div>
                 <h2 class="section-title" id="run-title">Run the pipeline</h2>
                 <p class="muted tile-sub">Detect, decompose and narrate the latest day. "Send alert" writes to the local outbox.</p>
@@ -283,5 +129,11 @@
             </div>
             <div id="pipeline-status" class="muted run-status" role="status"></div>
         </section>
+
+        <p class="muted tile-sub">
+            Every layer has its own README in the
+            <a href="https://github.com/nkousik18/metric_pulse" target="_blank" rel="noopener">repository</a>,
+            and <code>docs/</code> holds the design scopes and the session log.
+        </p>
     </main>
 </div>

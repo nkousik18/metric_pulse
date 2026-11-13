@@ -698,7 +698,12 @@
     function setActionsStatus(text, isError) {
         const el = document.getElementById('actions-status');
         el.textContent = text;
-        el.className = `text-sm mt-2 ${isError ? 'text-red-600' : 'text-gray-500'}`;
+        el.className = `tile-sub status-text${isError ? ' is-error' : ''}`;
+    }
+
+    function setResult(el, text, kind) {
+        el.textContent = text;
+        el.className = `status-text${kind ? ' is-' + kind : ''}`;
     }
 
     async function loadActions() {
@@ -736,15 +741,14 @@
     function renderPayload(payload) {
         return Object.entries(payload || {}).map(([key, value]) => {
             const text = typeof value === 'string' ? value : JSON.stringify(value, null, 2);
-            return `<div class="mb-2"><div class="text-xs font-semibold text-gray-500 uppercase">${escapeHtml(key)}</div>
-                    <pre class="whitespace-pre-wrap break-words text-sm text-gray-800 bg-gray-50 rounded p-2">${escapeHtml(text)}</pre></div>`;
+            return `<div class="payload-field"><p class="label">${escapeHtml(key)}</p><pre class="code-box">${escapeHtml(text)}</pre></div>`;
         }).join('');
     }
 
     function renderPendingActions(items) {
         const el = document.getElementById('pending-actions');
         if (!items.length) {
-            el.innerHTML = '<div class="bg-white rounded-2xl border border-gray-100 p-6 text-gray-500 text-sm">No proposals are waiting. New ones come from <code>python -m action_agent.cli propose</code>.</div>';
+            el.innerHTML = '<div class="tile tile-pad empty-state">No proposals are waiting. New ones come from <code>python -m action_agent.cli propose</code>.</div>';
             return;
         }
         el.innerHTML = items.map(item => {
@@ -754,30 +758,36 @@
             const errors = (w.policy_errors || []).map(e => `<li>${escapeHtml(e)}</li>`).join('');
             const citations = (item.rationale_citations || []).map(c => `<li>${escapeHtml(typeof c === 'string' ? c : (c.claim || JSON.stringify(c)))}</li>`).join('');
             return `
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5" data-proposal="${id}">
-                <div class="flex flex-wrap items-center gap-2 mb-2">
-                    <span class="text-xs font-semibold bg-blue-50 text-blue-700 px-2 py-1 rounded">${escapeHtml(dry.action_type || item.action_type)}</span>
-                    <span class="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">${escapeHtml(dry.tier)} · ${dry.reversible ? 'reversible' : 'not reversible'}</span>
-                    <span class="text-sm text-gray-700">${escapeHtml(item.dataset_id)} / ${escapeHtml(item.metric)} / ${escapeHtml(item.anomaly_date)}</span>
+            <article class="tile tile-pad proposal" data-proposal="${id}">
+                <div class="proposal-head">
+                    <span class="chip chip-strong">${escapeHtml(dry.action_type || item.action_type)}</span>
+                    <span class="chip">${escapeHtml(dry.tier)} \u00b7 ${dry.reversible ? 'reversible' : 'not reversible'}</span>
+                    <span class="proposal-subject">${escapeHtml(item.dataset_id)} / ${escapeHtml(item.metric)} / ${escapeHtml(item.anomaly_date)}</span>
                 </div>
-                <p class="text-xs text-gray-500 mb-3">Proposed by ${escapeHtml(item.proposer)} · expires ${escapeHtml(w.expires_at || item.expires_at)} · ${escapeHtml(item.proposal_id)}</p>
-                ${errors ? `<div class="bg-red-50 text-red-700 text-sm rounded p-3 mb-3"><strong>Your last edit was rejected by policy:</strong><ul class="list-disc ml-5">${errors}</ul></div>` : ''}
-                <p class="text-sm text-gray-700 mb-3">${escapeHtml(item.narrative)}</p>
-                ${citations ? `<div class="text-sm text-gray-600 mb-3"><strong>Cited evidence</strong><ul class="list-disc ml-5">${citations}</ul></div>` : ''}
-                <div class="text-sm mb-1"><strong>Target:</strong> ${escapeHtml(describeTarget(dry.target))}</div>
-                <details class="mb-3"><summary class="cursor-pointer text-sm text-blue-600">Exact payload (what will run)</summary><div class="mt-2">${renderPayload(dry.payload)}</div></details>
-                <label class="block text-sm font-medium text-gray-700 mb-1" for="params-${id}">Params (edit to change what runs)</label>
-                <textarea id="params-${id}" rows="3" class="w-full font-mono text-xs border border-gray-200 rounded-lg p-2 bg-gray-50 mb-2">${escapeHtml(JSON.stringify(dry.params || {}, null, 2))}</textarea>
-                <label class="block text-sm font-medium text-gray-700 mb-1" for="reason-${id}">Reason (required to reject)</label>
-                <input id="reason-${id}" type="text" class="w-full border border-gray-200 rounded-lg p-2 text-sm bg-gray-50 mb-2">
-                <label class="flex items-center gap-2 text-sm text-gray-700 mb-3"><input id="live-${id}" type="checkbox"> Allow effects outside this machine (a real GitHub issue)</label>
-                <div class="flex flex-wrap gap-2">
-                    <button onclick="decideAction('${id}', 'approve')" class="gradient-bg text-white px-4 py-2 rounded-lg hover:opacity-90 text-sm font-medium">Approve</button>
-                    <button onclick="decideAction('${id}', 'edit')" class="bg-white border border-blue-300 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-50 text-sm font-medium">Approve edited params</button>
-                    <button onclick="decideAction('${id}', 'reject')" class="bg-white border border-red-300 text-red-700 px-4 py-2 rounded-lg hover:bg-red-50 text-sm font-medium">Reject</button>
+                ${errors ? `<div class="callout callout-error"><strong>Your last edit was rejected by policy:</strong><ul>${errors}</ul></div>` : ''}
+                <p class="proposal-narrative">${escapeHtml(item.narrative)}</p>
+                ${citations ? `<div class="proposal-block"><p class="label">Cited evidence</p><ul class="bullets">${citations}</ul></div>` : ''}
+                <p class="proposal-block"><span class="label-inline">Target</span> ${escapeHtml(describeTarget(dry.target))}</p>
+                <details class="disclosure proposal-payload"><summary>Exact payload (what will run)</summary><div class="payload">${renderPayload(dry.payload)}</div></details>
+                <div class="proposal-form">
+                    <div class="field field-wide">
+                        <label class="label" for="params-${id}">Params (edit to change what runs)</label>
+                        <textarea id="params-${id}" rows="3" class="input input-mono">${escapeHtml(JSON.stringify(dry.params || {}, null, 2))}</textarea>
+                    </div>
+                    <div class="field field-wide">
+                        <label class="label" for="reason-${id}">Reason (required to reject)</label>
+                        <input id="reason-${id}" type="text" class="input">
+                    </div>
+                    <label class="check"><input id="live-${id}" type="checkbox"> Allow effects outside this machine (a real GitHub issue)</label>
                 </div>
-                <p id="result-${id}" class="text-sm mt-2"></p>
-            </div>`;
+                <div class="proposal-actions">
+                    <button onclick="decideAction('${id}', 'approve')" class="btn btn-primary">Approve</button>
+                    <button onclick="decideAction('${id}', 'edit')" class="btn btn-secondary">Approve edited params</button>
+                    <button onclick="decideAction('${id}', 'reject')" class="btn btn-danger">Reject</button>
+                </div>
+                <p id="result-${id}" class="status-text"></p>
+                <p class="proposal-meta">Proposed by ${escapeHtml(item.proposer)} \u00b7 expires ${escapeHtml(w.expires_at || item.expires_at)} \u00b7 <span class="mono">${escapeHtml(item.proposal_id)}</span></p>
+            </article>`;
         }).join('');
     }
 
@@ -791,44 +801,41 @@
             try {
                 body.params = JSON.parse(document.getElementById(`params-${proposalId}`).value);
             } catch (e) {
-                resultEl.className = 'text-sm mt-2 text-red-600';
-                resultEl.textContent = 'Params must be valid JSON.';
+                setResult(resultEl, 'Params must be valid JSON.', 'error');
                 return;
             }
         }
-        resultEl.className = 'text-sm mt-2 text-gray-500';
-        resultEl.textContent = 'Sending...';
+        setResult(resultEl, 'Sending\u2026');
         try {
             const data = await actionsApi(`${proposalId}/${decision}/`, { method: 'POST', body: JSON.stringify(body) });
             if (data.status === 'awaiting_approval') {
                 await loadActions();   // re-render with the policy errors from the edit
                 return;
             }
-            resultEl.className = 'text-sm mt-2 text-green-700';
-            resultEl.textContent = `Done: ${data.status}${data.execution ? ` (${JSON.stringify(data.execution)})` : ''}`;
+            setResult(resultEl, `Done: ${data.status}${data.execution ? ` (${JSON.stringify(data.execution)})` : ''}`, 'ok');
             setTimeout(loadActions, 1200);
         } catch (error) {
-            resultEl.className = 'text-sm mt-2 text-red-600';
-            resultEl.textContent = error.message;
+            setResult(resultEl, error.message, 'error');
         }
     }
 
     function renderUndoable(items) {
         const el = document.getElementById('undoable-actions');
         if (!items.length) {
-            el.innerHTML = '<p class="text-sm text-gray-500">None in the recent log.</p>';
+            el.innerHTML = '<p class="muted tile-sub">None in the recent log.</p>';
             return;
         }
         el.innerHTML = items.map(item => {
             const id = escapeHtml(item.proposal_id);
             return `
-            <div class="bg-white rounded-xl border border-gray-100 p-4 flex flex-col md:flex-row md:items-center gap-2">
-                <div class="flex-1 text-sm"><strong>${escapeHtml(item.executed_action_type)}</strong> on ${escapeHtml(item.dataset_id)} / ${escapeHtml(item.metric)} / ${escapeHtml(item.anomaly_date)}
-                    <span class="text-xs text-gray-500 block">${id}</span></div>
-                <input id="undo-reason-${id}" type="text" placeholder="Reason for undo" class="border border-gray-200 rounded-lg p-2 text-sm bg-gray-50">
-                <label class="flex items-center gap-1 text-xs text-gray-600"><input id="undo-live-${id}" type="checkbox"> live</label>
-                <button onclick="undoAction('${id}')" class="bg-white border border-gray-300 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-50 text-sm">Undo</button>
-                <span id="undo-result-${id}" class="text-sm"></span>
+            <div class="tile undo-row">
+                <div class="undo-what"><strong>${escapeHtml(item.executed_action_type)}</strong> on ${escapeHtml(item.dataset_id)} / ${escapeHtml(item.metric)} / ${escapeHtml(item.anomaly_date)}
+                    <span class="mono muted">${id}</span></div>
+                <label class="visually-hidden" for="undo-reason-${id}">Reason for undo</label>
+                <input id="undo-reason-${id}" type="text" placeholder="Reason for undo" class="input">
+                <label class="check"><input id="undo-live-${id}" type="checkbox"> live</label>
+                <button onclick="undoAction('${id}')" class="btn btn-secondary">Undo</button>
+                <span id="undo-result-${id}" class="status-text"></span>
             </div>`;
         }).join('');
     }
@@ -841,30 +848,28 @@
         };
         try {
             const data = await actionsApi(`${proposalId}/undo/`, { method: 'POST', body: JSON.stringify(body) });
-            resultEl.className = 'text-sm text-green-700';
-            resultEl.textContent = `Undone (${data.outcome})`;
+            setResult(resultEl, `Undone (${data.outcome})`, 'ok');
             setTimeout(loadActions, 1200);
         } catch (error) {
-            resultEl.className = 'text-sm text-red-600';
-            resultEl.textContent = error.message;
+            setResult(resultEl, error.message, 'error');
         }
     }
 
     function renderActionLog(events) {
         const el = document.getElementById('action-log-rows');
         if (!events.length) {
-            el.innerHTML = '<tr><td colspan="7" class="px-4 py-3 text-gray-500">The log is empty.</td></tr>';
+            el.innerHTML = '<tr><td colspan="7" class="muted">The log is empty.</td></tr>';
             return;
         }
         el.innerHTML = events.map(e => `
-            <tr class="border-t border-gray-100 align-top">
-                <td class="px-4 py-2 text-gray-500">${escapeHtml(e.log_id)}</td>
-                <td class="px-4 py-2 whitespace-nowrap">${escapeHtml((e.created_at || '').slice(0, 19).replace('T', ' '))}</td>
-                <td class="px-4 py-2 font-mono text-xs">${escapeHtml((e.proposal_id || '').slice(0, 8))}</td>
-                <td class="px-4 py-2">${escapeHtml(e.event)}</td>
-                <td class="px-4 py-2">${escapeHtml(e.actor)}</td>
-                <td class="px-4 py-2">${escapeHtml(e.action_type)}</td>
-                <td class="px-4 py-2 text-gray-600 break-words">${escapeHtml(e.detail || e.external_id || '')}</td>
+            <tr>
+                <td class="muted num">${escapeHtml(e.log_id)}</td>
+                <td class="nowrap num">${escapeHtml((e.created_at || '').slice(0, 19).replace('T', ' '))}</td>
+                <td class="mono">${escapeHtml((e.proposal_id || '').slice(0, 8))}</td>
+                <td>${escapeHtml(e.event)}</td>
+                <td>${escapeHtml(e.actor)}</td>
+                <td>${escapeHtml(e.action_type)}</td>
+                <td class="wrap">${escapeHtml(e.detail || e.external_id || '')}</td>
             </tr>`).join('');
     }
 </script>
