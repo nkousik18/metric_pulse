@@ -1,6 +1,6 @@
 <script>
     // Tab switching
-    function showTab(tabName) {
+    function showTab(tabName, keepHash) {
         document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
         document.querySelectorAll('.tab-btn').forEach(el => {
             el.classList.remove('tab-active');
@@ -29,13 +29,37 @@
             loadActions();
         }
 
-        // Scroll to top
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (!keepHash && tabName in TAB_HASHES) {
+            const hash = TAB_HASHES[tabName];
+            const url = location.pathname + location.search + (hash ? '#' + hash : '');
+            if (location.hash.replace('#', '') !== hash) history.replaceState(null, '', url);
+        }
+
+        // Scroll to top (unless an in-tab anchor is about to scroll instead)
+        if (!keepHash) window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     // Investigate is the first screen (docs/ui-redesign-scope.md §5); open it once the page has
     // parsed, so every script below (and the static replay's fetch shim) is ready.
-    document.addEventListener('DOMContentLoaded', () => showTab('dashboard'));
+    // Each tab has a shareable address (#agents, #built, #about); the first screen has none.
+    const TAB_HASHES = { dashboard: '', agents: 'agents', architecture: 'built', about: 'about' };
+    function tabFromHash() {
+        const hash = location.hash.replace('#', '');
+        const tab = Object.keys(TAB_HASHES).find(t => TAB_HASHES[t] && TAB_HASHES[t] === hash);
+        if (tab) return { tab };
+        // An anchor inside a tab (the AI agents jump links): open that tab, then go to the anchor.
+        const target = hash && document.getElementById(hash);
+        const panel = target && target.closest('.tab-content');
+        if (panel) return { tab: panel.id.replace('content-', ''), anchor: target };
+        return { tab: 'dashboard' };
+    }
+    function openFromHash() {
+        const { tab, anchor } = tabFromHash();
+        showTab(tab, Boolean(anchor));
+        if (anchor) anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    document.addEventListener('DOMContentLoaded', openFromHash);
+    window.addEventListener('hashchange', openFromHash);
 
     // Shared helpers for the redesigned dashboard (docs/ui-redesign-scope.md §6).
     function cssVar(name) {
@@ -82,8 +106,17 @@
                              note: `incomplete data \u00b7 ${d.freshness.volume} vs ~${Math.round(d.freshness.median)} usual` });
             }
         }
-        const seen = new Set();
-        return items.filter(i => { const k = i.date + i.metric + (i.investigate ? 'ai' : ''); if (seen.has(k)) return false; seen.add(k); return true; });
+        // One chip per day and metric: a recorded AI run on an incomplete-data day shows both notes.
+        const byKey = new Map();
+        items.forEach(i => {
+            const k = i.date + '|' + i.metric;
+            const seen = byKey.get(k);
+            if (!seen) { byKey.set(k, { ...i }); return; }
+            if (!seen.note.includes(i.note)) seen.note += ' \u00b7 ' + i.note;
+            seen.investigate = seen.investigate || i.investigate;
+            seen.previous_date = seen.previous_date || i.previous_date;
+        });
+        return [...byKey.values()];
     }
 
     function formatDay(iso) {
@@ -216,6 +249,7 @@
             if (result.status === 'success' && result.data.length > 0) {
                 metricsData = result.data;
                 populateDateDropdowns(result.data);
+                updateAgentDay();   // the agents tab may already be open (a #agents link)
                 
                 const latest = result.data[0];
                 const previous = result.data[1] || latest;

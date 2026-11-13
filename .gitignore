@@ -65,3 +65,4 @@ outbox/
 demo/_site/
 .impeccable/hook.cache.json
 .impeccable/questions/
+.impeccable/review/
