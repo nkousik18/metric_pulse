@@ -5,6 +5,22 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-13 (redesign, U4 in progress) — finish-review fixes committed; DESIGN.md not yet written
+
+**What happened:** On `feat/ui-finish`. The Impeccable finish review ran; its fixes on Overview, the
+AI agents tab and phone widths are committed (`d94d468`, after `19e209c`: shareable tab addresses,
+one chip per flagged day). The documenter agent writing `DESIGN.md` stopped when the machine went to
+sleep and wrote nothing; it was not respawned. Branch pushed to origin (no PR yet).
+
+**Next:** write `DESIGN.md` (respawn the documenter once, same inputs); open the U4 PR and merge with
+Kousik's OK; re-record on `main`; enable Pages; check the live URL in a browser (also H1's gate).
+Separately: a portfolio entry for the Action Agent in the Interpose JSON format
+(`docs/portfolio/action_agent_entry.md`).
+
+**Loose ends:** `brag-output*/` folders are untracked and uncommitted on purpose.
+
+---
+
 ## 2026-11-12 (redesign, U3) — U2 merged; approvals and How it's built rebuilt; Tailwind gone; dark mode
 
 **What happened:** Kousik approved U2; merged #55. U3 on `feat/ui-approvals-architecture`. Rewrote
