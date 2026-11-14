@@ -3,35 +3,35 @@
   "proposals": [
    {
     "case": "d14",
-    "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
-    "trace_url": "https://aws.smith.langchain.com/o/716f3aa7-91e5-4e6f-aaad-2b6f8daa7f10/projects/p/b7077ade-ea75-4faf-b1e6-8c7e03849aa5/r/277c3470-0ce8-419c-9c98-f538d5d08a93?poll=true"
+    "proposal_id": "c7f9e156-6622-43cc-b672-8e4673e98f63",
+    "trace_url": "https://aws.smith.langchain.com/o/716f3aa7-91e5-4e6f-aaad-2b6f8daa7f10/projects/p/b7077ade-ea75-4faf-b1e6-8c7e03849aa5/r/b384711e-283e-42bc-b4a5-db2c7984f48d?poll=true"
    },
    {
     "case": "d04",
-    "proposal_id": "e2c6533a-bbe5-4c83-b6bd-da3dcd6b6e16",
-    "trace_url": "https://aws.smith.langchain.com/o/716f3aa7-91e5-4e6f-aaad-2b6f8daa7f10/projects/p/b7077ade-ea75-4faf-b1e6-8c7e03849aa5/r/58e76d34-dff9-4444-95bc-22b3e0bededc?poll=true"
+    "proposal_id": "a0ec764d-015d-424f-93c0-c9a741001d54",
+    "trace_url": "https://aws.smith.langchain.com/o/716f3aa7-91e5-4e6f-aaad-2b6f8daa7f10/projects/p/b7077ade-ea75-4faf-b1e6-8c7e03849aa5/r/c697da5e-e62d-415d-8904-01cebafcd5ef?poll=true"
    },
    {
     "case": "d13",
-    "proposal_id": "a2883af6-6a30-4b36-8be8-c0875909b655",
-    "trace_url": "https://aws.smith.langchain.com/o/716f3aa7-91e5-4e6f-aaad-2b6f8daa7f10/projects/p/b7077ade-ea75-4faf-b1e6-8c7e03849aa5/r/1d09e564-5872-4ba8-b134-aad3f621f422?poll=true"
+    "proposal_id": "0f40c7f6-487e-4329-a8fe-df1168004d74",
+    "trace_url": "https://aws.smith.langchain.com/o/716f3aa7-91e5-4e6f-aaad-2b6f8daa7f10/projects/p/b7077ade-ea75-4faf-b1e6-8c7e03849aa5/r/6b6af66d-4911-466e-9eb5-4cdb0295d5f6?poll=true"
    }
   ],
   "walkthrough": [
    {
-    "proposal_id": "e2c6533a-bbe5-4c83-b6bd-da3dcd6b6e16",
+    "proposal_id": "a0ec764d-015d-424f-93c0-c9a741001d54",
     "verb": "approve"
    },
    {
-    "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+    "proposal_id": "c7f9e156-6622-43cc-b672-8e4673e98f63",
     "verb": "edit"
    },
    {
-    "proposal_id": "a2883af6-6a30-4b36-8be8-c0875909b655",
+    "proposal_id": "0f40c7f6-487e-4329-a8fe-df1168004d74",
     "verb": "reject"
    },
    {
-    "proposal_id": "5887c31c-3631-4626-b660-1ee848c23810",
+    "proposal_id": "c7f9e156-6622-43cc-b672-8e4673e98f63",
     "verb": "undo"
    }
   ]
@@ -50,7 +50,7 @@
   "onboarding",
   "evals"
  ],
- "git_sha": "cca4d9c",
+ "git_sha": "ebaba75",
  "investigations": [
   {
    "current_date": "2018-09-03",
@@ -62,7 +62,7 @@
    "previous_date": "2018-08-29",
    "status": "completed",
    "title": "Golden Case #1: the last day of data",
-   "trace_url": "https://aws.smith.langchain.com/o/716f3aa7-91e5-4e6f-aaad-2b6f8daa7f10/projects/p/b7077ade-ea75-4faf-b1e6-8c7e03849aa5/r/01a1d0e3-37e7-7e01-8a68-8fd32850a504?poll=true"
+   "trace_url": "https://aws.smith.langchain.com/o/716f3aa7-91e5-4e6f-aaad-2b6f8daa7f10/projects/p/b7077ade-ea75-4faf-b1e6-8c7e03849aa5/r/01a1d766-38bf-7cb0-a4be-4d9a9d203c2a?poll=true"
   },
   {
    "current_date": "2018-08-25",
@@ -74,7 +74,7 @@
    "previous_date": "2018-08-24",
    "status": "completed",
    "title": "Order count, 25 Aug 2018",
-   "trace_url": "https://aws.smith.langchain.com/o/716f3aa7-91e5-4e6f-aaad-2b6f8daa7f10/projects/p/b7077ade-ea75-4faf-b1e6-8c7e03849aa5/r/01a1d0e3-5a71-7eb2-bc9a-8933d62f9911?poll=true"
+   "trace_url": "https://aws.smith.langchain.com/o/716f3aa7-91e5-4e6f-aaad-2b6f8daa7f10/projects/p/b7077ade-ea75-4faf-b1e6-8c7e03849aa5/r/01a1d766-5006-7870-bb1d-b4bbb112d6bd?poll=true"
   },
   {
    "current_date": "2018-08-23",
@@ -86,13 +86,13 @@
    "previous_date": "2018-08-22",
    "status": "completed",
    "title": "Revenue, 23 Aug 2018",
-   "trace_url": "https://aws.smith.langchain.com/o/716f3aa7-91e5-4e6f-aaad-2b6f8daa7f10/projects/p/b7077ade-ea75-4faf-b1e6-8c7e03849aa5/r/01a1d0e3-6adf-73f1-958c-28e62bc11623?poll=true"
+   "trace_url": "https://aws.smith.langchain.com/o/716f3aa7-91e5-4e6f-aaad-2b6f8daa7f10/projects/p/b7077ade-ea75-4faf-b1e6-8c7e03849aa5/r/01a1d766-5e2e-79f2-8c64-1711c7f6d7d5?poll=true"
   }
  ],
  "live_effects": false,
  "llm_calls": {
-  "cost_usd": 0.003357,
-  "count": 7,
+  "cost_usd": 0.002497,
+  "count": 6,
   "models": [
    "openai/gpt-oss-120b",
    "openai/gpt-oss-20b"
@@ -103,10 +103,9 @@
    "propose_action:da65a2c670f8",
    "synthesize:5d9eec3cadf5",
    "synthesize:6f1bd2dbf5e9",
-   "synthesize:bbbdf584d524",
-   "synthesize:c384f6a9091c"
+   "synthesize:bbbdf584d524"
   ],
-  "total_tokens": 16070
+  "total_tokens": 13638
  },
  "models": {
   "action_large": "openai/gpt-oss-120b",
@@ -114,6 +113,6 @@
   "investigation": "openai/gpt-oss-120b"
  },
  "olist_attribution": "Olist Brazilian E-Commerce Public Dataset, CC BY-NC-SA 4.0",
- "recorded_at": "2026-11-12T17:51:44+00:00",
+ "recorded_at": "2026-11-14T00:12:30+00:00",
  "warehouse": "duckdb"
 }
