@@ -291,9 +291,10 @@ Nothing is clickable: the Render deployment is gone and AWS was deleted. A stati
 replays **real recorded outputs** (primary link), and the real app runs on a new Render free account
 in demo mode (no outside effects, capped LLM spend). **Scope approved 2026-11-12** (both proposed
 decisions accepted). **H1 built 2026-11-12** (recorder, builder, replay shim, Pages workflow;
-checked in a browser locally); its box waits for the live Pages URL.
+checked in a browser locally). **Live 2026-11-13** at https://nkousik18.github.io/metric_pulse/, every tab
+and the Action Agent walk-through checked in Chrome.
 
-- [ ] **H1** — Static replay site: `demo/record.py` (real views via the test client), `demo/build.py`
+- [x] **H1** — Static replay site: `demo/record.py` (real views via the test client), `demo/build.py`
       + `replay.js`, Pages workflow, README link. Gate: every tab loads from recordings on the Pages
       URL, checked in a browser.
 - [ ] **H2** — Render demo-mode app: 2.1 MB staging snapshot, `DEMO_MODE` (live effects off
@@ -307,7 +308,7 @@ checked in a browser locally); its box waits for the live Pages URL.
 
 The site looked AI-generated (Inter, indigo→violet, template landing page) and its breakdown bars
 misdrew values over 100%. Rebuilt as the category standard at Linear / Stripe craft, for a
-hiring manager's 30-second visit. Brief in `PRODUCT.md`. The Pages deploy waits for U4.
+hiring manager's 30-second visit. Brief in `PRODUCT.md`. Live on Pages since 2026-11-13.
 
 - [x] **U1** — Foundation: tokens (light + dark), base CSS, top bar and tabs, About. Gate: no
       detector findings from scope §1 in U1's files; no overflow at 375 and 1440 px. (Tailwind and
@@ -318,7 +319,7 @@ hiring manager's 30-second visit. Brief in `PRODUCT.md`. The Pages deploy waits 
       ingestion run, not a recording.)
 - [x] **U3** — Approval cards and How it's built (eval table, onboarding detail, the diagram); Tailwind and
       Font Awesome out; dark mode. Gate: the walk-through replays end to end; no §1 findings anywhere.
-- [ ] **U4** — Finish review, `DESIGN.md`, re-record on `main`, enable Pages. Gate: verdict,
+- [x] **U4** — Finish review, `DESIGN.md`, re-record on `main`, enable Pages. Gate: verdict,
       `DESIGN.md`, live URL checked in a browser (also H1's gate).
 
 ---

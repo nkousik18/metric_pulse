@@ -4,6 +4,18 @@ What's shipped, in user-facing terms — built from actual commit history, not a
 version tags exist for this project yet, so entries are dated. See `docs/ROADMAP.md` for what's
 planned but not yet shipped, and `docs/project/SESSION_LOG.md` for session-by-session detail.
 
+## 2026-11-13
+
+### Added
+- **A public demo site:** https://nkousik18.github.io/metric_pulse/. It replays real recorded
+  outputs of the pipeline and the AI agents (no server, no LLM calls), including the Action Agent's
+  approve → edit → reject → undo walk-through. It republishes on every change to the site.
+- `DESIGN.md`: the design system of the redesigned UI, recorded from the shipped code.
+
+### Changed
+- The redesigned UI is finished: each tab has its own shareable address, and the finish-review
+  fixes landed on Overview, the AI agents tab and phone widths.
+
 ## 2026-11-12
 
 ### Changed

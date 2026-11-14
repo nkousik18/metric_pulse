@@ -10,7 +10,7 @@ them back. Nothing on the site is hand-written or mocked (rule R1).
 | Path | What |
 |---|---|
 | `record.py` | Drives the real Django views through `django.test.Client` and saves each response to `recordings/`, with `index.json` (request key → file) and `manifest.json` (date, commit, models, prompt hashes, LLM cost, cases). |
-| `build.py` | Renders `templates/index.html` with Django's template engine alone, adds the banner, a "Recorded runs" tab and `replay.js`, copies the recordings to `data/`. Output `_site/` (gitignored). |
+| `build.py` | Renders `templates/index.html` with Django's template engine alone, adds the banner and `replay.js`, copies the recordings to `data/`. Output `_site/` (gitignored). |
 | `static/replay.js` | Wraps `window.fetch`: every `/api/` call is answered from `data/`; an unrecorded one gets a visible "not recorded" notice and an error, never an invented answer. Replays the Action Agent walk-through in order. |
 | `keys.py` | The request-key rules, mirrored in `replay.js`; `tests/test_demo_site.py` runs both on the same inputs. |
 | `recordings/` | The committed recordings (~0.8 MB). Regenerate with the command, never hand-edit. |
@@ -42,7 +42,7 @@ name the commit the recording was made at.
 - **AI investigations:** three real cases labelled in the detection eval, inside the dashboard's
   60-day window: d14 (Golden Case #1, revenue 2018-09-03 vs 08-29, the data-tail case), d04
   (order count 2018-08-25 vs 08-24, an event) and d13 (revenue 2018-08-23 vs 08-22, not an event).
-  The "Recorded runs" tab opens each one in the dashboard.
+  The AI agents tab offers each one as a chip under "Run it on a day".
 - **Action Agent:** real proposals for the same three cases, then approve → edit → reject → undo,
   all with `live: false`, plus the real 400 for a reject/undo without a reason. The replay only
   accepts the recorded order, reason and params (pre-filled on the highlighted card).
