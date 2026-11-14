@@ -196,97 +196,79 @@ metric_pulse/
 
 ## Quick Start
 
+Everything runs locally by default: DuckDB as the warehouse, dbt-duckdb for the models, and alerts
+written to a Markdown outbox. No AWS account is needed. The original AWS path (S3 → Redshift, SNS)
+is kept as a switch; see [Archived: AWS](#archived-aws) below.
+
 ### Prerequisites
 
 - Python 3.12+
-- AWS Account (S3, Redshift, SNS)
-- dbt CLI
+- The [Olist Brazilian E-Commerce dataset](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) (CC BY-NC-SA 4.0)
+  unzipped into `data/raw/`, or use the committed sample in `data/fixtures/olist_sample/`
+- A [Groq](https://console.groq.com) API key, only for the AI agents
 
-### 1. Clone the Repository
+### 1. Clone and install
 
 ```bash
 git clone https://github.com/nkousik18/metric_pulse.git
 cd metric_pulse
-```
-
-### 2. Create Virtual Environment
-
-```bash
 python -m venv metric_venv
 source metric_venv/bin/activate  # On Windows: metric_venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 3. Configure Environment Variables
-
-Create a `.env` file in the project root:
-
-```env
-# AWS Credentials
-AWS_ACCESS_KEY_ID=your_access_key
-AWS_SECRET_ACCESS_KEY=your_secret_key
-AWS_REGION=us-east-1
-
-# S3
-S3_BUCKET_NAME=your-bucket-name
-
-# Redshift
-REDSHIFT_HOST=your-workgroup.region.redshift-serverless.amazonaws.com
-REDSHIFT_PORT=5439
-REDSHIFT_DATABASE=dev
-REDSHIFT_USER=admin
-REDSHIFT_PASSWORD=your_password
-
-# SNS
-SNS_TOPIC_ARN=arn:aws:sns:region:account:topic-name
-
-# Django
-DJANGO_SECRET_KEY=your_secret_key
-DJANGO_DEBUG=True
-
-# Pipeline
-ANOMALY_THRESHOLD_ZSCORE=2.0
-LOOKBACK_DAYS=30
-```
-
-### 4. Set Up AWS Infrastructure
+### 2. Configure
 
 ```bash
-# Upload raw data to S3
-python -m ingestion.upload_to_s3
+cp .env.example .env
+```
 
-# Create Redshift tables and load data
+The local defaults need nothing filled in (`WAREHOUSE=duckdb`, `ALERT_CHANNEL=outbox`). For the
+agents, set `GROQ_API_KEY`; for the approval API and the dashboard's approvals, set
+`ACTION_APPROVER_TOKEN` (16+ characters). LangSmith tracing is optional (`LANGSMITH_TRACING=true`
+plus `LANGSMITH_API_KEY`).
+
+### 3. Load the data and build the models
+
+```bash
+python -m ingestion.load_local          # data/raw/*.csv -> data/warehouse.duckdb (451,535 rows)
+# or, with the committed sample:
+# python -m ingestion.load_local --raw-dir data/fixtures/olist_sample
+
+cd dbt_project
+dbt build --target local --profiles-dir .   # 11 models + 37 tests
+cd ..
+```
+
+### 4. Run the pipeline and the agents
+
+```bash
+python -m orchestration.run_pipeline --dry-run                    # detect, decompose, narrate; no alert
+python -m orchestration.run_pipeline --force-alert                # also write an alert to outbox/
+python -m orchestration.run_pipeline --dry-run --run-investigation   # + the Investigation Agent
+python -m action_agent.cli propose --dataset-id olist --metric total_revenue   # Action Agent -> approval queue
+python -m action_agent.cli pending                                # then approve / edit / reject <id>
+python -m onboarding.onboard --file data/some_new_dataset.csv     # onboard a new CSV
+```
+
+### 5. Run the web app
+
+```bash
+python manage.py migrate      # local SQLite for Django auth/sessions only
+python manage.py runserver    # http://127.0.0.1:8000
+```
+
+### Archived: AWS
+
+The AWS resources were deleted on 2026-11-02; the code is kept and still works against a new
+stack. Set `WAREHOUSE=redshift` and `ALERT_CHANNEL=sns`, fill in the `AWS_*`, `S3_BUCKET_NAME`,
+`REDSHIFT_*` and `SNS_TOPIC_ARN` values in `.env`, then:
+
+```bash
+python -m ingestion.upload_to_s3
 python -m ingestion.setup_redshift_tables
 python -m ingestion.s3_to_redshift
-```
-
-### 5. Run dbt Transformations
-
-```bash
-cd dbt_project
-dbt deps
-dbt run
-dbt test
-```
-
-### 6. Run the Application
-
-```bash
-# Run Django server
-python manage.py migrate
-python manage.py runserver
-
-# Access at http://127.0.0.1:8000
-```
-
-### 7. Run the Pipeline
-
-```bash
-# Dry run (no alerts)
-python -m orchestration.run_pipeline --dry-run
-
-# Full run with alerts
-python -m orchestration.run_pipeline --force-alert
+cd dbt_project && dbt build --target redshift --profiles-dir .
 ```
 
 ---
@@ -308,7 +290,7 @@ python -m orchestration.run_pipeline --force-alert
 | `/api/actions/<id>/edit/` | POST | Approve with edited params |
 | `/api/actions/<id>/reject/` | POST | Reject, with a reason |
 | `/api/actions/<id>/undo/` | POST | Undo a reversible executed action, with a reason |
-| `/api/contact/` | POST | Submit contact form |
+| `/api/contact/` | POST | Contact form (kept in the API; the site no longer shows the form) |
 
 ---
 
@@ -348,7 +330,7 @@ Commands: `python -m action_agent.eval`, `python -m investigation.eval`, `python
 
 ## Documentation
 
-Deeper reference lives in [`docs/`](docs/README.md) — one file per pipeline layer, plus `docs/resume_project_doc.md` (full source of truth), `docs/ROADMAP.md` (what's built vs. planned), and `docs/scoping.md` (in-progress agentic-layer design). Every top-level code folder (`ingestion/`, `dbt_project/`, `detection/`, etc.) also has its own `README.md` with file-by-file detail. [`concepts/`](concepts/INDEX.md) explains the ideas behind the newer, less-obvious parts of the system (state graphs, LLM grounding) in plain language. `CHANGELOG.md` tracks what's shipped; `CONTRIBUTING.md` covers the branch/PR workflow. `CLAUDE.md` is the entry point for AI coding assistants working in this repo.
+Deeper reference lives in [`docs/`](docs/README.md) — one file per pipeline layer, plus `docs/MetricPulse_resume_project_doc.md` (full source of truth), `docs/ROADMAP.md` (what's built vs. planned), and `docs/scoping.md` and `docs/action-agent-scope.md` (the agent designs). Every top-level code folder (`ingestion/`, `dbt_project/`, `detection/`, etc.) also has its own `README.md` with file-by-file detail. [`concepts/`](concepts/INDEX.md) explains the ideas behind the newer, less-obvious parts of the system (state graphs, LLM grounding) in plain language. `CHANGELOG.md` tracks what's shipped; `CONTRIBUTING.md` covers the branch/PR workflow. `CLAUDE.md` is the entry point for AI coding assistants working in this repo.
 
 ## Running Tests
 
@@ -364,11 +346,19 @@ pytest --cov=. --cov-report=html
 
 ## Deployment
 
-### Deploy to Render
+### Demo site (GitHub Pages)
 
-1. Connect GitHub repository to Render
-2. Configure environment variables
-3. Deploy automatically on push to `main`
+The public demo is a static site built from real recorded outputs (`demo/`): `python -m demo.record`
+re-runs the real views and saves their responses, `python -m demo.build` builds `demo/_site/`, and
+`.github/workflows/pages.yml` publishes it on every push to `main` that touches `demo/` or
+`templates/`. See `demo/README.md`.
+
+The previous Render deployment is gone; a Render app in demo mode is planned (`docs/hosting-scope.md`).
+
+### Scheduled runs (AWS Lambda, archived)
+
+`lambda_handler.py` plus `deploy/setup_lambda.sh`, `deploy/deploy_lambda.sh` and
+`deploy/setup_schedule.sh` run the pipeline on a schedule. They target the deleted AWS stack.
 
 ### Docker
 
