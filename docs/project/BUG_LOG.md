@@ -17,13 +17,13 @@ things must be run).
 
 | | Count |
 |---|---|
-| Bugs logged | 54 |
-| Found by running it live | 40 |
+| Bugs logged | 56 |
+| Found by running it live | 41 |
 | Found by a unit test | 2 |
-| Found by review | 12 |
-| Kinds | code 37, config/setup 6, constraint 1, design doc 5, process 2, test 3 |
+| Found by review | 13 |
+| Kinds | code 38, config/setup 6, constraint 1, design doc 6, process 2, test 3 |
 
-**The pattern:** 40 of 54 were found only by running the real thing (a real dataset, a real
+**The pattern:** 41 of 56 were found only by running the real thing (a real dataset, a real
 API, a real CI run). Each milestone's unit tests were green while these bugs existed, because the
 tests used tidy fixtures: plain floats instead of numpy, Olist-only dimension names, in-memory
 data instead of a CSV, a fake key instead of a real account. That is why every roadmap box is
@@ -36,6 +36,8 @@ test that was confirmed to fail without the fix.
 
 | # | Milestone | Kind | Bug | How found | Root cause | Fix | Guard |
 |---|---|---|---|---|---|---|---|
+| U4-2 | U4 | code | Opening the site at `#agents` showed "Day: the day selected on Overview" and had no dates, so the investigation button had nothing to run on | live (capturing `#agents` for the finish review) | The day data loaded only on the first switch to Overview | It loads on whichever tab opens first | Finish-review recapture |
+| U4-1 | U4 | design doc | The focal answer said "Revenue fell 90.6% … mostly Credit Card and Southeast" for Sep 3, a day with 1 order against ~247 usual, and the tile below said no days were flagged | review (Impeccable finish reviewer) | The answer was composed from the decomposition only; the freshness flag lived in a chip further down | A warning under the headline whenever the freshness check flags the selected day; the tile names the z-score and freshness checks separately | Finish-review verdict pass |
 | U3-2 | U3 | code | The static build crashed with `AppRegistryNotReady` | live (`python -m demo.build`) | Rendering a raw number in a template (`{{ e.metrics\|length }}`) runs Django's localisation, which needs the app registry the bare Pages build doesn't set up | The eval table passes its count as text | `test_the_site_builds_…` in CI |
 | U3-1 | U3 | code | The eval table showed "false_alarms 1/28 (100%)" | live (printing the table before building the page) | The ledger's `value` is the count for count metrics, so treating it as a rate gave 100% | Show a percentage only when `value` equals num/n | `test_the_eval_table_shows_a_percentage_only_for_rates_not_counts` |
 | U2-1 | U2 | code | The revenue chart dotted Aug 25, a day flagged for orders | live (screenshot) | Flagged days were collected for every metric | Only the charted metric's flags | Browser check |

@@ -1,0 +1,685 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-13T16:32:41.757217+00:00",
+  "title": "Design System: MetricPulse",
+  "extensions": {
+    "colorMeta": {
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Office Canvas",
+        "canonical": "#f7f7f8",
+        "tonalRamp": [
+          "#242429",
+          "#3f3f48",
+          "#5a5a67",
+          "#757586",
+          "#9494a2",
+          "#b3b3bd",
+          "#d2d2d8",
+          "#f1f1f3"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Panel White",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#262626",
+          "#434343",
+          "#616161",
+          "#7e7e7e",
+          "#9b9b9b",
+          "#b8b8b8",
+          "#d5d5d5",
+          "#f2f2f2"
+        ]
+      },
+      "surface-2": {
+        "role": "neutral",
+        "displayName": "Quiet Grey",
+        "canonical": "#f1f2f4",
+        "tonalRamp": [
+          "#22252b",
+          "#3b414b",
+          "#555d6c",
+          "#6f798d",
+          "#8f97a7",
+          "#afb5c0",
+          "#d0d3da",
+          "#f1f2f4"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "#e3e4e8",
+        "tonalRamp": [
+          "#22242a",
+          "#3d3f4a",
+          "#575b6a",
+          "#71768a",
+          "#9195a5",
+          "#b1b4bf",
+          "#d1d3d9",
+          "#f1f2f4"
+        ]
+      },
+      "border-strong": {
+        "role": "neutral",
+        "displayName": "Firm Hairline",
+        "canonical": "#cfd1d6",
+        "tonalRamp": [
+          "#232529",
+          "#3e4149",
+          "#595d68",
+          "#747988",
+          "#9397a3",
+          "#b2b6be",
+          "#d2d4d8",
+          "#f1f2f3"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#111317",
+        "tonalRamp": [
+          "#21242c",
+          "#39404e",
+          "#525c6f",
+          "#6b7791",
+          "#8c96aa",
+          "#adb4c3",
+          "#cfd3db",
+          "#f0f2f4"
+        ]
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Ink 2",
+        "canonical": "#3b3f47",
+        "tonalRamp": [
+          "#23252a",
+          "#3d414a",
+          "#585e69",
+          "#727a89",
+          "#9298a4",
+          "#b1b6bf",
+          "#d1d4d9",
+          "#f1f2f3"
+        ]
+      },
+      "ink-3": {
+        "role": "neutral",
+        "displayName": "Ink 3",
+        "canonical": "#636874",
+        "tonalRamp": [
+          "#232529",
+          "#3e4149",
+          "#595d68",
+          "#747a88",
+          "#9398a3",
+          "#b2b6be",
+          "#d2d4d8",
+          "#f1f2f3"
+        ]
+      },
+      "accent": {
+        "role": "primary",
+        "displayName": "Restrained Blue",
+        "canonical": "#2563c9",
+        "tonalRamp": [
+          "#0c2041",
+          "#153872",
+          "#1e50a3",
+          "#2769d4",
+          "#568ae0",
+          "#87ace9",
+          "#b8cef2",
+          "#e9f0fb"
+        ]
+      },
+      "accent-hover": {
+        "role": "primary",
+        "displayName": "Restrained Blue, hover",
+        "canonical": "#1d52a8",
+        "tonalRamp": [
+          "#0b2041",
+          "#143873",
+          "#1c50a5",
+          "#2569d6",
+          "#548ae2",
+          "#86acea",
+          "#b8cef3",
+          "#e9f0fb"
+        ]
+      },
+      "accent-soft": {
+        "role": "primary",
+        "displayName": "Restrained Blue, soft",
+        "canonical": "#e7f0fb",
+        "tonalRamp": [
+          "#0b2442",
+          "#133f74",
+          "#1c5aa5",
+          "#2475d7",
+          "#5394e2",
+          "#85b3eb",
+          "#b7d2f3",
+          "#e9f1fb"
+        ]
+      },
+      "on-ink": {
+        "role": "neutral",
+        "displayName": "On Ink",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#262626",
+          "#434343",
+          "#616161",
+          "#7e7e7e",
+          "#9b9b9b",
+          "#b8b8b8",
+          "#d5d5d5",
+          "#f2f2f2"
+        ]
+      },
+      "selection": {
+        "role": "neutral",
+        "displayName": "Selection Blue",
+        "canonical": "#cfe1f7",
+        "tonalRamp": [
+          "#0b2442",
+          "#133f74",
+          "#1c5aa5",
+          "#2475d7",
+          "#5394e2",
+          "#85b3eb",
+          "#b7d2f3",
+          "#e9f1fb"
+        ]
+      },
+      "rise": {
+        "role": "tertiary",
+        "displayName": "Rise Blue",
+        "canonical": "#2a78d6",
+        "tonalRamp": [
+          "#0c2440",
+          "#163f71",
+          "#1f5aa2",
+          "#2976d3",
+          "#5795df",
+          "#88b3e8",
+          "#b9d2f1",
+          "#eaf1fb"
+        ]
+      },
+      "fall": {
+        "role": "tertiary",
+        "displayName": "Fall Red",
+        "canonical": "#e34948",
+        "tonalRamp": [
+          "#420b0a",
+          "#751312",
+          "#a71b1a",
+          "#da2321",
+          "#e45251",
+          "#ec8484",
+          "#f4b7b6",
+          "#fce9e9"
+        ]
+      },
+      "canvas-dark": {
+        "role": "neutral",
+        "displayName": "Office Canvas (dark)",
+        "canonical": "#0d0e11",
+        "tonalRamp": [
+          "#21242b",
+          "#3a3f4c",
+          "#545a6d",
+          "#6d758e",
+          "#8d94a8",
+          "#aeb3c1",
+          "#d0d2db",
+          "#f1f1f4"
+        ]
+      },
+      "surface-dark": {
+        "role": "neutral",
+        "displayName": "Panel White (dark)",
+        "canonical": "#15171b",
+        "tonalRamp": [
+          "#21252b",
+          "#3b414c",
+          "#545d6d",
+          "#6e788d",
+          "#8e97a7",
+          "#afb5c1",
+          "#d0d3da",
+          "#f1f2f4"
+        ]
+      },
+      "surface-2-dark": {
+        "role": "neutral",
+        "displayName": "Quiet Grey (dark)",
+        "canonical": "#1c1f24",
+        "tonalRamp": [
+          "#21252b",
+          "#3b414c",
+          "#545e6d",
+          "#6e7a8d",
+          "#8e98a7",
+          "#afb6c1",
+          "#d0d4da",
+          "#f1f2f4"
+        ]
+      },
+      "border-dark": {
+        "role": "neutral",
+        "displayName": "Hairline (dark)",
+        "canonical": "#272a31",
+        "tonalRamp": [
+          "#22252b",
+          "#3c404b",
+          "#565c6c",
+          "#6f788c",
+          "#8f96a6",
+          "#b0b5c0",
+          "#d0d3da",
+          "#f1f2f4"
+        ]
+      },
+      "border-strong-dark": {
+        "role": "neutral",
+        "displayName": "Firm Hairline (dark)",
+        "canonical": "#363a42",
+        "tonalRamp": [
+          "#22252a",
+          "#3d414a",
+          "#575d6a",
+          "#71798a",
+          "#9197a5",
+          "#b1b6bf",
+          "#d1d4d9",
+          "#f1f2f4"
+        ]
+      },
+      "ink-dark": {
+        "role": "neutral",
+        "displayName": "Ink (dark)",
+        "canonical": "#eceef1",
+        "tonalRamp": [
+          "#20252c",
+          "#39414e",
+          "#525e6f",
+          "#6b7a91",
+          "#8c98aa",
+          "#adb6c3",
+          "#cfd4db",
+          "#f0f2f4"
+        ]
+      },
+      "ink-2-dark": {
+        "role": "neutral",
+        "displayName": "Ink 2 (dark)",
+        "canonical": "#c4c7ce",
+        "tonalRamp": [
+          "#23252a",
+          "#3d414a",
+          "#585d69",
+          "#727989",
+          "#9297a4",
+          "#b1b5bf",
+          "#d1d4d9",
+          "#f1f2f3"
+        ]
+      },
+      "ink-3-dark": {
+        "role": "neutral",
+        "displayName": "Ink 3 (dark)",
+        "canonical": "#9096a1",
+        "tonalRamp": [
+          "#232529",
+          "#3e4249",
+          "#595e69",
+          "#737b88",
+          "#9398a3",
+          "#b2b6be",
+          "#d2d4d9",
+          "#f1f2f3"
+        ]
+      },
+      "accent-dark": {
+        "role": "primary",
+        "displayName": "Restrained Blue (dark)",
+        "canonical": "#58a6ff",
+        "tonalRamp": [
+          "#00244c",
+          "#003f87",
+          "#005ac1",
+          "#0075fb",
+          "#3794ff",
+          "#71b3ff",
+          "#abd2ff",
+          "#e6f1ff"
+        ]
+      },
+      "accent-hover-dark": {
+        "role": "primary",
+        "displayName": "Restrained Blue, hover (dark)",
+        "canonical": "#79b8ff",
+        "tonalRamp": [
+          "#00244c",
+          "#003f87",
+          "#005bc1",
+          "#0076fb",
+          "#3795ff",
+          "#71b4ff",
+          "#abd3ff",
+          "#e6f1ff"
+        ]
+      },
+      "accent-soft-dark": {
+        "role": "primary",
+        "displayName": "Restrained Blue, soft (dark)",
+        "canonical": "#0f2236",
+        "tonalRamp": [
+          "#11263c",
+          "#1d4269",
+          "#2a5f97",
+          "#377cc5",
+          "#6299d3",
+          "#90b7e0",
+          "#bdd4ed",
+          "#ebf2f9"
+        ]
+      },
+      "on-ink-dark": {
+        "role": "neutral",
+        "displayName": "On Ink (dark)",
+        "canonical": "#0d0e11",
+        "tonalRamp": [
+          "#21242b",
+          "#3a3f4c",
+          "#545a6d",
+          "#6d758e",
+          "#8d94a8",
+          "#aeb3c1",
+          "#d0d2db",
+          "#f1f1f4"
+        ]
+      },
+      "selection-dark": {
+        "role": "neutral",
+        "displayName": "Selection Blue (dark)",
+        "canonical": "#1d3a5c",
+        "tonalRamp": [
+          "#12253a",
+          "#204166",
+          "#2e5d93",
+          "#3c78bf",
+          "#6797cf",
+          "#93b5dd",
+          "#bfd3eb",
+          "#ecf2f9"
+        ]
+      },
+      "rise-dark": {
+        "role": "tertiary",
+        "displayName": "Rise Blue (dark)",
+        "canonical": "#3987e5",
+        "tonalRamp": [
+          "#092444",
+          "#103f77",
+          "#165aab",
+          "#1d75de",
+          "#4e94e8",
+          "#81b3ef",
+          "#b5d2f5",
+          "#e8f1fc"
+        ]
+      },
+      "fall-dark": {
+        "role": "tertiary",
+        "displayName": "Fall Red (dark)",
+        "canonical": "#e66767",
+        "tonalRamp": [
+          "#420b0b",
+          "#741313",
+          "#a61b1b",
+          "#d82424",
+          "#e35353",
+          "#eb8585",
+          "#f3b7b7",
+          "#fbe9e9"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The Overview answer headline only."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Page titles, KPI values, eval score figures."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Tile and section titles."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running copy; ledes at 17px."
+      },
+      "body-sm": {
+        "displayName": "Small",
+        "purpose": "Tabs, buttons, chips, meta, table cells."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Sentence-case field labels and table headers in ink-3."
+      },
+      "mono": {
+        "displayName": "Mono",
+        "purpose": "Ids, SHAs, code, payloads, action types."
+      }
+    },
+    "shadows": [
+      {
+        "name": "shadow-tile",
+        "value": "0 1px 2px rgba(17,19,23,0.05), 0 8px 24px -8px rgba(17,19,23,0.14)",
+        "purpose": "Every tile. Dark: 0 1px 2px rgba(0,0,0,0.5), 0 8px 24px -8px rgba(0,0,0,0.6)."
+      },
+      {
+        "name": "shadow-sm",
+        "value": "0 1px 2px rgba(17,19,23,0.06)",
+        "purpose": "Secondary buttons, active segmented option. Dark: rgba(0,0,0,0.4)."
+      },
+      {
+        "name": "shadow-md",
+        "value": "0 4px 12px rgba(17,19,23,0.08), 0 1px 3px rgba(17,19,23,0.06)",
+        "purpose": "Fixed replay notice only. Dark: 0 4px 12px rgba(0,0,0,0.45)."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "All state transitions; 120ms for color/background/border, 150ms for disclosure chevrons. Reduced motion drops to 0.01ms."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "filters-2col",
+        "value": "960px"
+      },
+      {
+        "name": "about-1col",
+        "value": "860px"
+      },
+      {
+        "name": "nav-wrap",
+        "value": "760px"
+      },
+      {
+        "name": "phone",
+        "value": "640px"
+      },
+      {
+        "name": "kpis-1col",
+        "value": "560px"
+      },
+      {
+        "name": "narrow",
+        "value": "480px"
+      },
+      {
+        "name": "tiny",
+        "value": "420px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Ink-filled main action (Contact on LinkedIn, Investigate, Approve).",
+      "html": "<button class=\"ds-btn ds-btn-primary\">Investigate with AI agent</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-ui);font-size:13px;font-weight:550;line-height:1;padding:9px 14px;border-radius:8px;border:1px solid transparent;cursor:pointer;transition:background-color 120ms cubic-bezier(0.16,1,0.3,1),border-color 120ms cubic-bezier(0.16,1,0.3,1),color 120ms cubic-bezier(0.16,1,0.3,1)}.ds-btn-primary{background:var(--ink);color:var(--on-ink)}.ds-btn-primary:hover{background:var(--ink-2)}.ds-btn:focus-visible{outline:2px solid var(--focus);outline-offset:2px}"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Outlined surface button (Approve with edits, Refresh).",
+      "html": "<button class=\"ds-btn-secondary\">Approve with edits</button>",
+      "css": ".ds-btn-secondary{font-family:var(--font-ui);font-size:13px;font-weight:550;line-height:1;padding:9px 14px;border-radius:8px;cursor:pointer;background:var(--surface);color:var(--ink);border:1px solid var(--border-strong);box-shadow:var(--shadow-sm);transition:background-color 120ms cubic-bezier(0.16,1,0.3,1)}.ds-btn-secondary:hover{background:var(--surface-2)}.ds-btn-secondary:focus-visible{outline:2px solid var(--focus);outline-offset:2px}"
+    },
+    {
+      "name": "Quiet Button",
+      "kind": "button",
+      "refersTo": "button-quiet",
+      "description": "Transparent low-emphasis action (Source, Look at another day, Copy).",
+      "html": "<button class=\"ds-btn-quiet\">Look at another day</button>",
+      "css": ".ds-btn-quiet{font-family:var(--font-ui);font-size:13px;font-weight:550;line-height:1;padding:9px 14px;border-radius:8px;border:1px solid transparent;cursor:pointer;background:transparent;color:var(--ink-2);transition:background-color 120ms cubic-bezier(0.16,1,0.3,1),color 120ms cubic-bezier(0.16,1,0.3,1)}.ds-btn-quiet:hover{background:var(--surface-2);color:var(--ink)}.ds-btn-quiet:focus-visible{outline:2px solid var(--focus);outline-offset:2px}"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Destructive action (Reject).",
+      "html": "<button class=\"ds-btn-danger\">Reject</button>",
+      "css": ".ds-btn-danger{font-family:var(--font-ui);font-size:13px;font-weight:550;line-height:1;padding:9px 14px;border-radius:8px;cursor:pointer;background:var(--surface);color:var(--fall);border:1px solid color-mix(in srgb,var(--fall) 45%,transparent)}.ds-btn-danger:hover{background:color-mix(in srgb,var(--fall) 8%,var(--surface))}.ds-btn-danger:focus-visible{outline:2px solid var(--focus);outline-offset:2px}"
+    },
+    {
+      "name": "Tab Navigation",
+      "kind": "nav",
+      "refersTo": "nav-tab",
+      "description": "Header tabs; active state is a quiet grey fill.",
+      "html": "<nav class=\"ds-nav\"><button class=\"ds-tab is-active\">Overview</button><button class=\"ds-tab\">AI agents</button><button class=\"ds-tab\">How it's built</button><button class=\"ds-tab\">About</button></nav>",
+      "css": ".ds-nav{display:flex;gap:2px}.ds-tab{border:0;background:transparent;cursor:pointer;font-family:var(--font-ui);font-size:13px;font-weight:500;color:var(--ink-3);padding:6px 10px;border-radius:6px;transition:color 120ms cubic-bezier(0.16,1,0.3,1),background-color 120ms cubic-bezier(0.16,1,0.3,1)}.ds-tab:hover,.ds-tab.is-active{color:var(--ink);background:var(--surface-2)}.ds-tab:focus-visible{outline:2px solid var(--focus);outline-offset:2px}"
+    },
+    {
+      "name": "Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Text field and select.",
+      "html": "<input class=\"ds-input\" placeholder=\"ACTION_APPROVER_TOKEN from .env\">",
+      "css": ".ds-input{width:100%;font-family:var(--font-ui);font-size:13px;color:var(--ink);background:var(--surface);border:1px solid var(--border-strong);border-radius:8px;padding:8px 10px;min-height:36px}.ds-input:focus-visible{outline:2px solid var(--focus);outline-offset:1px}"
+    },
+    {
+      "name": "Day Chip",
+      "kind": "chip",
+      "refersTo": "day-chip",
+      "description": "Selectable flagged day; selected is a tinted fill, never a ring.",
+      "html": "<button class=\"ds-day\" aria-pressed=\"true\"><strong>Sep 3, 2018 · revenue</strong><span>AI investigation recorded · labelled an event</span></button><button class=\"ds-day\" aria-pressed=\"false\"><strong>Aug 25, 2018 · orders</strong><span>labelled an event</span></button>",
+      "css": ".ds-day{display:inline-flex;flex-direction:column;gap:1px;text-align:left;font-family:var(--font-ui);font-size:13px;cursor:pointer;padding:7px 12px;border-radius:8px;background:var(--surface);color:var(--ink);border:1px solid var(--border-strong);margin:0 8px 8px 0;transition:border-color 120ms cubic-bezier(0.16,1,0.3,1),background-color 120ms cubic-bezier(0.16,1,0.3,1)}.ds-day:hover{background:var(--surface-2)}.ds-day[aria-pressed=true]{background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 55%,transparent)}.ds-day strong{font-weight:600;font-variant-numeric:tabular-nums}.ds-day span{font-size:12px;color:var(--ink-3)}.ds-day:focus-visible{outline:2px solid var(--focus);outline-offset:2px}"
+    },
+    {
+      "name": "Chips",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Metadata chips on approval cards: action type (mono), tier, next step.",
+      "html": "<span class=\"ds-chip ds-chip-next\">Next recorded step: Approve</span> <span class=\"ds-chip ds-chip-strong\">notify_owner</span> <span class=\"ds-chip\">T1 · not reversible</span>",
+      "css": ".ds-chip{display:inline-flex;align-items:center;font-family:var(--font-ui);font-size:12px;font-weight:500;color:var(--ink-2);background:var(--surface-2);border-radius:6px;padding:3px 8px}.ds-chip-strong{color:var(--ink);font-weight:600;font-family:var(--font-mono)}.ds-chip-next{color:var(--accent);background:var(--accent-soft);font-weight:600}"
+    },
+    {
+      "name": "Tile",
+      "kind": "card",
+      "refersTo": "tile",
+      "description": "Elevated white container for charts, breakdowns and approval cards.",
+      "html": "<section class=\"ds-tile\"><h2>What drove the revenue change</h2><p>Each segment's share of the total change</p></section>",
+      "css": ".ds-tile{background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-tile);padding:24px;font-family:var(--font-ui)}.ds-tile h2{margin:0 0 2px;font-size:17px;font-weight:600;line-height:1.3;letter-spacing:-0.01em;color:var(--ink)}.ds-tile p{margin:0;font-size:13px;color:var(--ink-3)}"
+    },
+    {
+      "name": "Eval Score Row",
+      "kind": "custom",
+      "refersTo": "score-row",
+      "description": "Eval figures with denominators, label and context.",
+      "html": "<dl class=\"ds-scores\"><div><dd>25/30</dd><dt>Answers whose every claim checks out<span>runs · 83%</span></dt></div><div><dd>22/30</dd><dt>Names the expected root cause<span>runs · 73%</span></dt></div></dl>",
+      "css": ".ds-scores{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:16px;margin:0;font-family:var(--font-ui)}.ds-scores div{display:flex;flex-direction:column;gap:2px}.ds-scores dd{margin:0;font-size:28px;font-weight:650;letter-spacing:-0.02em;line-height:1.1;color:var(--ink);font-variant-numeric:tabular-nums}.ds-scores dt{font-size:13px;color:var(--ink-2);line-height:1.4}.ds-scores dt span{display:block;font-size:12px;color:var(--ink-3)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Category Standard",
+    "overview": "A product UI built to Linear / Stripe Dashboard craft and not to a marketing-page template: cool neutral greys, white panels on a near-white canvas, near-black ink, one restrained blue accent, system type, hairline borders. The page stays quiet so the evidence (a 64px \"Revenue fell 90.6%\", the trend, the segment bars, eval figures with denominators) can carry the weight.\n\nThe density is moderate. Narrow reading pages (960px) use one column of stacked tiles. The single focal point on Overview is the answer headline, set at display size directly on the canvas with no card around it. Everything else sits in elevated white tiles or behind disclosures.\n\nWhere the build departs from the direction contract (`.impeccable/surfaces/templates-base-html.md`), the build is recorded here: the first viewport is one 960px column led by the answer headline, not a two-thirds anomaly panel with a one-third eval scorecard beside it; eval scores live on the AI agents tab, with a single proof line under the answer; tabs are Overview, AI agents, How it's built, About (not Investigate and Approvals); flagged days sit below the chart and breakdowns, not above the panel; the contribution view is per-dimension bars colored rise/fall, not a diverging-axis chart; the cited agent answer is one click away, not on the first screen.",
+    "keyCharacteristics": [
+      "System UI font stack only; monospace only for ids, code, payloads and action types.",
+      "Tabular figures on every number (`.num`, tables, deltas, chips).",
+      "One accent (blue, hue about 217 light / 212 dark), never indigo or violet.",
+      "Data color is a validated blue/red diverging pair (rise/fall), used only for data.",
+      "Hairline 1px borders, small radii (6/8/12px), soft ambient tile shadow; no gradients, no glow, no lift on hover.",
+      "Sentence-case labels; no uppercase, no letter-spaced eyebrows, no emoji; icons are inline SVG."
+    ],
+    "rules": [
+      {
+        "name": "The One Accent Rule",
+        "body": "Blue is the only UI accent. Primary buttons are ink, not accent; accent marks links, the trend line, focus and \"next step\" signals.",
+        "section": "colors"
+      },
+      {
+        "name": "The Data-Only Color Rule",
+        "body": "Rise and fall appear only where a value rose or fell (or an error/destructive state). Never decorative.",
+        "section": "colors"
+      },
+      {
+        "name": "The No Violet Rule",
+        "body": "The accent stays in the 210 to 220 hue band in both themes; the earlier periwinkle dark accent was replaced for this reason.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tabular Figures Rule",
+        "body": "Every number that can be compared uses `font-variant-numeric: tabular-nums`.",
+        "section": "typography"
+      },
+      {
+        "name": "The Mono Means Machine Rule",
+        "body": "Monospace is only for ids, commit SHAs, code, JSON payloads and action-type chips.",
+        "section": "typography"
+      },
+      {
+        "name": "The No Lift Rule",
+        "body": "Hover changes background or text color only; nothing translates, scales or gains shadow.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do take every color, size, space, radius and shadow from the `:root` custom properties; charts read them with `getComputedStyle`.",
+      "Do keep primary buttons ink and reserve the accent for links, the trend line, focus and next-step signals.",
+      "Do use tabular figures for numbers and show eval scores with their denominators (`25/30`).",
+      "Do mark selection with a tinted fill and 1px border, and focus with a 2px accent outline.",
+      "Do keep hover to a background or text-color change at 120ms.",
+      "Do honor `prefers-reduced-motion` (transitions and animations drop to 0.01ms)."
+    ],
+    "donts": [
+      "Don't use indigo, violet or purple anywhere, in either theme.",
+      "Don't use gradients, glow, colored shadows or lift-on-hover.",
+      "Don't add webfonts or display faces; the system stack is the type system.",
+      "Don't use emoji or icon fonts; icons are small inline SVGs using `currentColor`.",
+      "Don't use rise/fall colors decoratively.",
+      "Don't set labels in uppercase or add letter-spaced eyebrow lines above titles."
+    ]
+  }
+}

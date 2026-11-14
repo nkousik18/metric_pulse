@@ -1,7 +1,7 @@
 {# The Action Agent's approval queue, a section of the AI agents tab (partials/agents.html). #}
 <div id="content-actions" class="approvals">
     <div class="tile tile-pad">
-        <div class="tile-head">
+        <div class="tile-head tile-head-tight">
             <div>
                 <h3 class="subhead">Approver token</h3>
                 <p class="muted tile-sub">Kept for this browser tab only. Nothing runs until an approver decides.</p>
@@ -23,8 +23,9 @@
     <h3 class="subhead approvals-head">Executed, and can be undone</h3>
     <div id="undoable-actions" class="stack stack-tight"></div>
 
-    <h3 class="subhead approvals-head">Action log <span class="muted" style="font-weight: 400;">newest first, append-only</span></h3>
-    <div class="tile table-wrap">
+    <details class="disclosure action-log">
+    <summary>Action log <span class="muted" style="font-weight: 400;">newest first, append-only</span></summary>
+    <div class="tile table-wrap" style="margin-top: var(--space-3);">
         <table class="data-table">
             <thead>
                 <tr><th>#</th><th>When (UTC)</th><th>Proposal</th><th>Event</th><th>Actor</th><th>Action</th><th>Detail</th></tr>
@@ -32,4 +33,5 @@
             <tbody id="action-log-rows"></tbody>
         </table>
     </div>
+    </details>
 </div>

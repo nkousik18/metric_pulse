@@ -2,16 +2,17 @@
     <main class="page page-narrow">
 
         <header class="overview-intro">
-            <h1 class="overview-title">Why did the metric move?</h1>
             <p class="lede">
                 MetricPulse flags the days a business metric breaks pattern and explains why, with AI agents whose
                 every claim is checked against the data. Below is one real day from the Olist e-commerce dataset.
+                Built end to end by Kousik Nandury.
             </p>
         </header>
 
         <section class="answer" aria-live="polite" aria-labelledby="answer-headline">
-            <p class="answer-headline" id="answer-headline">Loading the day…</p>
+            <h1 class="answer-headline" id="answer-headline">Loading the day…</h1>
             <p class="answer-sub" id="answer-sub"></p>
+            <p class="answer-warning hidden" id="answer-warning" role="note"></p>
             <p class="answer-drivers" id="answer-drivers"></p>
             <dl class="answer-stats">
                 <div><dt>Revenue</dt><dd><span id="kpi-revenue" class="num">–</span> <span id="kpi-revenue-change"></span></dd></div>
@@ -22,6 +23,9 @@
                 <button type="button" class="btn btn-primary btn-lg" onclick="openInvestigation()">See how the AI agent explains it</button>
                 <button type="button" class="btn btn-quiet" onclick="document.getElementById('other-days').scrollIntoView({behavior: 'smooth', block: 'start'})">Look at another day</button>
             </div>
+            {% with g=scores.investigation.rows.0 m=scores.investigation.rows.1 %}{% if g and m %}
+            <p class="answer-proof">In its eval, the investigation agent's answers checked out fully in {{ g.figure }} runs and named the expected cause in {{ m.figure }}.</p>
+            {% endif %}{% endwith %}
         </section>
 
         <section class="tile tile-pad" aria-labelledby="chart-title">
@@ -36,7 +40,7 @@
                     <button type="button" onclick="setChartMetric('avg_order_value')" class="chart-btn seg-btn" data-metric="avg_order_value">AOV</button>
                 </div>
             </div>
-            <div class="chart-box"><canvas id="revenueChart" height="120" role="img" aria-label="Daily trend over the last 60 days"></canvas></div>
+            <div class="chart-box"><canvas id="revenueChart" role="img" aria-label="Daily trend over the last 60 days"></canvas></div>
         </section>
 
         <section class="tile tile-pad" aria-labelledby="drivers-title">
@@ -70,9 +74,9 @@
         <section class="tile tile-pad" id="other-days" aria-labelledby="days-title">
             <h2 class="section-title" id="days-title">Other days to look at</h2>
             <p class="muted tile-sub">
-                <span id="kpi-anomalies" class="num">–</span> revenue days flagged in the last 30 at
-                <span id="threshold-echo" class="num">2.0σ</span>, plus days with incomplete data.
-                {% with f1=scores.detection.rows.0 %}{% if f1 %}Detection scores {{ f1.figure }} F1 {{ f1.context }}.{% endif %}{% endwith %}
+                The z-score check flags <span id="kpi-anomalies" class="num">–</span> of the last 30 days of revenue at
+                <span id="threshold-echo" class="num">2.0σ</span>; the freshness check separately flags days with incomplete data.
+                {% with f1=scores.detection.rows.0 %}{% if f1 %}Together they score {{ f1.figure }} F1 {{ f1.context }}.{% endif %}{% endwith %}
             </p>
             <ul id="flagged-days" class="day-list" aria-label="Flagged days">
                 <li class="muted">Loading…</li>
