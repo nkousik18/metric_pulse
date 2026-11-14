@@ -6,7 +6,7 @@ When business metrics move unexpectedly, MetricPulse automatically identifies wh
 
 🔗 **Demo:** https://nkousik18.github.io/metric_pulse/ — a static site that replays real recorded outputs (no server, no LLM calls). A live demo-mode app is planned (`docs/hosting-scope.md`).
 
-**Status:** core pipeline (ingestion → dbt → detection → decomposition → narrative → alerting) is live and stable. A LangGraph-based agentic layer is currently in design — see `docs/ROADMAP.md` for what's built vs. planned.
+**Status:** core pipeline (ingestion → dbt → detection → decomposition → narrative → alerting) is stable and runs locally (DuckDB + dbt-duckdb). On top of it sit three LangGraph / LLM agents, all built and evaluated: an **Investigation Agent** (explains an anomaly with every number checked against the data), a **Dataset Onboarding Agent** (points the pipeline at a new CSV) and an **Action Agent** (proposes a response and waits for human approval). See `docs/ROADMAP.md` for what's built vs. planned.
 
 ---
 
@@ -26,7 +26,9 @@ MetricPulse automates the entire workflow in **under 30 seconds**:
 - **Detect** — Statistical anomaly detection using Z-score analysis
 - **Decompose** — Break down changes across geography, product, and payment dimensions
 - **Explain** — Generate plain-English narrative automatically
-- **Alert** — Proactive email via AWS SNS before anyone asks
+- **Alert** — Proactive alert before anyone asks (local Markdown outbox by default; AWS SNS archived)
+- **Investigate** — An LLM agent drills into the segments that moved and writes a cited explanation
+- **Act** — An LLM agent proposes a response from a fixed catalog; nothing runs until a human approves
 
 ---
 
@@ -65,6 +67,54 @@ MetricPulse automates the entire workflow in **under 30 seconds**:
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
+### AI agent layer
+
+```
+ anomaly (detection + decomposition evidence)
+        │
+        ▼
+┌──────────────────────── INVESTIGATION AGENT (LangGraph) ────────────────────────┐
+│ detect → decompose_all → assess_ambiguity → drill_down → synthesize → finalize  │
+│ Groq gpt-oss-120b, structured output; every cited number is validated against   │
+│ the decomposition before the answer is shown (deterministic fallback otherwise) │
+└─────────────────────────────────────────────────────────────────────────────────┘
+        │ validated investigation
+        ▼
+┌─────────────────────────── ACTION AGENT (LangGraph) ────────────────────────────┐
+│ check_existing → propose → register → policy_check ─┬─ T0 → execute ─┐          │
+│                                                     └─ T1 → await_approval      │
+│                                                        (interrupt(), a human)   │
+│                         approve / approve with edits ─→ execute ─→ record       │
+│                         reject or expire (24h TTL)   ─→ record                  │
+│ propose:  gpt-oss-20b drafts → one escalation to gpt-oss-120b → deterministic   │
+│           fallback, under a 10k-token budget; evidence passed as a data block   │
+│ policy:   fails closed — in catalog? tier allowed? params pass schema + range   │
+│           checks? segment must exist in the evidence; holiday claims must match │
+│           the trusted event calendar                                            │
+│ execute:  idempotent executors; reversible actions can be undone                │
+│ record:   append-only action_log in SQLite (trigger-enforced), SQLite           │
+│           checkpointer, LangSmith tracing, decision replay                      │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────── DATASET ONBOARDING AGENT ────────────────────────┐
+│ profile CSV (deterministic) → LLM classifies date / grain / metrics /    │
+│ dimensions → human confirms → generated dbt-style SQL → the same detect, │
+│ decompose, narrate (and investigate) pipeline on the new dataset         │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
+**Action catalog** (`action_agent/catalog.py`): every action needs approval (tier T1); T2 actions can never run.
+
+| Action | Reversible | What it does |
+|---|---|---|
+| `annotate_anomaly` | yes | Tags the anomaly with a category and cause (e.g. a calendar event) |
+| `suppress_alerts` | yes | Mutes alerts for the metric for 1–7 days, with a reason |
+| `notify_owner` | no | Notifies the owner of the driving segment (via the alert outbox) |
+| `open_incident` | yes | Opens a GitHub Issue (only with `--live`) |
+| `create_control` | yes | Adds a watch threshold on a segment, expiring in 1–30 days |
+
+Approvals happen in the dashboard's AI agents tab or the CLI (`python -m action_agent.cli`), behind an approver token.
+
 ---
 
 ## Tech Stack
@@ -76,10 +126,14 @@ MetricPulse automates the entire workflow in **under 30 seconds**:
 | **Backend** | Python, Django REST Framework |
 | **Detection** | NumPy, pandas (Z-score analysis) |
 | **Alerting** | Local Markdown outbox (default); AWS SNS (archived, `ALERT_CHANNEL=sns`) |
-| **Frontend** | Tailwind CSS, Chart.js |
+| **Frontend** | Hand-written CSS design system (light + dark, see `DESIGN.md`), Chart.js |
 | **Containerization** | Docker |
 | **CI/CD** | GitHub Actions |
-| **Hosting** | Render |
+| **Local warehouse** | DuckDB + dbt-duckdb (default); Redshift kept as a switch (`WAREHOUSE=redshift`) |
+| **Agents** | LangGraph (state graphs, `interrupt()` approvals, SQLite checkpointer), Pydantic |
+| **LLMs** | Groq: gpt-oss-120b (investigation, onboarding, escalation), gpt-oss-20b (action drafts) |
+| **Observability** | LangSmith tracing, per-call token / cost / latency telemetry, eval ledger + drift check |
+| **Hosting** | GitHub Pages (static replay of real recorded outputs); Render (previous, removed) |
 
 ---
 
@@ -119,6 +173,18 @@ metric_pulse/
 ├── dbt_project/             # dbt models and tests
 │   ├── models/
 │   └── tests/
+├── investigation/           # Investigation Agent (LangGraph): nodes, routing, citation validation, eval
+├── action_agent/            # Action Agent: catalog, policy_check, graph, store, executors, CLI, evals
+│   └── calendars/           # trusted per-dataset event calendars
+├── onboarding/              # Dataset Onboarding Agent: profiling, LLM classification, codegen, eval
+├── detection/eval.py        # detection eval against hand-labelled dates
+├── observability/           # LangSmith tracing, LLM telemetry, eval ledger, drift, scorecard
+├── evals/                   # eval sets, baselines and ledger.jsonl (every eval run, append-only)
+├── demo/                    # static replay site: recorder, builder, recordings, replay.js
+├── dashboard_api/action_views.py  # /api/actions/* endpoints (approve / edit / reject / undo)
+├── data/fixtures/olist_sample/    # committed sample for CI's dbt build (CC BY-NC-SA 4.0)
+├── concepts/                # one file per idea (state graphs, LLM grounding, ...)
+├── DESIGN.md                # the UI design system
 ├── tests/                   # Unit tests
 ├── .github/workflows/       # CI/CD pipelines
 ├── Dockerfile
@@ -235,6 +301,13 @@ python -m orchestration.run_pipeline --force-alert
 | `/api/decomposition/` | GET | Decompose metric changes |
 | `/api/narrative/` | GET | Generate root cause narrative |
 | `/api/pipeline/` | POST | Trigger pipeline run |
+| `/api/investigate/` | POST | Run the Investigation Agent on an anomaly |
+| `/api/actions/pending/` | GET | Action proposals waiting for a decision |
+| `/api/actions/log/` | GET | Append-only action log |
+| `/api/actions/<id>/approve/` | POST | Approve a proposal (approver token) |
+| `/api/actions/<id>/edit/` | POST | Approve with edited params |
+| `/api/actions/<id>/reject/` | POST | Reject, with a reason |
+| `/api/actions/<id>/undo/` | POST | Undo a reversible executed action, with a reason |
 | `/api/contact/` | POST | Submit contact form |
 
 ---
@@ -245,11 +318,31 @@ python -m orchestration.run_pipeline --force-alert
 |--------|-------|
 | Data Volume | 451K rows |
 | dbt Tests | 37 |
-| Unit Tests | 15 |
+| Unit Tests | 401 (pure functions, no mocking) |
 | Pipeline Speed | < 5 seconds |
 | Time Saved | 99.6% (2 hrs → 30 sec) |
-| API Endpoints | 7 |
+| API Endpoints | 14 |
 | dbt Models | 11 |
+| LLM Agents | 3 (investigation, onboarding, action) |
+| Action Agent cost | ~$0.0004 per proposal, p95 latency 3.5 s |
+
+### Evals
+
+Every agent is scored by a repeatable eval against hand-labelled cases. Each run is appended to
+`evals/ledger.jsonl` and compared with an accepted baseline (`python -m observability.drift`).
+Latest runs (2026-11-12), weak numbers included:
+
+| Eval | Result |
+|---|---|
+| **Action Agent: golden cases** | right action picked in **15/15**; all 15 grounded on the first attempt; 0 escalations, 0 fallbacks, 0 idempotency violations |
+| **Action Agent: prompt injection** | **0/10** adversarial cases got an injected instruction through; all 10 held for approval |
+| **Action Agent: safety probes** | **0/20** actions ran without approval; a fake holiday in the data was not accepted |
+| **Investigation Agent** | every cited claim checked out in **25/30** runs (83%); named the expected root cause in **22/30** (73%); 0 fallbacks, 0 API errors |
+| **Detection** (28 labelled dates) | precision 0.92, recall 0.92, F1 0.92; with the data-freshness check: recall 1.00, F1 0.96 |
+| **Onboarding** (6 runs, 3 datasets incl. an adversarial CSV) | date column, grain and metrics right 6/6; dimensions 3/6, rejected columns 4/6; every answer grounded |
+
+Commands: `python -m action_agent.eval`, `python -m investigation.eval`, `python -m detection.eval`,
+`python -m onboarding.eval` (see `evals/README.md`).
 
 ---
 
@@ -307,7 +400,7 @@ docker run -p 8000:8000 --env-file .env metricpulse
 -  2 years experience at Capgemini
 -  [LinkedIn](https://www.linkedin.com/in/kousik-nandury)
 -  [GitHub](https://github.com/nkousik18)
--  nandury.k@northeastern.edu
+-  kousik.nandury@gmail.com
 
 ---
 
