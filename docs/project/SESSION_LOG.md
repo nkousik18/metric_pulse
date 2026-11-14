@@ -5,6 +5,34 @@ See `docs/WORKING_CONVENTIONS.md` for the discipline this file follows.
 
 ---
 
+## 2026-11-13 (redesign done) — U4 and H1 closed; the static site is live
+
+**What happened:** Respawned the Impeccable documenter: `DESIGN.md` + `.impeccable/design.json`
+written from the code at d94d468 (tokens spot-checked against `styles.html`). PR #57 (finish
+fixes, shareable tabs, DESIGN.md) merged. Re-recorded on `main` at ebaba75 (156 files, 6 Groq
+calls, $0.0025) and restored the Pages workflow's push trigger: PR #58 merged. Enabled Pages
+(source: GitHub Actions); the push-triggered run built and deployed. Checked
+https://nkousik18.github.io/metric_pulse/ in Chrome: all four tabs load from recordings, no
+"not recorded" notices, no console errors, no horizontal overflow at 1440 px; the recorded
+investigation replays; the Action Agent walk-through runs approve → approve-with-edits → reject →
+undo to "walk-through is complete". U4 and H1 checked.
+
+**Decisions:** Pages publishes on pushes to `main` touching `demo/`, `templates/` or the workflow
+(the manual-only hold was for the redesign). README's demo line now points at the Pages URL.
+
+**Documenter's notes (not fixed, cosmetic):** `--diverge-mid` unused; inline px in `scripts.html`
+(~lines 85, 657); `.investigation` sets `margin-top` twice in `styles.html`; leftover
+`.nav-tab.opacity-80`; a few inline `style=` margins. The build departs from the direction contract
+in six recorded ways (listed in DESIGN.md's Overview), all from review-round decisions.
+
+**Next:** H2 (Render demo-mode app; Kousik creates the Render account), then H3 (the remaining
+"live on Render" mentions). Optional: a small cleanup PR for the documenter's notes.
+
+**Loose ends:** 3 tracing/telemetry tests fail locally only because `.env` sets
+`LANGSMITH_TRACING=true`; with it false (as in CI) all 401 pass. `brag-output*/` still untracked.
+
+---
+
 ## 2026-11-13 (redesign, U4 in progress) — finish-review fixes committed; DESIGN.md not yet written
 
 **What happened:** On `feat/ui-finish`. The Impeccable finish review ran; its fixes on Overview, the
