@@ -2,7 +2,7 @@
  "data": {
   "alert_status": "dry_run",
   "anomaly_count": 1,
-  "duration_seconds": 0.082069,
+  "duration_seconds": 0.094799,
   "metric": "order_count",
   "pipeline_status": "completed",
   "summary": "Data looks incomplete on 2018-09-03: 1 record vs. a typical 247 (0%). The segment breakdown below is likely an artefact of missing data, not a business change. Order Count decreased 90.9% on 2018-09-03. Primary driver: Credit Card (payment) contributed 100.0% of the change."

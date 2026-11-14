@@ -2,7 +2,7 @@
  "data": {
   "alert_status": null,
   "anomaly_count": 2,
-  "duration_seconds": 0.077459,
+  "duration_seconds": 0.106823,
   "metric": "avg_order_value",
   "pipeline_status": "failed",
   "summary": ""
