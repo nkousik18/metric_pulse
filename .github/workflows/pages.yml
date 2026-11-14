@@ -3,10 +3,12 @@
 # Re-recording is a manual local step (python -m demo.record), committed like any other change.
 name: pages
 
-# Manual only for now: Pages is held until the UI redesign lands (Kousik, 2026-11-12). To publish
-# on every change again, restore:  push: {branches: [main], paths: ['demo/**', 'templates/**',
-# '.github/workflows/pages.yml']}
+# Publishes on a push to main that touches the site, or by hand. (Held manual-only from 2026-11-12
+# until the UI redesign landed; restored 2026-11-13.)
 on:
+  push:
+    branches: [main]
+    paths: ['demo/**', 'templates/**', '.github/workflows/pages.yml']
   workflow_dispatch:
 
 permissions:
